@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: room-food
+    runtime: node
+    buildCommand: cd code && npm install && npm run build
+    startCommand: cd code && npm run serve:ssr:roomFood
+    env: node
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+
