@@ -2,13 +2,11 @@ services:
   - type: web
     name: room-food
     runtime: node
-    buildCommand: cd code && npm ci --include=dev && npm run build:ssr
+    buildCommand: cd code && NPM_CONFIG_PRODUCTION=false npm ci && npm run build:ssr
     startCommand: cd code && npm run serve:ssr:RoomFood
     env: node
     plan: free
     envVars:
-      - key: NODE_ENV
-        value: production
       - key: PORT
         value: 10000
 
