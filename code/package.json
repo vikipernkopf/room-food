@@ -5,6 +5,8 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "build:browser": "ng build --configuration production --output-hashing none --base-href /room-food/",
+    "build:ssr": "ng run roomFood:server:production && ng run roomFood:browser:production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "serve:ssr:roomFood": "node dist/roomFood/server/server.mjs"
