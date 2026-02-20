@@ -12,8 +12,6 @@
     "isolatedModules": true,
     "experimentalDecorators": true,
     "importHelpers": true,
-    "allowImportingTsExtensions": true,
-    "noEmit": true,
     "target": "ES2022",
     "module": "preserve"
   },
