@@ -1,4 +1,4 @@
-import { Unit } from "../src/unit.ts";
+import { Unit } from "../src/unit";
 
 const unit = new Unit(true);
 unit.complete();
