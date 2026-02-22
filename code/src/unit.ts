@@ -79,7 +79,45 @@ class DB {
   }
 
   private static ensureTablesCreated(connection: BetterSqlite3.Database): void {
-    // connection.exec(...);
+    connection.exec(
+      `create table if not exists User
+            (
+                id integer primary key autoincrement,
+                username text not null,
+                password text not null,
+
+                constraint uq_user unique (username)
+
+                ) strict`
+    );
+    connection.exec(
+      `create table if not exists Recipe
+       (
+         id integer primary key autoincrement,
+         name text not null,
+         mealType text not null,
+         authorId integer not null,
+
+         constraint uq_recipe unique (id, authorId),
+         constraint fk_authorId foreign key (authorId) REFERENCES User(id) ON DELETE CASCADE
+
+       ) strict`
+    );
+    connection.exec(
+      `create table if not exists Meal
+            (
+                id integer primary key autoincrement,
+                time text not null,
+                recipeId integer not null,
+                responsibleId integer not null,
+                roomId integer,
+
+                constraint uq_mealtime unique (time),
+                constraint fk_responsibleId foreign key (responsibleId) REFERENCES User(id) ON DELETE CASCADE,
+                constraint fk_recipeId foreign key (recipeId) REFERENCES Recipe(id) ON DELETE CASCADE
+
+                ) strict`
+    );
   }
 }
 
