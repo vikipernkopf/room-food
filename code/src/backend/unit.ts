@@ -1,5 +1,10 @@
 import BetterSqlite3 from 'better-sqlite3';
-const dbFileName = "room-food.db";
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const dbFileName = join(__dirname, '..', '..', 'room-food.db');
 
 export class Unit {
   private readonly db: BetterSqlite3.Database;
