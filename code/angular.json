@@ -21,7 +21,7 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
-            "browser": "src/main.ts",
+            "browser": "src/frontend/main.ts",
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [
@@ -31,12 +31,12 @@
               }
             ],
             "styles": [
-              "src/styles.scss"
+              "src/frontend/styles.scss"
             ],
-            "server": "src/main.server.ts",
+            "server": "src/frontend/main.server.ts",
             "outputMode": "server",
             "ssr": {
-              "entry": "src/server.ts"
+              "entry": "src/backend/server.ts"
             }
           },
           "configurations": {
