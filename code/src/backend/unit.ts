@@ -1,5 +1,5 @@
 import BetterSqlite3 from 'better-sqlite3';
-const dbFileName = "roomfood.db";
+const dbFileName = "room-food.db";
 
 export class Unit {
   private readonly db: BetterSqlite3.Database;

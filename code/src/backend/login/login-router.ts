@@ -1,6 +1,6 @@
 import express from "express";
-import { Unit } from "../../backend/unit";
-import { LoginService } from "../../backend/services/login-service";
+import { Unit } from "../unit";
+import { LoginService } from "./login-service";
 import { StatusCodes } from "http-status-codes";
 
 export const loginRouter = express.Router();

@@ -1,4 +1,4 @@
-import { ITypedStatement, Unit } from "../unit";
+import { ITypedStatement, Unit } from "./unit";
 
 export abstract class ServiceBase {
 
