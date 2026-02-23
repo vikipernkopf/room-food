@@ -12,6 +12,7 @@
     "build:ssr": "ng run roomFood:build:production",
     "backend:build": "npm run build:ssr",
     "backend:start": "node dist/roomFood/server/server.mjs",
+    "start:prod": "npm run backend:build && npm run backend:start",
     "serve:ssr:roomFood": "node dist/roomFood/server/server.mjs",
     "serve:ssr:RoomFood": "npm run serve:ssr:roomFood",
     "backend:serve": "npm run serve:ssr:RoomFood",
