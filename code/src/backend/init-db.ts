@@ -1,4 +1,4 @@
-import { Unit } from "../src/unit";
+import { Unit } from "./unit";
 
 const unit = new Unit(true);
 unit.complete();
