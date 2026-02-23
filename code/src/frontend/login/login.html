@@ -1,0 +1,49 @@
+<section>
+	<header>
+		<h4>
+			Login
+			<i aria-hidden="true"></i>
+		</h4>
+	</header>
+
+	<form [formGroup]="loginForm" (ngSubmit)="onFormSubmit()" autocomplete="off">
+
+		<label for="username">Username</label>
+		<input formControlName="username" id="username" type="text">
+
+		@if (loginForm.get('username')?.touched && loginForm.get('username')?.invalid) {
+			<aside>
+				@if (loginForm.get('username')?.hasError('required')) {
+					<span>Username is required</span>
+				}
+				@if (loginForm.get('username')?.hasError('minlength')) {
+					<span>Username must be at least 3 characters</span>
+				}
+			</aside>
+		}
+
+		<label for="password">Password</label>
+		<input formControlName="password" id="password" type="password" autocomplete="new-password">
+
+		@if (loginForm.get('password')?.touched && loginForm.get('password')?.invalid) {
+			<aside>
+				@if (loginForm.get('password')?.hasError('required')) {
+					<span>Password is required</span>
+				}
+				@if (loginForm.get('password')?.hasError('minlength')) {
+					<span>Too short (min 4 chars)</span>
+				}
+			</aside>
+		}
+
+		<button [disabled]="loginForm.invalid" type="submit">
+			Login
+		</button>
+
+		<nav>
+			<a [routerLink]="['/signup']">Create a new account</a>
+		</nav>
+
+		<hr>
+	</form>
+</section>
