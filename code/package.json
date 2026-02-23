@@ -4,13 +4,19 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
+    "start:frontend": "npm run frontend:dev",
+    "frontend:dev": "ng serve",
+    "frontend:build": "ng build --configuration production --output-hashing none --base-href /room-food/",
     "build": "ng build",
-    "build:browser": "ng build --configuration production --output-hashing none --base-href /room-food/",
+    "build:browser": "npm run frontend:build",
     "build:ssr": "ng run roomFood:build:production",
-    "watch": "ng build --watch --configuration development",
-    "test": "ng test",
+    "backend:build": "npm run build:ssr",
+    "backend:start": "node dist/roomFood/server/server.mjs",
     "serve:ssr:roomFood": "node dist/roomFood/server/server.mjs",
     "serve:ssr:RoomFood": "npm run serve:ssr:roomFood",
+    "backend:serve": "npm run serve:ssr:RoomFood",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test",
     "init-db": "ts-node src/backend/init-db.ts"
   },
   "prettier": {
