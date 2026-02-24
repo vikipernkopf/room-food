@@ -8,7 +8,7 @@ import {AuthService} from '../core/auth-service';
   styleUrl: './homepage.scss',
 })
 
-export class homepage{
+export class Homepage {
 	userName: string = '';
 
 	constructor(private authService: AuthService) {
