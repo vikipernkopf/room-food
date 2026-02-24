@@ -1,129 +1,122 @@
-// Section - Creates the full-height white background container that centers the login form
-section {
-  margin: 0;
-  padding: 0;
-  font-family: Arial, sans-serif;
-  background: white;
-  height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+$color-dark-orange: #c85a04;
+$color-primary-orange: #f2791d;
+$color-peach-glow: #ffd18c;
+$color-text-main: #2d3748;
+$color-label-gray: #4a5568;
+$color-input-bg: #f8fafc;
+$color-shade-gray: #e2e8f0;
+$color-gray: #718096;
+$color-still-gray-but-not-as-gray: #f1f5f9;
+$color-reddish: #e53e3e;
+$color-bluish-gray: #a0aec0;
+
+* {
+	font-family: 'Inter', sans-serif;
 }
 
-// Login Container - Main red form wrapper with padding, rounded corners, and shadow
+section {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	min-height: 100vh;
+	background-color: $color-still-gray-but-not-as-gray;
+}
+
 .login-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 32px;
-  padding: 60px;
-  max-width: 600px;
-  background: #ff9504;
-  border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  // ...existing code...
-  header {
-    margin-bottom: 30px;
+	background: white;
+	padding: 2.5rem;
+	border-radius: 24px;
+	border: 1px solid $color-input-bg;
+	width: 100%;
+	max-width: 400px;
+	box-shadow: 0 10px 25px rgba(0, 0, 0, 0.03);
 
-    // Header h4 - Large white "Login" title with bold font and letter spacing
-    h4 {
-      font-size: 48px;
-      margin: 0;
-      font-weight: bold;
-      letter-spacing: 1px;
-      color: white;
-    }
-  }
+	header {
+		margin-bottom: 2rem;
+		h4 {
+			color: $color-primary-orange;
+			font-size: 1.8rem;
+			font-weight: 800;
+			margin: 0;
+		}
+	}
 
-  // Label - Hidden from view (placeholders used instead)
-  label {
-    display: none;
-  }
+	.field-group {
+		margin-bottom: 1.25rem;
+	}
 
-  // Input - Large text fields with white background, rounded corners, and focus effects
-  input {
-    width: 100%;
-    padding: 20px 16px;
-    font-size: 20px;
-    border: 2px solid #fff;
-    border-radius: 10px;
-    font-family: Arial, sans-serif;
-    transition: border-color 0.3s ease;
-    box-sizing: border-box;
-    background: rgba(255, 255, 255, 0.95);
+	label {
+		display: block;
+		font-weight: 600;
+		color: $color-label-gray;
+		margin-bottom: 0.6rem;
+		font-size: 0.95rem;
+	}
 
-    &:focus {
-      outline: none;
-      border-color: #fff;
-      box-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
-    }
+	input {
+		width: 100%;
+		padding: 1rem 1.2rem;
+		background-color: $color-input-bg;
+		border: 1.5px solid $color-shade-gray;
+		border-radius: 14px;
+		font-size: 1rem;
+		color: $color-text-main;
+		transition: all 0.2s ease;
+		box-sizing: border-box;
 
-    &::placeholder {
-      color: #999;
-      font-size: 20px;
-    }
-  }
+		&::placeholder { color: $color-bluish-gray; }
 
-  // Button - White login button with red text, hover effects, and disabled state styling
-  button {
-    width: 100%;
-    padding: 20px;
-    font-size: 20px;
-    font-weight: bold;
-    color: #ff0000;
-    background-color: white;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    margin-top: 16px;
-    transition: background-color 0.3s ease;
-    box-sizing: border-box;
+		&:focus {
+			outline: none;
+			border-color: $color-primary-orange;
+			background-color: white;
+			box-shadow: 0 0 0 4px rgba($color-peach-glow, 0.5);
+		}
+	}
 
-    &:hover:not(:disabled) {
-      background-color: #f0f0f0;
-    }
+	button {
+		width: 100%;
+		padding: 1.1rem;
+		background-color: $color-primary-orange;
+		color: white;
+		border: none;
+		border-radius: 16px;
+		font-size: 1.1rem;
+		font-weight: 700;
+		cursor: pointer;
+		transition: background-color 0.2s ease, transform 0.1s ease;
+		margin-top: 1rem;
+		box-shadow: 0 4px 12px rgba(242, 121, 29, 0.2);
 
-    &:disabled {
-      background-color: #ccc;
-      cursor: not-allowed;
-      color: #666;
-    }
-  }
+		&:hover:not(:disabled) { background-color: $color-dark-orange; }
+		&:active:not(:disabled) { transform: scale(0.98); }
+		&:disabled {
+			background-color: #cbd5e1;
+			cursor: not-allowed;
+			box-shadow: none;
+		}
+	}
 
-  // Aside - Error message display with white text and spacing
-  aside {
-    color: white;
-    font-size: 16px;
-    margin-top: -16px;
-    width: 100%;
+	aside {
+		margin-top: 0.4rem;
+		span { color: $color-reddish; font-size: 0.85rem; font-weight: 500; }
+	}
 
-    span {
-      display: block;
-      margin-bottom: 8px;
-    }
-  }
+	nav {
+		text-align: center;
+		margin-top: 1.5rem;
+		a {
+			color: $color-gray;
+			text-decoration: none;
+			font-size: 0.9rem;
+			font-weight: 500;
+			&:hover { color: $color-primary-orange; text-decoration: underline; }
+		}
+	}
 
-  // Nav - Link to sign-up page with white text and hover underline
-  nav {
-    margin-top: 16px;
-
-    a {
-      color: white;
-      text-decoration: none;
-      font-size: 18px;
-
-      &:hover {
-        text-decoration: underline;
-      }
-    }
-  }
-
-  // HR - Horizontal divider line with semi-transparent white color
-  hr {
-    width: 100%;
-    margin-top: 24px;
-    border: none;
-    border-top: 1px solid rgba(255, 255, 255, 0.3);
-  }
+	hr {
+		margin: 2rem 0 0.5rem;
+		border: 0;
+		border-top: 1.5px solid $color-still-gray-but-not-as-gray;
+	}
 }

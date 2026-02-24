@@ -1,37 +1,29 @@
 <section>
-
 	<form class="login-container" [formGroup]="loginForm" (ngSubmit)="onFormSubmit()" autocomplete="off">
 		<header>
-			<h4>
-				Login
-				<i aria-hidden="true"></i>
-			</h4>
+			<h4>Login</h4>
 		</header>
-		<input formControlName="username" id="username" type="text" placeholder="Username">
 
-		@if (loginForm.get('username')?.touched && loginForm.get('username')?.invalid) {
-			<aside>
-				@if (loginForm.get('username')?.hasError('required')) {
-					<span>Username is required</span>
-				}
-				@if (loginForm.get('username')?.hasError('minlength')) {
-					<span>Username must be at least 3 characters</span>
-				}
-			</aside>
-		}
+		<div class="field-group">
+			<label for="username">Username</label>
+			<input formControlName="username" id="username" type="text" placeholder="e.g. Alex Johnson">
 
-		<input formControlName="password" id="password" type="password" placeholder="Password" autocomplete="new-password">
+			@if (loginForm.get('username')?.touched && loginForm.get('username')?.invalid) {
+				<aside>
+					@if (loginForm.get('username')?.hasError('required')) {
+						<span>Username is required</span>
+					}
+					@if (loginForm.get('username')?.hasError('pattern')) {
+						<span>No spaces or special characters allowed</span>
+					}
+				</aside>
+			}
+		</div>
 
-		@if (loginForm.get('password')?.touched && loginForm.get('password')?.invalid) {
-			<aside>
-				@if (loginForm.get('password')?.hasError('required')) {
-					<span>Password is required</span>
-				}
-				@if (loginForm.get('password')?.hasError('minlength')) {
-					<span>Too short (min 4 chars)</span>
-				}
-			</aside>
-		}
+		<div class="field-group">
+			<label for="password">Password</label>
+			<input formControlName="password" id="password" type="password" placeholder="Password" autocomplete="new-password">
+		</div>
 
 		<button [disabled]="loginForm.invalid" type="submit">
 			Login
