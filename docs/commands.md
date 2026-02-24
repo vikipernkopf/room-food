@@ -1,0 +1,107 @@
+# Project commands
+
+This file documents the npm scripts defined in `code/package.json` and gives example commands to run the frontend and backend locally.
+
+Notes / defaults
+- Frontend dev server (Angular) default port: 4200
+- API dev server default port: 3001
+- Built SSR server default port: 3000
+- The backend uses the environment variable `SERVE_FRONTEND` to control whether the built server serves the frontend (static files + SSR) or only exposes the API. When `SERVE_FRONTEND=false`, non-API routes return 404.
+
+Scripts (exact names from `code/package.json`)
+
+- `ng`
+  - Alias for the Angular CLI. Use to run Angular CLI subcommands (for example, `npm run ng -- build`).
+
+- `start`
+  - Alias that starts the frontend dev server.
+  - Equivalent to `npm run frontend:dev`.
+  - Example (PowerShell):
+    ```powershell
+    npm run start
+    ```
+
+- `watch`
+  - Builds the frontend in watch mode for development: `ng build --watch --configuration development`.
+
+- `build`
+  - Runs `ng build` (default frontend build).
+
+- `build:ssr`
+  - Builds the Server-Side Rendering (SSR) artifacts for the Angular app (produces the server bundle under `dist/roomFood`).
+  - Internally: `ng run roomFood:build:production`.
+
+- `frontend:build`
+  - Builds the frontend for production with the repository's options:
+    `ng build --configuration production --output-hashing none --base-href /room-food/`.
+  - Use this output to host the static frontend (e.g., GitHub Pages, static hosting).
+
+- `frontend:start`
+  - Runs the Angular dev server (`ng serve`).
+  - Example (PowerShell):
+    ```powershell
+    npm run frontend:start
+    ```
+
+- `frontend`
+  - Runs the production build then starts the frontend dev server:
+    ```powershell
+    npm run frontend:build && npm run frontend:start
+    ```
+  - This script is a convenience that builds the frontend assets and then runs the dev server.
+
+- `backend:build`
+  - Alias for the SSR build: runs `npm run build:ssr` and produces `dist/roomFood`.
+
+- `backend:dev`
+  - Run the API-only backend from source using `tsx` (executes TypeScript directly). Starts the API server which listens on port 3001 by default.
+  - Example:
+    ```powershell
+    npm run backend:dev
+    ```
+
+- `backend:start`
+  - Starts the built server in API-only mode by setting `SERVE_FRONTEND=false` (uses `cross-env` in the script).
+  - Runs the server artifact at `dist/roomFood/server/server.mjs` but disables serving the frontend.
+  - Example (PowerShell):
+    ```powershell
+    npm run backend:start
+    ```
+
+- `backend:start:full`
+  - Starts the built server with frontend serving enabled (SSR + API). Runs `node dist/roomFood/server/server.mjs`.
+  - Example (PowerShell):
+    ```powershell
+    npm run backend:start:full
+    ```
+
+- `backend:full`
+  - Convenience script: build SSR artifacts and then start the full SSR server:
+    `npm run backend:build && npm run backend:start:full`.
+
+- `test`
+  - Runs the Angular unit tests (`ng test`).
+
+- `init-db`
+  - Initializes the database using the TypeScript script:
+    ```powershell
+    npm run init-db
+    # (this runs: npx tsx src/backend/init-db.ts)
+    ```
+
+Deployment hints
+- To deploy the backend as an API-only service (e.g., Render), either:
+  - Use the Start Command: `npm run backend:start` (recommended), or
+  - Set the environment variable `SERVE_FRONTEND=false` in the service settings and run the built server normally.
+
+- To split frontend and backend into two services:
+  - Build the frontend (`npm run frontend:build`) and deploy the browser output as a static site.
+  - Deploy the backend using `npm run backend:start` (API-only) or `npm run backend:start:full` for SSR+API.
+
+Troubleshooting
+- If `/login` or other frontend routes appear while you expected only the API, double-check which script you ran. The SSR server (`backend:start:full`) serves frontend routes; `backend:start` disables serving them.
+- If `backend:start` fails on Windows because of differences in environment variable handling, `cross-env` is included in devDependencies so the script should be cross-platform.
+
+If you'd like, I can:
+- Fix the `frontend` script typo in `code/package.json` and run a quick smoke test to confirm it works.
+- Clean up or reorder scripts in `code/package.json` to match the commands documented here (remove unused scripts, group logical subsets).
