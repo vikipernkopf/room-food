@@ -1,1 +1,56 @@
-<p>signup works!</p>
+<section>
+	<form class="login-container" [formGroup]="signUpForm" (ngSubmit)="onFormSubmit()" autocomplete="off">
+		<header>
+			<h4>
+				Sign up
+			</h4>
+		</header>
+
+		<div class="field-group">
+			<label for="username">Username</label>
+			<input formControlName="username" id="username" type="text" placeholder="e.g. Alex Johnson">
+
+			@if (signUpForm.get('username')?.touched && signUpForm.get('username')?.invalid) {
+				<aside>
+					@if (signUpForm.get('username')?.hasError('required')) {
+						<span>Username is required</span>
+					}
+					@if (signUpForm.get('username')?.hasError('pattern')) {
+						<span>No spaces or special characters allowed</span>
+					}
+				</aside>
+			}
+		</div>
+
+		<div class="field-group">
+			<label for="password">Password</label>
+			<input formControlName="password" id="password" type="password" placeholder="Password" autocomplete="new-password">
+			@if (signUpForm.get('password')?.touched && signUpForm.get('password')?.invalid) {
+				<aside>
+					@if (signUpForm.get('password')?.hasError('required')) {
+						<span>Password is required</span>
+					}
+					@if (signUpForm.get('password')?.hasError('minlength')) {
+						<span>Password must be at least 8 characters</span>
+					}
+					@if (signUpForm.get('password')?.hasError('pattern')) {
+						<span>Password must contain at least one number and one special character (!@#$%^&*)</span>
+					}
+				</aside>
+			}
+		</div>
+
+		<div class="error-msg">
+			<span>{{ signUpError() }}</span>
+		</div>
+
+		<button [disabled]="signUpForm.invalid" type="submit">
+			Sign up
+		</button>
+
+		<nav>
+			<a [routerLink]="['/login-sign-up']">Already have an account?</a>
+		</nav>
+		<hr>
+	</form>
+</section>

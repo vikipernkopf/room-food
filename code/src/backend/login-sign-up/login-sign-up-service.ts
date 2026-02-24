@@ -3,7 +3,7 @@ import { Unit } from "../unit";
 import {User} from '../model';
 
 
-export class LoginService extends ServiceBase {
+export class LoginSignUpService extends ServiceBase {
   constructor(unit: Unit) {
     super(unit);
   }
@@ -145,7 +145,7 @@ export class LoginService extends ServiceBase {
   }
 
   /**
-   * Check if a login attempt is successful
+   * Check if a login-sign-up attempt is successful
    *
    * @param username - username of the user to check
    * @param password - username of the user to check

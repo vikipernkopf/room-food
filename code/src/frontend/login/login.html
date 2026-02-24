@@ -1,7 +1,7 @@
 <section>
 	<form class="login-container" [formGroup]="loginForm" (ngSubmit)="onFormSubmit()" autocomplete="off">
 		<header>
-			<h4>Login</h4>
+			<h4>Log in</h4>
 		</header>
 
 		<div class="field-group">
@@ -13,20 +13,20 @@
 					@if (loginForm.get('username')?.hasError('required')) {
 						<span>Username is required</span>
 					}
-					@if (loginForm.get('username')?.hasError('pattern')) {
-						<span>No spaces or special characters allowed</span>
-					}
 				</aside>
 			}
 		</div>
-
 		<div class="field-group">
 			<label for="password">Password</label>
 			<input formControlName="password" id="password" type="password" placeholder="Password" autocomplete="new-password">
 		</div>
 
+		<div class="error-msg">
+			<span>{{ loginError() }}</span>
+		</div>
+
 		<button [disabled]="loginForm.invalid" type="submit">
-			Login
+			Log in
 		</button>
 
 		<nav>

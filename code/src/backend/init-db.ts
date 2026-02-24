@@ -1,7 +1,7 @@
 import { Unit } from "./unit.js";
 import express from 'express';
 import cors from 'cors';
-import {loginRouter} from './login/login-router';
+import {loginSignUpRouter} from './login-sign-up/login-sign-up-router';
 
 const unit = new Unit(true);
 unit.complete();
@@ -16,7 +16,7 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 
-app.use("/api",loginRouter)
+app.use("/api",loginSignUpRouter)
 app.listen(PORT, () => {
 	console.log(`Backend server running at http://localhost:${PORT}`);
 });

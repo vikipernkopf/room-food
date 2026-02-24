@@ -1,11 +1,11 @@
-import { Component, signal, ChangeDetectionStrategy } from '@angular/core';
+import {Component, signal, ChangeDetectionStrategy, WritableSignal} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../core/auth-service';
 
 @Component({
-	selector: 'app-login',
+	selector: 'app-login-sign-up',
 	standalone: true,
 	imports: [CommonModule, RouterLink, ReactiveFormsModule],
 	templateUrl: './login.html',
@@ -16,16 +16,16 @@ import { AuthService } from '../core/auth-service';
 export class Login {
 	// Form controls using FormGroup
 	loginForm = new FormGroup({
-		username: new FormControl('', [Validators.required,
-			Validators.pattern('^[a-zA-Z0-9]*$')]),
+		username: new FormControl('', [Validators.required]),
 		password: new FormControl('', [Validators.required])
 	});
+	public loginError: WritableSignal<String>= signal('');
 
 	constructor(private authService: AuthService) {}
 	onFormSubmit() {
 		if (this.loginForm.valid) {
-			// Pass the form values (username and password) to your service
 			this.authService.login(this.loginForm.value);
+			this.loginError = this.authService.loginError;
 		} else {
 			console.log('Form is invalid');
 		}
