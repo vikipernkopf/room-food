@@ -1,5 +1,5 @@
+@base = http://localhost:3000
 ### GET request to example server
-GET https://examples.http-client.intellij.net/get
-    ?generated-in=WebStorm
+GET {{base}}/login/all
 
 ###

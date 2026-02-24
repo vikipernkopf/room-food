@@ -2,9 +2,6 @@ import BetterSqlite3 from 'better-sqlite3';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const dbFileName = join(__dirname, '..', '..', 'room-food.db');
 
 export class Unit {
   private readonly db: BetterSqlite3.Database;
@@ -54,6 +51,7 @@ export class Unit {
 
 class DB {
   public static createDBConnection(): BetterSqlite3.Database {
+    const dbFileName = join(process.cwd(), 'room-food.db');
     const db = new BetterSqlite3(dbFileName, {
       fileMustExist: false,
       verbose: (s: unknown) => DB.logStatement(s)

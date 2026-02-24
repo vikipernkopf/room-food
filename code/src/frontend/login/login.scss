@@ -1,0 +1,129 @@
+// Section - Creates the full-height white background container that centers the login form
+section {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  background: white;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// Login Container - Main red form wrapper with padding, rounded corners, and shadow
+.login-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  padding: 60px;
+  max-width: 600px;
+  background: #ff9504;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  // ...existing code...
+  header {
+    margin-bottom: 30px;
+
+    // Header h4 - Large white "Login" title with bold font and letter spacing
+    h4 {
+      font-size: 48px;
+      margin: 0;
+      font-weight: bold;
+      letter-spacing: 1px;
+      color: white;
+    }
+  }
+
+  // Label - Hidden from view (placeholders used instead)
+  label {
+    display: none;
+  }
+
+  // Input - Large text fields with white background, rounded corners, and focus effects
+  input {
+    width: 100%;
+    padding: 20px 16px;
+    font-size: 20px;
+    border: 2px solid #fff;
+    border-radius: 10px;
+    font-family: Arial, sans-serif;
+    transition: border-color 0.3s ease;
+    box-sizing: border-box;
+    background: rgba(255, 255, 255, 0.95);
+
+    &:focus {
+      outline: none;
+      border-color: #fff;
+      box-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
+    }
+
+    &::placeholder {
+      color: #999;
+      font-size: 20px;
+    }
+  }
+
+  // Button - White login button with red text, hover effects, and disabled state styling
+  button {
+    width: 100%;
+    padding: 20px;
+    font-size: 20px;
+    font-weight: bold;
+    color: #ff0000;
+    background-color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-top: 16px;
+    transition: background-color 0.3s ease;
+    box-sizing: border-box;
+
+    &:hover:not(:disabled) {
+      background-color: #f0f0f0;
+    }
+
+    &:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+      color: #666;
+    }
+  }
+
+  // Aside - Error message display with white text and spacing
+  aside {
+    color: white;
+    font-size: 16px;
+    margin-top: -16px;
+    width: 100%;
+
+    span {
+      display: block;
+      margin-bottom: 8px;
+    }
+  }
+
+  // Nav - Link to sign-up page with white text and hover underline
+  nav {
+    margin-top: 16px;
+
+    a {
+      color: white;
+      text-decoration: none;
+      font-size: 18px;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  // HR - Horizontal divider line with semi-transparent white color
+  hr {
+    width: 100%;
+    margin-top: 24px;
+    border: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.3);
+  }
+}

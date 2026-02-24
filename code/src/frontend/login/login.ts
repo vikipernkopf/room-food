@@ -2,6 +2,7 @@ import { Component, signal, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { AuthService } from '../core/auth-service';
 
 @Component({
 	selector: 'app-login',
@@ -19,10 +20,13 @@ export class Login {
 		password: new FormControl('', [Validators.required, Validators.minLength(4)])
 	});
 
+	constructor(private authService: AuthService) {}
 	onFormSubmit() {
 		if (this.loginForm.valid) {
-			console.log('Login successful:', this.loginForm.value);
-
+			// Pass the form values (username and password) to your service
+			this.authService.login(this.loginForm.value);
+		} else {
+			console.log('Form is invalid');
 		}
 	}
 }
