@@ -23,7 +23,7 @@ jobs:
 
       - name: Build (browser)
         working-directory: ./code
-        run: npm run build:browser
+        run: npm run frontend:build
 
       - name: Run tests
         working-directory: ./code
