@@ -5,6 +5,22 @@ import { StatusCodes } from "http-status-codes";
 
 export const loginSignUpRouter = express.Router();
 
+// Admin endpoint to list users (returns usernames only). No token required per request.
+loginSignUpRouter.get('/admin/users', (req, res) => {
+	const unit = new Unit(true);
+	try {
+		const svc = new LoginSignUpService(unit);
+		const users = svc.getAllUsers();
+		const result = (users || []).map(u => ({ username: u.username }));
+		unit.complete();
+		return res.status(StatusCodes.OK).json(result);
+	} catch (e) {
+		console.error(e);
+		try { unit.complete(false); } catch {}
+		return res.sendStatus(StatusCodes.INTERNAL_SERVER_ERROR);
+	}
+});
+
 loginSignUpRouter.post('/login', (req, res) => {
 	const {username, password} = req.body;
 	const unit = new Unit(false);
