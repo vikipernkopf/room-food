@@ -1,12 +1,12 @@
 import express from 'express';
-import { loginRouter } from './login/login-router';
+import { loginSignUpRouter } from './login-sign-up/login-sign-up-router';
 
 const app = express();
 app.use(express.json());
 
 app.get('/_health', (_req, res) => res.json({ ok: true }));
 
-app.use('/api/login', loginRouter);
+app.use('/api/login-sign-up', loginSignUpRouter);
 
 app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error(err);

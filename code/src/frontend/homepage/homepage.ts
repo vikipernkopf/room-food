@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import {Component, signal, WritableSignal} from '@angular/core';
 import {AuthService} from '../core/auth-service';
 
 @Component({
@@ -9,10 +9,9 @@ import {AuthService} from '../core/auth-service';
 })
 
 export class Homepage {
-	userName: string = '';
-
+	public readonly username: WritableSignal<string> = signal("");
 	constructor(private authService: AuthService) {
 		const user = this.authService.getCurrentUser();
-		this.userName = user ? user.username : 'Guest';
+		this.username.set(user ? user.username : "Guest");
 	}
 }

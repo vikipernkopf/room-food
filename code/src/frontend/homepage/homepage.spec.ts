@@ -1,6 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { Homepage } from './homepage';
+import {provideHttpClientTesting} from '@angular/common/http/testing';
+import {provideRouter} from '@angular/router';
+import {provideLocationMocks} from '@angular/common/testing';
 
 describe('Homepage', () => {
   let component: Homepage;
@@ -8,7 +11,12 @@ describe('Homepage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Homepage]
+      imports: [Homepage],
+	  providers: [
+		provideHttpClientTesting(),
+		provideRouter([]),
+		provideLocationMocks()
+	  ]
     })
     .compileComponents();
 

@@ -9,7 +9,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
 import cors from 'cors';
-import { loginRouter } from './login/login-router';
+import { loginSignUpRouter } from './login-sign-up/login-sign-up-router';
 
 if (typeof globalThis.__filename === 'undefined') {
   globalThis.__filename = fileURLToPath(import.meta.url);
@@ -27,7 +27,7 @@ const angularApp = new AngularNodeAppEngine();
 app.use(cors());
 app.use(express.json());
 
-app.use("/api", loginRouter);
+app.use("/api", loginSignUpRouter);
 
 app.use(
   express.static(browserDistFolder, {
