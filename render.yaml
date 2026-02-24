@@ -1,9 +1,15 @@
 services:
+  - type: static_site
+    name: room-food-frontend
+    buildCommand: cd code && NPM_CONFIG_PRODUCTION=false npm ci && npm run frontend:build
+    publishPath: code/dist/roomFood/browser
+    plan: free
+
   - type: web
-    name: room-food
+    name: room-food-backend
     runtime: node
-    buildCommand: cd code && NPM_CONFIG_PRODUCTION=false npm ci && npm run build:ssr
-    startCommand: cd code && npm run serve:ssr:RoomFood
+    buildCommand: cd code && NPM_CONFIG_PRODUCTION=false npm ci && npm run backend:build
+    startCommand: cd code && npm run backend:start
     env: node
     plan: free
     envVars:

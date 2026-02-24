@@ -42,3 +42,10 @@ logs/
 *.sublime-workspace
 .DS_Store
 Thumbs.db
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+/code/database/*.db
+/code/server/database/*.db
