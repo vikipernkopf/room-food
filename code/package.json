@@ -7,8 +7,8 @@
 		"watch": "ng build --watch --configuration development",
 		"build": "ng build",
 		"build:ssr": "ng run roomFood:build:production",
-		"frontend:build": "ng build --configuration production --output-hashing none --base-href /room-food/",
-		"frontend:start": "ng serve",
+		"frontend:build": "ng build --configuration production --output-hashing none --base-href /room-food/ && node scripts/postprocess-index.js",
+		"frontend:start": "ng serve --proxy-config proxy.conf.json",
 		"frontend": "npm run frontend:build && npm run frontend:start",
 		"backend:build": "npm run build:ssr",
 		"backend:dev": "npx tsx src/backend/api-server.ts",
@@ -44,6 +44,7 @@
 		"better-sqlite3": "^12.6.2",
 		"express": "^5.1.0",
 		"http-status-codes": "^2.3.0",
+		"node-fetch": "^3.3.2",
 		"rxjs": "~7.8.0",
 		"tslib": "^2.3.0"
 	},

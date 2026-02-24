@@ -1,5 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: '/api'
+  apiUrl: 'https://roomfood-backend.black2.cf/api'
 };
-

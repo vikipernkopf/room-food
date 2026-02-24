@@ -32,8 +32,15 @@ Scripts (exact names from `code/package.json`)
   - Internally: `ng run roomFood:build:production`.
 
 - `frontend:build`
-  - Builds the frontend for production with the repository's options:
-    `ng build --configuration production --output-hashing none --base-href /room-food/`.
+  - Builds the frontend for production with the repository's options and then post-processes the generated `index.csr.html` to produce two ready-to-deploy index files:
+    ```text
+    ng build --configuration production --output-hashing none --base-href /room-food/ && node scripts/postprocess-index.js
+    ```
+  - The postprocess script lives at `code/scripts/postprocess-index.js`.
+  - Output (in `dist/roomFood/browser`):
+    - `index.csr.html` (original build output)
+    - `index.room-food.html` (base href set to `/room-food/`) — use when deploying the app under the `/room-food/` path.
+    - `index.html` (base href set to `/` and asset links adjusted to be relative) — use when deploying the app at the site root.
   - Use this output to host the static frontend (e.g., GitHub Pages, static hosting).
 
 - `frontend:start`
@@ -89,6 +96,37 @@ Scripts (exact names from `code/package.json`)
     # (this runs: npx tsx src/backend/init-db.ts)
     ```
 
+## Configuring the backend URL
+
+The frontend uses `environment.apiUrl` to determine where to send API requests. By default:
+
+- Local development (`src/environments/environment.ts`) currently points to `http://localhost:4200/api`.
+- Production (`src/environments/environment.prod.ts`) is configured to `https://roomfood-backend.black2.cf/api` so the deployed frontend will call your hosted backend.
+
+If you want to test the hosted backend locally, change `src/environments/environment.ts` to:
+
+```ts
+export const environment = {
+  production: false,
+  apiUrl: 'https://roomfood-backend.black2.cf/api'
+};
+```
+
+Alternatively, during development you can keep `environment.ts` pointing to a local API and use the Angular CLI proxy configuration (`code/proxy.conf.json`) to forward `/api` calls to your backend.
+
+## Index files produced by `frontend:build`
+
+After running `npm run frontend:build` the following files will be present in `dist/roomFood/browser`:
+
+- `index.csr.html` — the original build output (base href `/room-food/`).
+- `index.room-food.html` — explicitly set to base href `/room-food/` (same behavior as the original build).
+- `index.html` — modified to use base href `/` and with asset paths adjusted to be relative so the site can be served from the domain root.
+
+Deployment notes
+- If you deploy the `browser` folder to a host at the domain root (https://example.com/), use `index.html`.
+- If you deploy under a sub-path `/room-food/` (https://example.com/room-food/), use `index.room-food.html` or `index.csr.html`.
+- Some static hosts let you pick a custom index file name — configure it to point to `index.room-food.html` when serving at `/room-food/`.
+
 Deployment hints
 - To deploy the backend as an API-only service (e.g., Render), either:
   - Use the Start Command: `npm run backend:start` (recommended), or
@@ -102,6 +140,18 @@ Troubleshooting
 - If `/login` or other frontend routes appear while you expected only the API, double-check which script you ran. The SSR server (`backend:start:full`) serves frontend routes; `backend:start` disables serving them.
 - If `backend:start` fails on Windows because of differences in environment variable handling, `cross-env` is included in devDependencies so the script should be cross-platform.
 
-If you'd like, I can:
-- Fix the `frontend` script typo in `code/package.json` and run a quick smoke test to confirm it works.
-- Clean up or reorder scripts in `code/package.json` to match the commands documented here (remove unused scripts, group logical subsets).
+## Runtime API URL override (no rebuild needed)
+
+If you want the deployed static frontend to point at a remote backend without rebuilding the app, you can inject the API base URL at runtime by adding a small script in your `index.html` before the main bundle is loaded.
+
+Example (add to the `<head>` of `index.html` or before the `<script src="./main.js">` tag):
+
+```html
+<script>
+  // Set the remote API base URL for the frontend to use at runtime
+  // Replace the value with your backend's URL (no trailing slash):
+  window.__API_URL = 'https://roomfood-backend.black2.cf/api';
+</script>
+```
+
+With the `AuthService` changes, the frontend will pick up `window.__API_URL` if present and send all `/login` and `/signup` requests to that URL. This avoids rebuilding the frontend when you change the backend location.
