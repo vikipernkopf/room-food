@@ -18,7 +18,7 @@
 		"backend:serve": "npm run serve:ssr:RoomFood",
 		"watch": "ng build --watch --configuration development",
 		"test": "ng test",
-		"init-db": "ts-node src/backend/init-db.ts"
+		"init-db": "npx tsx src/backend/init-db.ts"
 	},
 	"prettier": {
 		"printWidth": 100,

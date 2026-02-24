@@ -25,6 +25,7 @@
 						"browser": "src/frontend/main.ts",
 						"tsConfig": "tsconfig.app.json",
 						"inlineStyleLanguage": "scss",
+						"externalDependencies": ["better-sqlite3"],
 						"assets": [
 							{
 								"glob": "**/*",
