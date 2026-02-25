@@ -1,2 +1,12 @@
 <p>Welcome back {{username()}}</p>
 <p>Start Eating!!!!!</p>
+
+<div class="action-container">
+	<button (click)="togglePopup()">
+		Add Meal
+	</button>
+
+	@if (isPopupVisible) {
+		<app-add-meal class="popup-right" (close)="isPopupVisible = false"></app-add-meal>
+	}
+</div>

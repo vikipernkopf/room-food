@@ -1,0 +1,14 @@
+.action-container {
+	position: relative;
+	display: inline-block;
+	vertical-align: top;
+
+	.popup-right {
+		position: absolute;
+		left: 100%;
+		margin-left: 10px;
+		top: 0;
+		z-index: 100;
+		white-space: nowrap;
+	}
+}

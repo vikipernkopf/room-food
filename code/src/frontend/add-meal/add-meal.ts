@@ -8,22 +8,18 @@ import {MatTimepickerModule} from '@angular/material/timepicker';
 import {MatIconModule} from '@angular/material/icon';
 import {MatButtonModule} from '@angular/material/button';
 import {provideNativeDateAdapter} from '@angular/material/core';
-import {MealService} from '../../backend/meal/meal-service';
 
 interface MealType {
 	value: string;
 	viewValue: string;
 }
 
-export const MY_DATE_FORMATS = {
-	parse: { dateInput: 'DD/MM/YYYY' },
-	display: {
-		dateInput: 'DD/MM/YYYY',
-		monthYearLabel: 'MMM YYYY',
-		dateA11yLabel: 'LL',
-		monthYearA11yLabel: 'MMMM YYYY',
-	},
-};
+export interface Meal {
+	dish: string;
+	mealType: string;
+	date: Date;
+	time: string;
+}
 
 @Component({
 	selector: 'app-add-meal',
@@ -43,8 +39,6 @@ export const MY_DATE_FORMATS = {
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AddMeal {
-	constructor(private mealService: MealService) {}
-
 	@Output() close = new EventEmitter<void>();
 
 	closePopup() {
@@ -52,46 +46,27 @@ export class AddMeal {
 	}
 
 	dish: string = '';
-	selectedValue: string = '';
-	selectedDate: any;
-	selectedTime: any;
+	selectedValue!: string;
+	selectedMealType = '';
+	selectedDate!: Date;
+	selectedTime!: Date;
 	showError: boolean = false;
 
 	mealTypes: MealType[] = [
-		{value: 'breakfast', viewValue: 'Breakfast'},
-		{value: 'lunch', viewValue: 'Lunch'},
-		{value: 'dinner', viewValue: 'Dinner'}
+		{value: 'breakfast-0', viewValue: 'Breakfast'},
+		{value: 'lunch-1', viewValue: 'Lunch'},
+		{value: 'dinner-2', viewValue: 'Dinner'},
+		{value: 'snack-3', viewValue: 'Snack'},
 	];
 
 	saveMeal() {
-		if (this.dish && this.selectedValue && this.selectedDate && this.selectedTime) {
+		// 2. Check if all fields have values
+		if (this.selectedValue && this.selectedDate && this.selectedTime) {
 			this.showError = false;
-
-			const dateObj = new Date(this.selectedDate);
-			const timeObj = new Date(this.selectedTime);
-			dateObj.setHours(timeObj.getHours());
-			dateObj.setMinutes(timeObj.getMinutes());
-
-			const combinedDateTime = dateObj.toLocaleString('sv-SE').substring(0, 16);
-			const currentUser = "CurrentUsername";
-
-			const mealForBackend: any = {
-				time: combinedDateTime,
-				recipeId: Number(this.dish),
-				responsible: currentUser,
-				room: currentUser
-			};
-
-			const result = this.mealService.addMeal(mealForBackend, currentUser);
-
-			if (result === true) {
-				console.log("Success!");
-				this.closePopup();
-			} else {
-				console.error("Database error:", result);
-			}
-
+			console.log('Saved:', this.selectedValue, this.selectedDate, this.selectedTime);
+			this.closePopup();
 		} else {
+			// 3. Show the red text if something is missing
 			this.showError = true;
 		}
 	}
