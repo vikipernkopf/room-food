@@ -96,7 +96,8 @@ class DB {
     connection.exec(
       `create table if not exists Recipe
        (
-         id integer primary key autoincrement,
+         id integer PRIMARY KEY
+			 DEFAULT (abs(random()) % 90000000 + 10000000),
          name text not null,
          mealType text not null,
          authorId integer not null,
@@ -112,11 +113,11 @@ class DB {
                 id integer primary key autoincrement,
                 time text not null,
                 recipeId integer not null,
-                responsibleId integer not null,
-                roomId integer,
+                responsible text not null,
+                roomCode text not null,
 
                 constraint uq_mealtime unique (time),
-                constraint fk_responsibleId foreign key (responsibleId) REFERENCES User(id) ON DELETE CASCADE,
+                constraint fk_responsible foreign key (responsible) REFERENCES User(username) ON DELETE CASCADE,
                 constraint fk_recipeId foreign key (recipeId) REFERENCES Recipe(id) ON DELETE CASCADE
 
                 ) strict`
