@@ -100,10 +100,10 @@ class DB {
 			 DEFAULT (abs(random()) % 90000000 + 10000000),
          name text not null,
          mealType text not null,
-         authorId integer not null,
+         author integer not null,
 
-         constraint uq_recipe unique (id, authorId),
-         constraint fk_authorId foreign key (authorId) REFERENCES User(id) ON DELETE CASCADE
+         constraint uq_recipe unique (id, author),
+         constraint fk_author foreign key (author) REFERENCES User(username) ON DELETE CASCADE
 
        ) strict`
     );
@@ -112,16 +112,15 @@ class DB {
             (
                 id integer primary key autoincrement,
                 time text not null,
-                recipeId integer not null,
-                responsible text not null,
+				name text,
+                responsible text,
                 roomCode text not null,
 
                 constraint uq_mealtime unique (time),
-                constraint fk_responsible foreign key (responsible) REFERENCES User(username) ON DELETE CASCADE,
-                constraint fk_recipeId foreign key (recipeId) REFERENCES Recipe(id) ON DELETE CASCADE
+                constraint fk_responsible foreign key (responsible) REFERENCES User(username) ON DELETE CASCADE
 
                 ) strict`
-    );
+    ); //!!!!!!!!!!! add a recipeId foreign key instead of name
   }
 }
 

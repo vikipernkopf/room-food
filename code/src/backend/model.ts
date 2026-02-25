@@ -16,7 +16,7 @@ export type Recipe = {
 
 export type Meal = {
 	time:Date,
-	recipeId:number,
+	name:string,
 	room:string,
 	responsible:string
 }

@@ -1,0 +1,19 @@
+.action-container {
+	position: relative;
+	display: inline-block; // Or inline-flex, as long as it hugs the button
+	vertical-align: top;   // Keeps the button itself aligned with surrounding text
+
+	.popup-right {
+		position: absolute;
+
+		// Horizontal positioning:
+		left: 100%;          // Start where the button ends
+		margin-left: 10px;   // Gap between button and popup
+
+		// Vertical positioning:
+		top: 0;              // Aligns the top of the popup to the top of the container
+
+		z-index: 100;
+		white-space: nowrap;
+	}
+}

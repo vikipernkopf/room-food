@@ -1,0 +1,9 @@
+<div class="action-container">
+	<button (click)="togglePopup()">
+		Click Me
+	</button>
+
+	@if (isPopupVisible) {
+		<app-pop-up class="popup-right"></app-pop-up>
+	}
+</div>
