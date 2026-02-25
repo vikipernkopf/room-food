@@ -26,6 +26,7 @@ export class AuthService {
 			next: (user) => {
 				this.currentUser = user;
 				console.log('Login successful for:', user);
+				this.loginError.set('');
 				this.router.navigate(['/homepage']);
 			},
 			error: (err) => {
@@ -43,13 +44,14 @@ export class AuthService {
 			next: (user) => {
 				this.currentUser = user;
 				console.log('Sign up successful for:', user);
+				this.signUpError.set('');
 				this.router.navigate(['/homepage']);
 			},
 			error: (err) => {
 				if (err.status === 409) {
-					this.loginError.set('User exists already');
+					this.signUpError.set('User exists already');
 				} else {
-					this.loginError.set('Server error, try again later');
+					this.signUpError.set('Server error, try again later');
 				}
 			}
 		});
