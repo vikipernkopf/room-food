@@ -1,9 +1,8 @@
+// TypeScript
 import express from 'express';
 import { loginSignUpRouter } from './login-sign-up/login-sign-up-router';
-import { fileURLToPath } from 'node:url';
 
 declare global {
-	// ambient `var` must use a union with undefined rather than `?:`
 	var __roomFoodServerStarted: boolean | undefined;
 }
 
@@ -58,8 +57,7 @@ export function startServer() {
 	return server;
 }
 
-// If this file is executed directly, start the API-only server
-const isMain = process.argv[1] === fileURLToPath(import.meta.url);
-if (isMain) startServer();
+// NOTE: removed automatic startup when imported. Call `startServer()` explicitly
+// from your main process (or mount `createApiApp()` into your SSR/combined server).
 
 export default createApiApp;
