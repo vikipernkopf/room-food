@@ -27,10 +27,13 @@ loginSignUpRouter.post('/login', (req, res) => {
 	try {
 		const loginService = new LoginSignUpService(unit);
 		const user = loginService.getUserByUsername(username);
-		if(!user || !loginService.checkLoginAttempt(username, password)) {
+		const check = loginService.checkLoginAttempt(username, password);
+
+		if (check !== true) {
 			unit.complete(false);
 			res.sendStatus(StatusCodes.UNAUTHORIZED);
 		}
+
 		unit.complete(true);
 		res.status(StatusCodes.OK).json(user?.username);
 	} catch (e) {
