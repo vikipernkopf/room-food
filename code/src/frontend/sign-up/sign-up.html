@@ -10,34 +10,20 @@
 			<label for="username">Username</label>
 			<input formControlName="username" id="username" type="text" placeholder="e.g. Alex Johnson">
 
-			@if (signUpForm.get('username')?.touched && signUpForm.get('username')?.invalid) {
-				<aside>
-					@if (signUpForm.get('username')?.hasError('required')) {
-						<span>Username is required</span>
-					}
-					@if (signUpForm.get('username')?.hasError('pattern')) {
-						<span>No spaces or special characters allowed</span>
-					}
-				</aside>
-			}
+			<aside *ngIf="signUpForm.get('username')?.touched && signUpForm.get('username')?.invalid">
+				<span *ngIf="signUpForm.get('username')?.hasError('required')">Username is required</span>
+				<span *ngIf="signUpForm.get('username')?.hasError('pattern')">No spaces or special characters allowed</span>
+			</aside>
 		</div>
 
 		<div class="field-group">
 			<label for="password">Password</label>
 			<input formControlName="password" id="password" type="password" placeholder="Password" autocomplete="new-password">
-			@if (signUpForm.get('password')?.touched && signUpForm.get('password')?.invalid) {
-				<aside>
-					@if (signUpForm.get('password')?.hasError('required')) {
-						<span>Password is required</span>
-					}
-					@if (signUpForm.get('password')?.hasError('minlength')) {
-						<span>Password must be at least 8 characters</span>
-					}
-					@if (signUpForm.get('password')?.hasError('pattern')) {
-						<span>Password must contain at least one number and one special character (!@#$%^&*)</span>
-					}
-				</aside>
-			}
+			<aside *ngIf="signUpForm.get('password')?.touched && signUpForm.get('password')?.invalid">
+				<span *ngIf="signUpForm.get('password')?.hasError('required')">Password is required</span>
+				<span *ngIf="signUpForm.get('password')?.hasError('minlength')">Password must be at least 8 characters</span>
+				<span *ngIf="signUpForm.get('password')?.hasError('pattern')">Password must contain at least one number and one special character (!&#64;#$%^&*)</span>
+			</aside>
 		</div>
 
 		<div class="error-msg">

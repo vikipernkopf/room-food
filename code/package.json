@@ -3,7 +3,7 @@
 	"version": "0.0.0",
 	"scripts": {
 		"ng": "ng",
-		"start": "npm run frontend:dev",
+		"start": "npm run frontend:start",
 		"watch": "ng build --watch --configuration development",
 		"build": "ng build",
 		"build:ssr": "ng run roomFood:build:production",
@@ -12,7 +12,7 @@
 		"frontend:start": "ng serve --proxy-config proxy.conf.json",
 		"frontend": "npm run frontend:build && npm run frontend:start",
 		"backend:build": "npm run build:ssr",
-		"backend:dev": "npx tsx src/backend/api-server.ts",
+		"backend:dev": "npx tsx src/backend/start-api.ts",
 		"backend:start": "cross-env SERVE_FRONTEND=false node dist/roomFood/server/server.mjs",
 		"backend:start:full": "node dist/roomFood/server/server.mjs",
 		"backend:full": "npm run backend:build && npm run backend:start:full",

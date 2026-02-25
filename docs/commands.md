@@ -8,6 +8,11 @@ Notes / defaults
 - Built SSR server default port: 3000
 - The backend uses the environment variable `SERVE_FRONTEND` to control whether the built server serves the frontend (static files + SSR) or only exposes the API. When `SERVE_FRONTEND=false`, non-API routes return 404.
 
+Important change (source-run behavior)
+- The file `code/src/backend/api-server.ts` no longer calls `listen()` on import. Instead it exports `createApiApp()` and `startServer()`.
+- Any npm script that expects importing the module to start the API must call `startServer()` explicitly. A tiny wrapper has been added to support running TypeScript directly in development:
+  - `code/src/backend/start-api.ts` — imports and calls `startServer()` so you can run the API with `npx tsx src/backend/start-api.ts`.
+
 Scripts (exact names from `code/package.json`)
 
 - `ng`
@@ -15,7 +20,7 @@ Scripts (exact names from `code/package.json`)
 
 - `start`
   - Alias that starts the frontend dev server.
-  - Equivalent to `npm run frontend:dev`.
+  - Equivalent to `npm run frontend:start`.
   - Example (PowerShell):
     ```powershell
     npm run start
@@ -62,9 +67,11 @@ Scripts (exact names from `code/package.json`)
 
 - `backend:dev`
   - Run the API-only backend from source using `tsx` (executes TypeScript directly). Starts the API server which listens on port 3001 by default.
+  - Important: this now runs the tiny wrapper that calls `startServer()` instead of importing a module that auto-starts.
   - Example:
     ```powershell
     npm run backend:dev
+    # (runs: npx tsx src/backend/start-api.ts)
     ```
 
 - `backend:start`
