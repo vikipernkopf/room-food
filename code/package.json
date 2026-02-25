@@ -7,6 +7,7 @@
 		"watch": "ng build --watch --configuration development",
 		"build": "ng build",
 		"build:ssr": "ng run roomFood:build:production",
+		"serve:ssr:RoomFood": "node dist/roomFood/server/server.mjs",
 		"frontend:build": "ng build --configuration production --output-hashing none --base-href /room-food/ && node scripts/postprocess-index.js",
 		"frontend:start": "ng serve --proxy-config proxy.conf.json",
 		"frontend": "npm run frontend:build && npm run frontend:start",
