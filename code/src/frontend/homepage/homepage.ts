@@ -9,9 +9,9 @@ import {AuthService} from '../core/auth-service';
 })
 
 export class Homepage {
-	public readonly username: WritableSignal<string> = signal("");
+	public readonly username: WritableSignal<string> = signal("Guest");
+
 	constructor(private authService: AuthService) {
-		const user = this.authService.getCurrentUser();
-		this.username.set(user ? user.username : "Guest");
+		this.username = this.authService.getCurrentUser();
 	}
 }
