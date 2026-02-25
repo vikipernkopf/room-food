@@ -113,7 +113,7 @@ class DB {
                 id integer primary key autoincrement,
                 time text not null,
                 recipeId integer not null,
-                responsible text not null,
+                responsible text,
                 roomCode text not null,
 
                 constraint uq_mealtime unique (time),
