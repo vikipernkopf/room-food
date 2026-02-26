@@ -1,9 +1,54 @@
-<div class="action-container">
-	<button (click)="togglePopup()">
-		Click Me
+<div class="popup-bubble">
+	<button mat-icon-button class="close-x-btn" (click)="closePopup()">
+		<mat-icon>x</mat-icon>
 	</button>
 
-	@if (isPopupVisible) {
-		<app-pop-up class="popup-right"></app-pop-up>
-	}
+	<h1>Plan a Meal</h1>
+
+	<form>
+		<div class="container">
+			<mat-form-field class="dish" subscriptSizing="dynamic">
+				<mat-label>Enter a dish</mat-label>
+				<input matInput name="dish" [(ngModel)]="dish">
+			</mat-form-field>
+		</div>
+
+		<div class="container">
+			<mat-form-field subscriptSizing="dynamic">
+				<mat-label>Select meal type</mat-label>
+				<mat-select [(ngModel)]="selectedValue" name="food">
+					@for (type of mealTypes; track type) {
+						<mat-option [value]="type.value">{{type.viewValue}}</mat-option>
+					}
+				</mat-select>
+			</mat-form-field>
+		</div>
+
+		<div class="date-time-row">
+			<div class="container">
+				<mat-form-field subscriptSizing="dynamic">
+					<mat-label>Select date</mat-label>
+					<input matInput [matDatepicker]="datepicker" [(ngModel)]="selectedDate" name="date">
+					<mat-datepicker-toggle matIconSuffix [for]="datepicker"></mat-datepicker-toggle>
+					<mat-datepicker #datepicker></mat-datepicker>
+				</mat-form-field>
+			</div>
+
+			<div class="container">
+				<mat-form-field subscriptSizing="dynamic">
+					<mat-label>Select time</mat-label>
+					<input matInput [matTimepicker]="minutesPicker" [(ngModel)]="selectedTime" name="time">
+					<mat-timepicker-toggle matIconSuffix [for]="minutesPicker"></mat-timepicker-toggle>
+					<mat-timepicker interval="15min" #minutesPicker></mat-timepicker>
+				</mat-form-field>
+			</div>
+		</div>
+
+		<button mat-flat-button type="button" class="save-btn" (click)="saveMeal()">
+			Save Meal
+		</button>
+		@if (showError) {
+			<div class="error-text">Please fill out all the fields</div>
+		}
+	</form>
 </div>

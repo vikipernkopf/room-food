@@ -1,21 +1,28 @@
-import {Component, computed, Signal, WritableSignal} from '@angular/core';
+import {Component, signal, WritableSignal} from '@angular/core';
 import {AuthService} from '../core/auth-service';
+import {AddMeal} from '../add-meal/add-meal';
 import {RouterLink} from '@angular/router';
-import {User} from '../../backend/model';
 
 @Component({
   selector: 'app-homepage',
-  imports: [RouterLink],
+	imports: [
+		AddMeal,
+		RouterLink
+	],
   templateUrl: './homepage.html',
   styleUrl: './homepage.scss',
 })
 
 export class Homepage {
-	protected readonly currentUser: WritableSignal<User | null>;
-	protected readonly username: Signal<string>;
-
+	public readonly username: WritableSignal<string> = signal("");
 	constructor(private authService: AuthService) {
-		this.currentUser = this.authService.currentUser;
-		this.username = computed(() => this.currentUser()?.username || "Guest");
+		const user = this.authService.currentUser();
+		this.username.set(user ? user.username : "Guest");
+	}
+
+	isPopupVisible = false;
+
+	togglePopup() {
+		this.isPopupVisible = !this.isPopupVisible;
 	}
 }

@@ -1,17 +1,97 @@
-import { Component } from '@angular/core';
-import { PopUp} from './pop-up/pop-up';
+import {ChangeDetectionStrategy, Component, EventEmitter, Output, WritableSignal} from '@angular/core';
+import {MatInputModule} from '@angular/material/input';
+import {MatSelectModule} from '@angular/material/select';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {FormsModule} from '@angular/forms';
+import {MatDatepicker, MatDatepickerModule} from '@angular/material/datepicker';
+import {MatTimepickerModule} from '@angular/material/timepicker';
+import {MatIconModule} from '@angular/material/icon';
+import {MatButtonModule} from '@angular/material/button';
+import {provideNativeDateAdapter} from '@angular/material/core';
+import { HttpClient } from '@angular/common/http';
+import { inject } from '@angular/core';
+import { AuthService } from '../core/auth-service';
+import {User} from '../../backend/model';
+
+interface MealType {
+	value: string;
+	viewValue: string;
+}
+
+export type Meal = {
+	time:Date,
+	name:string,
+	room:string,
+	responsible:string
+}
 
 @Component({
-  selector: 'app-add-meal',
+	selector: 'app-add-meal',
 	standalone: true,
-  imports: [PopUp],
-  templateUrl: './add-meal.html',
-  styleUrl: './add-meal.scss',
+	providers: [provideNativeDateAdapter()],
+	imports: [
+		FormsModule,
+		MatFormFieldModule,
+		MatSelectModule,
+		MatInputModule,
+		MatDatepickerModule, MatDatepicker,
+		MatTimepickerModule,
+		MatIconModule, MatButtonModule,
+	],
+	templateUrl: './add-meal.html',
+	styleUrl: './add-meal.scss',
+	changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AddMeal {
-	isPopupVisible = false;
 
-	togglePopup() {
-		this.isPopupVisible = !this.isPopupVisible;
+export class AddMeal {
+	@Output() close = new EventEmitter<void>();
+
+	closePopup() {
+		this.close.emit();
+	}
+
+	dish: string = '';
+	selectedValue!: string;
+	selectedMealType = '';
+	selectedDate!: Date;
+	selectedTime!: Date;
+	showError: boolean = false;
+
+	mealTypes: MealType[] = [
+		{value: 'breakfast-0', viewValue: 'Breakfast'},
+		{value: 'lunch-1', viewValue: 'Lunch'},
+		{value: 'dinner-2', viewValue: 'Dinner'},
+		{value: 'snack-3', viewValue: 'Snack'},
+	];
+
+	private http = inject(HttpClient);
+	private authService;
+	protected readonly currentUser: WritableSignal<User | null>;
+
+	constructor() {
+		this.authService = inject(AuthService);
+		this.currentUser = this.authService.currentUser;
+	}
+
+	saveMeal() {
+		const user = this.authService.currentUser();
+		const currentUsername = user?.username;
+
+		if (this.dish && this.selectedValue && this.selectedDate && this.selectedTime && currentUsername) {
+
+			const finalDate = new Date(this.selectedDate);
+			finalDate.setHours(this.selectedTime.getHours());
+			finalDate.setMinutes(this.selectedTime.getMinutes());
+
+			const newMeal: Meal = {
+				time: finalDate,
+				name: this.dish,
+				responsible: currentUsername ,
+				room: currentUsername
+			};
+		} else {
+			this.showError = true;
+		}
 	}
 }
+

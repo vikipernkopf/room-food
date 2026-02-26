@@ -1,3 +1,13 @@
 <p>Welcome back {{username()}}</p>
 <p>Start Eating!!!!!</p>
-<a routerLink="/roomview" class="button">View Meal Plans</a>
+<a [routerLink]="['/roomview']">View Meal Plans</a>
+
+<div class="action-container">
+	<button (click)="togglePopup()">
+		Add Meal
+	</button>
+
+	@if (isPopupVisible) {
+		<app-add-meal class="popup-right" (close)="isPopupVisible = false"></app-add-meal>
+	}
+</div>
