@@ -39,7 +39,8 @@
 						"outputMode": "server",
 						"ssr": {
 							"entry": "src/backend/server.ts"
-						}
+						},
+						"preserveSymlinks": true
 					},
 					"configurations": {
 						"production": {
