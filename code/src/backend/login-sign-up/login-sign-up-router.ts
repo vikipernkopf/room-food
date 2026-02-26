@@ -35,7 +35,7 @@ loginSignUpRouter.post('/login', (req, res) => {
 		}
 
 		unit.complete(true);
-		res.status(StatusCodes.OK).json(user?.username);
+		res.status(StatusCodes.OK).json(user);
 	} catch (e) {
 		console.error(e);
 		unit.complete(false);

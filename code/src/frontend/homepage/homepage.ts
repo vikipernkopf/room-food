@@ -1,17 +1,21 @@
-import {Component, signal, WritableSignal} from '@angular/core';
+import {Component, computed, Signal, WritableSignal} from '@angular/core';
 import {AuthService} from '../core/auth-service';
+import {RouterLink} from '@angular/router';
+import {User} from '../../backend/model';
 
 @Component({
   selector: 'app-homepage',
-  imports: [],
+  imports: [RouterLink],
   templateUrl: './homepage.html',
   styleUrl: './homepage.scss',
 })
 
 export class Homepage {
-	public readonly username: WritableSignal<string> = signal("");
+	protected readonly currentUser: WritableSignal<User | null>;
+	protected readonly username: Signal<string>;
+
 	constructor(private authService: AuthService) {
-		const user = this.authService.getCurrentUser();
-		this.username.set(user ? user.username : "Guest");
+		this.currentUser = this.authService.currentUser;
+		this.username = computed(() => this.currentUser()?.username || "Guest");
 	}
 }
