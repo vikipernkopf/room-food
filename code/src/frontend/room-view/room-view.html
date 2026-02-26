@@ -1,13 +1,24 @@
 <app-navbar></app-navbar>
+
 <div class="action-container">
 	<button class="fancy" (click)="togglePopup()">
 		Add Meal
 	</button>
 
-	@if (isPopupVisible) {
-		<app-add-meal class="popup-right" (close)="isPopupVisible = false"></app-add-meal>
+	@if (isPopupVisible()) {
+		<app-add-meal class="popup-right" (close)="isPopupVisible.set(false)"></app-add-meal>
 	}
 </div>
-@for(meal of meals(); track $index) {
-	<app-meal-plan [meal]="meal"/>
+
+@if (meals().length > 0) {
+	<div class="meals-container">
+		@for(meal of meals(); track $index) {
+			<app-meal-plan [meal]="meal" [index]="$index"/>
+		}
+	</div>
+} @else {
+	<div class="empty-state">
+		<h3>No Meals Yet</h3>
+		<p>Click "Add Meal" to start planning your meals!</p>
+	</div>
 }

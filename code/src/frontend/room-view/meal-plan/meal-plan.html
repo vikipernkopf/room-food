@@ -1,5 +1,5 @@
 @if(meal) {
-	<div class="meal-plan">
+	<div class="meal-plan" [class.even]="index % 2 === 1">
 		<h3>{{ meal.name }}</h3>
 		<p><strong>Time:</strong> {{ meal.time | date:'short' }}</p>
 		<p><strong>Room:</strong> {{ meal.room }}</p>
