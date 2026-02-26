@@ -3,19 +3,24 @@ import {MealPlan} from './meal-plan/meal-plan';
 import {AuthService} from '../core/auth-service';
 import {Meal, User} from '../../backend/model';
 import {MealService} from '../core/meal-service';
+import {AddMeal} from '../add-meal/add-meal';
+import {Navbar} from '../navbar/navbar';
 
 @Component({
 	selector: 'app-room-view',
 	templateUrl: './room-view.html',
 	styleUrl: './room-view.scss',
 	imports: [
-		MealPlan
+		MealPlan,
+		AddMeal,
+		Navbar
 	]
 })
 export class RoomView {
 	protected meals: WritableSignal<Meal[]> = signal([]);
 	protected readonly username: WritableSignal<string> = signal("");
 	protected readonly currentUser: WritableSignal<User | null>;
+	protected readonly isPopupVisible = signal(false);
 
 	constructor(private authService: AuthService, private mealService: MealService) {
 		this.currentUser = this.authService.currentUser;
@@ -34,5 +39,9 @@ export class RoomView {
 				this.meals = signal([]);
 			}
 		});
+	}
+
+	togglePopup() {
+		this.isPopupVisible.update(val => !val);
 	}
 }
