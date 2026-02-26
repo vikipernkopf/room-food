@@ -1,6 +1,6 @@
 export type User = {
   username:string,
-  password:string
+  password?:string
 };
 
 export type Room = {
