@@ -20,6 +20,7 @@ export class RoomView {
 	protected meals: WritableSignal<Meal[]> = signal([]);
 	protected readonly username: WritableSignal<string> = signal("");
 	protected readonly currentUser: WritableSignal<User | null>;
+	protected readonly isPopupVisible = signal(false);
 
 	constructor(private authService: AuthService, private mealService: MealService) {
 		this.currentUser = this.authService.currentUser;
@@ -40,15 +41,7 @@ export class RoomView {
 		});
 	}
 
-	/*public readonly username: WritableSignal<string> = signal("");
-	constructor(private authService: AuthService) {
-		const user = this.authService.currentUser();
-		this.username.set(user ? user.username : "Guest");
-	}*/
-
-	isPopupVisible = false;
-
 	togglePopup() {
-		this.isPopupVisible = !this.isPopupVisible;
+		this.isPopupVisible.update(val => !val);
 	}
 }

@@ -2,18 +2,13 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
   server: {
-    allowedHosts: true,
-    middlewareMode: true
-  },
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks: undefined
-      }
-    }
-  },
-  ssr: {
-    noExternal: true
+    allowedHosts: [
+      'localhost',
+      '127.0.0.1',
+      '::1',
+      'roomfood.onrender.com',
+      '.onrender.com'
+    ]
   }
 });
 

@@ -25,6 +25,9 @@ $color-orange-btn: #F2791D;
 	padding: 0.65rem 0;
 	border-bottom: 4px solid $color-green-2;
 	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+	min-height: 64px;
+	contain: layout;
+	will-change: auto;
 }
 
 /* Container */
@@ -32,28 +35,40 @@ $color-orange-btn: #F2791D;
 	max-width: 100%;
 	padding-left: 1rem;
 	padding-right: 1rem;
+	contain: layout;
 }
 
 /* Logo */
 .navbar-brand {
 	padding: 0;
 	margin: 0;
+	display: inline-flex;
+	align-items: center;
+	text-decoration: none;
+	height: 40px;
 }
 
 .navbar-brand img {
 	height: 40px;
-	width: auto;
+	width: 40px;
+	flex-shrink: 0;
 }
+
 #span {
 	margin-left: 1rem;
 	color: $color-green-4;
 	font-weight: 600;
+	font-size: 1.1rem;
+	line-height: 1;
 }
 
 .brand-food {
-	color: $color-green-3; /* Lighter green */
+	color: $color-green-3;
 	font-weight: 600;
+	font-size: 1.1rem;
+	line-height: 1;
 }
+
 /* Navigation */
 .navbar-nav {
 	gap: 2.5rem;
@@ -63,8 +78,10 @@ $color-orange-btn: #F2791D;
 	color: $color-green-4 !important;
 	font-weight: 600;
 	font-size: 0.95rem;
+	line-height: 1.2;
 	padding: 0 !important;
 	transition: color 0.2s ease;
+	white-space: nowrap;
 }
 
 .navbar-nav .nav-link:hover,
@@ -77,7 +94,9 @@ $color-orange-btn: #F2791D;
 	color: $color-green-5 !important;
 	font-size: 0.9rem;
 	font-weight: 600;
-	margin-left: 1.5rem; 
+	line-height: 1.2;
+	margin-left: 1.5rem;
+	white-space: nowrap;
 }
 
 /* Mobile Toggler */
