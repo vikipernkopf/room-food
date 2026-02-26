@@ -1,0 +1,10 @@
+@if(meal) {
+	<div class="meal-plan">
+		<h3>{{ meal.name }}</h3>
+		<p><strong>Time:</strong> {{ meal.time | date:'short' }}</p>
+		<p><strong>Room:</strong> {{ meal.room }}</p>
+		<p><strong>Responsible:</strong> {{ meal.responsible }}</p>
+	</div>
+} @else {
+	<p>No meal data available</p>
+}
