@@ -11,18 +11,13 @@ import {provideNativeDateAdapter} from '@angular/material/core';
 import { HttpClient } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { AuthService } from '../core/auth-service';
-import {User} from '../../backend/model';
+import {Meal, User} from '../../backend/model';
+import {MealService} from '../core/meal-service';
+import {MenuService} from '../core/menu-service';
 
 interface MealType {
 	value: string;
 	viewValue: string;
-}
-
-export type Meal = {
-	time:Date,
-	name:string,
-	room:string,
-	responsible:string
 }
 
 @Component({
@@ -64,12 +59,9 @@ export class AddMeal {
 		{value: 'snack-3', viewValue: 'Snack'},
 	];
 
-	private http = inject(HttpClient);
-	private authService;
 	protected readonly currentUser: WritableSignal<User | null>;
 
-	constructor() {
-		this.authService = inject(AuthService);
+	constructor(private authService: AuthService, private menuService: MenuService,) {
 		this.currentUser = this.authService.currentUser;
 	}
 
@@ -89,6 +81,19 @@ export class AddMeal {
 				responsible: currentUsername ,
 				room: currentUsername
 			};
+
+			console.log('Posting to database...');
+			this.menuService.postMealToDb(newMeal).subscribe({
+				next: (meal) => {
+					console.log('Successfully saved meal: ', meal.name);
+					this.menuService.saveError.set('');
+					this.closePopup();
+				},
+				error: (err) => {
+					this.menuService.saveError.set('Unable to save meal: ' + err)
+				}
+			});
+
 		} else {
 			this.showError = true;
 		}

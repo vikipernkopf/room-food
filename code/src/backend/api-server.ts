@@ -1,6 +1,7 @@
 // TypeScript
 import express from 'express';
 import { loginSignUpRouter } from './login-sign-up/login-sign-up-router';
+import {addMealRouter} from './add-meal/add-meal-router';
 
 declare global {
 	var __roomFoodServerStarted: boolean | undefined;
@@ -14,6 +15,7 @@ export function createApiRouter() {
 	// Also mount the same router at the API root so callers can POST to /api/signup and /api/login
 	// (the frontend expects /api/signup and /api/login).
 	router.use('/', loginSignUpRouter);
+	router.use('/', addMealRouter);
 
 	return router;
 }
