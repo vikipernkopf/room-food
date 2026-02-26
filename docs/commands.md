@@ -107,19 +107,46 @@ Scripts (exact names from `code/package.json`)
 
 The frontend uses `environment.apiUrl` to determine where to send API requests. By default:
 
-- Local development (`src/environments/environment.ts`) currently points to `http://localhost:4200/api`.
+- Local development (`src/environments/environment.ts`) points to `/api`.
 - Production (`src/environments/environment.prod.ts`) is configured to `https://roomfood-backend.black2.cf/api` so the deployed frontend will call your hosted backend.
 
-If you want to test the hosted backend locally, change `src/environments/environment.ts` to:
+### Development with local backend (recommended)
 
-```ts
-export const environment = {
-  production: false,
-  apiUrl: 'https://roomfood-backend.black2.cf/api'
-};
-```
+When running both frontend and backend locally:
 
-Alternatively, during development you can keep `environment.ts` pointing to a local API and use the Angular CLI proxy configuration (`code/proxy.conf.json`) to forward `/api` calls to your backend.
+1. **Ensure `code/proxy.conf.json` targets localhost**:
+   ```json
+   {
+     "/api": {
+       "target": "http://localhost:3001",
+       "secure": false,
+       "changeOrigin": true,
+       "pathRewrite": {}
+     }
+   }
+   ```
+
+2. **Start both services in separate terminals**:
+   - Terminal 1: `npm run backend:dev` (starts API on port 3001)
+   - Terminal 2: `npm run frontend` (starts frontend on port 4200, proxies `/api` to localhost:3001)
+
+### Development with remote backend
+
+To test against the hosted backend while developing locally:
+
+1. **Update `code/proxy.conf.json` to target the remote backend**:
+   ```json
+   {
+     "/api": {
+       "target": "https://roomfood-backend.black2.cf",
+       "secure": true,
+       "changeOrigin": true,
+       "pathRewrite": {}
+     }
+   }
+   ```
+   
+   Then start only the frontend: `npm run frontend`
 
 ## Index files produced by `frontend:build`
 

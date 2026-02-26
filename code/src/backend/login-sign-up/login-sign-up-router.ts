@@ -27,12 +27,15 @@ loginSignUpRouter.post('/login', (req, res) => {
 	try {
 		const loginService = new LoginSignUpService(unit);
 		const user = loginService.getUserByUsername(username);
-		if(!user || !loginService.checkLoginAttempt(username, password)) {
+		const check = loginService.checkLoginAttempt(username, password);
+
+		if (check !== true) {
 			unit.complete(false);
 			res.sendStatus(StatusCodes.UNAUTHORIZED);
 		}
+
 		unit.complete(true);
-		res.status(StatusCodes.OK).json(user?.username);
+		res.status(StatusCodes.OK).json(user);
 	} catch (e) {
 		console.error(e);
 		unit.complete(false);
@@ -46,16 +49,21 @@ loginSignUpRouter.post('/signup', (req, res) => {
 	const unit = new Unit(false);
 	try {
 		const loginSignUpService = new LoginSignUpService(unit);
-		if(loginSignUpService.getUserByUsername(username)) {
+
+		if (loginSignUpService.getUserByUsername(username)) {
 			unit.complete(false);
-			res.sendStatus(StatusCodes.CONFLICT);
+
+			return res.sendStatus(StatusCodes.CONFLICT);
 		}
+
 		loginSignUpService.addUser({username, password});
 		unit.complete(true);
-		res.status(StatusCodes.OK).json(username);
+
+		return res.status(StatusCodes.OK).json({ username });
 	} catch (e) {
 		console.error(e);
 		unit.complete(false);
-		res.sendStatus(StatusCodes.INTERNAL_SERVER_ERROR);
+
+		return res.sendStatus(StatusCodes.INTERNAL_SERVER_ERROR);
 	}
 })
