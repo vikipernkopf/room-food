@@ -3,13 +3,17 @@ import {MealPlan} from './meal-plan/meal-plan';
 import {AuthService} from '../core/auth-service';
 import {Meal, User} from '../../backend/model';
 import {MealService} from '../core/meal-service';
+import {AddMeal} from '../add-meal/add-meal';
+import {Navbar} from '../navbar/navbar';
 
 @Component({
 	selector: 'app-room-view',
 	templateUrl: './room-view.html',
 	styleUrl: './room-view.scss',
 	imports: [
-		MealPlan
+		MealPlan,
+		AddMeal,
+		Navbar
 	]
 })
 export class RoomView {
@@ -34,5 +38,17 @@ export class RoomView {
 				this.meals = signal([]);
 			}
 		});
+	}
+
+	/*public readonly username: WritableSignal<string> = signal("");
+	constructor(private authService: AuthService) {
+		const user = this.authService.currentUser();
+		this.username.set(user ? user.username : "Guest");
+	}*/
+
+	isPopupVisible = false;
+
+	togglePopup() {
+		this.isPopupVisible = !this.isPopupVisible;
 	}
 }

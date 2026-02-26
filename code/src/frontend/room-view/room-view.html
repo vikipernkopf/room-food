@@ -1,4 +1,13 @@
-<h1>Meal plans</h1>
+<app-navbar></app-navbar>
+<div class="action-container">
+	<button class="fancy" (click)="togglePopup()">
+		Add Meal
+	</button>
+
+	@if (isPopupVisible) {
+		<app-add-meal class="popup-right" (close)="isPopupVisible = false"></app-add-meal>
+	}
+</div>
 @for(meal of meals(); track $index) {
 	<app-meal-plan [meal]="meal"/>
 }

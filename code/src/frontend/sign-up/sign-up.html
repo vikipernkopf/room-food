@@ -8,7 +8,7 @@
 
 		<div class="field-group">
 			<label for="username">Username</label>
-			<input formControlName="username" id="username" type="text" placeholder="e.g. Alex Johnson">
+			<input formControlName="username" id="username" type="text" placeholder="e.g. AlexJohnson">
 
 			<aside *ngIf="signUpForm.get('username')?.touched && signUpForm.get('username')?.invalid">
 				<span *ngIf="signUpForm.get('username')?.hasError('required')">Username is required</span>
@@ -30,7 +30,7 @@
 			<span>{{ signUpError() }}</span>
 		</div>
 
-		<button [disabled]="signUpForm.invalid" type="submit">
+		<button  type="submit">
 			Sign up
 		</button>
 

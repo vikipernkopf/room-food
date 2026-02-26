@@ -1,0 +1,23 @@
+// Green Palette
+$color-green-1: #6FC276;
+$color-green-2: #4CAF50;
+$color-green-3: #2E7D32;
+$color-green-4: #105B37;
+$color-green-5: #0A3D23;
+
+// Orange Palette
+$color-orange-1: #C85A04;
+$color-orange-2: #E67E22;
+$color-orange-3: #FF9800;
+$color-orange-4: #FFB74D;
+$color-orange-5: #FFCC80;
+
+.fancy {
+	font-family: 'Comic Sans MS', cursive, sans-serif;
+	padding: 0.5rem;
+	margin: 0.5rem;
+	border: 2px solid $color-green-2;
+	border-radius: 50rem	;
+	font-size: 1rem;
+	background: $color-green-1;
+}
