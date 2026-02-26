@@ -2,18 +2,18 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
   server: {
-    allowedHosts: true,
-    middlewareMode: true
+    allowedHosts: [
+      'localhost',
+      '127.0.0.1',
+      '::1',
+      'roomfood.onrender.com',
+      '.onrender.com',
+      '.herokuapp.com',
+      '.netlify.app'
+    ]
   },
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks: undefined
-      }
-    }
-  },
-  ssr: {
-    noExternal: true
+  preview: {
+    allowedHosts: true
   }
 });
 
