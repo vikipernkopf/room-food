@@ -11,7 +11,7 @@ import {AuthService} from '../core/auth-service';
 export class Homepage {
 	public readonly username: WritableSignal<string> = signal("");
 	constructor(private authService: AuthService) {
-		const user = this.authService.getCurrentUser();
+		const user = this.authService.currentUser();
 		this.username.set(user ? user.username : "Guest");
 	}
 }
