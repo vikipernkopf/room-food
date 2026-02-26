@@ -1,0 +1,34 @@
+<nav class="navbar navbar-expand-lg">
+	<div class="container">
+		<!-- Logo on the left -->
+		<a class="navbar-brand" [routerLink]="['/homepage']">
+			<img ngSrc="/images/logo.png" alt="RoomFood" height="1024" width="1024" priority>
+			<span id="span">Room</span><span class="brand-food">Food</span>
+		</a>
+
+		<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navContent">
+			<span class="navbar-toggler-icon"></span>
+		</button>
+
+		<!-- Navigation items pushed to the right -->
+		<div class="collapse navbar-collapse justify-content-end" id="navContent">
+			<ul class="navbar-nav align-items-center">
+				<li class="nav-item">
+					<a class="nav-link" [routerLink]="['/homepage']" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link" [routerLink]="['/login']" routerLinkActive="active">Log in</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link" [routerLink]="['/signup']" routerLinkActive="active">Sign up</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link" [routerLink]="['/roomview']" routerLinkActive="active">Meal Plan</a>
+				</li>
+			</ul>
+			<span class="navbar-text">
+        Showcase
+    </span>
+		</div>
+	</div>
+</nav>
