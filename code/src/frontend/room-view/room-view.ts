@@ -1,4 +1,4 @@
-import {Component, signal, WritableSignal, effect} from '@angular/core';
+import {Component, signal, WritableSignal, effect, computed, Signal} from '@angular/core';
 import {MealPlan} from './meal-plan/meal-plan';
 import {AuthService} from '../core/auth-service';
 import {Meal, User} from '../../backend/model';
@@ -17,13 +17,17 @@ import {Navbar} from '../navbar/navbar';
 	]
 })
 export class RoomView {
-	protected meals: WritableSignal<Meal[]> = signal([]);
+	private mealsSignalFromService: WritableSignal<Meal[]> = signal([]);
+	protected readonly meals: Signal<Meal[]>;
 	protected readonly username: WritableSignal<string> = signal("");
 	protected readonly currentUser: WritableSignal<User | null>;
 	protected readonly isPopupVisible = signal(false);
 
 	constructor(private authService: AuthService, private mealService: MealService) {
 		this.currentUser = this.authService.currentUser;
+
+		this.meals = computed(() => this.mealsSignalFromService());
+
 		effect(() => {
 			const user = this.currentUser();
 			console.log('Current user updated in room view:', user?.username);
@@ -31,12 +35,15 @@ export class RoomView {
 			if (user?.username) {
 				console.log('Username available:', user.username);
 				this.username.set(user.username);
-				this.meals = this.mealService.getAllMealsOfUser(user);
+				// Get meals from service and update the local signal
+				const fetchedMealsSignal = this.mealService.getAllMealsOfUser(user);
+				const fetchedMeals = fetchedMealsSignal();
+				console.log('Setting meals to:', fetchedMeals);
+				this.mealsSignalFromService.set(fetchedMeals || []);
 			} else {
 				console.log('No user available');
 				this.username.set("Guest");
-				console.log('Setting username to ', this.username());
-				this.meals = signal([]);
+				this.mealsSignalFromService.set([]);
 			}
 		});
 	}
