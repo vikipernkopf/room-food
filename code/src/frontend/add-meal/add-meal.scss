@@ -1,3 +1,7 @@
+* {
+	font-family: 'Inter', sans-serif;
+}
+
 @keyframes errorShake {
 	0%, 100% { transform: translateX(0); }
 	25% { transform: translateX(-5px); }
@@ -10,7 +14,7 @@
 
 .popup-bubble {
 	position: relative;
-	background-color: white !important;
+	background-color: #fff2dd !important;
 	padding: 30px;
 	border-radius: 12px;
 	box-shadow: 0 10px 30px rgba(0,0,0,0.2);
@@ -19,11 +23,11 @@
 	flex-direction: column;
 	margin: 0;
 
-	h1 { margin: 0 0 15px 0; font-family: sans-serif; font-weight: bold; }
+	h1 { margin: 0 0 15px 0; color: #08733F; }
 
 	.close-x-btn {
 		position: absolute; top: 15px; right: 15px;
-		color: #666;
+		color: black;
 	}
 
 	form { width: 100%; display: flex; flex-direction: column; }
@@ -39,7 +43,7 @@
 	}
 
 	.container {
-		background: #e0e0e0 !important;
+		background: #fff9f0 !important;
 		padding: 0;
 		border-radius: 5px 5px 0 0;
 		margin-bottom: 12px;
@@ -48,6 +52,7 @@
 		height: 52px;
 		position: relative;
 		overflow: visible;
+		color: #08733F;
 
 		::ng-deep {
 			.mat-mdc-form-field-subscript-wrapper { display: none !important; }
@@ -81,7 +86,7 @@
 
 	::ng-deep .mat-mdc-form-field.mat-focused {
 		.mdc-line-ripple::after {
-			border-bottom-color: #3f51b5 !important;
+			border-bottom-color: #08733F !important;
 			border-bottom-width: 2px !important;
 			transform: scaleX(1) !important;
 		}
@@ -89,7 +94,7 @@
 		.mat-mdc-select-arrow,
 		.mat-datepicker-toggle button,
 		.mat-timepicker-toggle button {
-			color: #3f51b5 !important;
+			color: black !important;
 		}
 	}
 
@@ -102,7 +107,7 @@
 	}
 
 	.save-btn {
-		background-color: #3f51b5 !important;
+		background-color: #f48f05 !important;
 		color: white !important;
 		padding: 10px 25px !important;
 		border-radius: 4px;
@@ -113,6 +118,41 @@
 ::ng-deep .mat-mdc-select-panel,
 ::ng-deep .mat-datepicker-content,
 ::ng-deep .mat-timepicker-panel {
-	background-color: white !important;
+	background-color: #fff9f0 !important;
 	box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1) !important;
+}
+
+::ng-deep .mat-calendar-body-cell:not(.mat-calendar-body-disabled):hover {
+	.mat-calendar-body-cell-content {
+		background-color: #ffd18c !important; /* The gray circle */
+		border-radius: 50% !important;        /* Makes it a circle */
+		color: black !important;              /* Keeps text readable */
+	}
+}
+
+/* Optional: Smooth transition for the hover */
+::ng-deep .mat-calendar-body-cell-content {
+	transition: background-color 0.2s ease-in-out;
+}
+
+/* Target the tooltip overlay pane specifically */
+::ng-deep .mat-mdc-tooltip .mdc-tooltip__surface {
+	background-color: #ffd18c !important; /* Dark gray background */
+	color: black !important;               /* White text for contrast */
+	border-radius: 4px !important;         /* Rounded corners */
+	padding: 4px 8px !important;           /* Space around the text */
+	font-size: 12px !important;
+	font-family: 'Inter', sans-serif;
+}
+
+/* Optional: Style the "arrow" of the tooltip if it's enabled */
+::ng-deep .mat-mdc-tooltip .mdc-tooltip__word-break-child {
+	font-weight: 500;
+}
+
+::ng-deep .mat-datepicker-content {
+	background-color: #fff9f0 !important; /* Change this to your desired background color */
+	border-radius: 12px !important;
+	font-family: 'Inter', sans-serif;
+	color: #08733F;
 }
