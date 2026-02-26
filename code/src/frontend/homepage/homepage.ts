@@ -1,11 +1,13 @@
 import {Component, signal, WritableSignal} from '@angular/core';
 import {AuthService} from '../core/auth-service';
 import {AddMeal} from '../add-meal/add-meal';
+import {RouterLink} from '@angular/router';
 
 @Component({
   selector: 'app-homepage',
 	imports: [
-		AddMeal
+		AddMeal,
+		RouterLink
 	],
   templateUrl: './homepage.html',
   styleUrl: './homepage.scss',
