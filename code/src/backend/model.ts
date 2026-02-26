@@ -1,6 +1,6 @@
 export type User = {
   username:string,
-  password:string
+  password?:string
 };
 
 export type Room = {
@@ -16,7 +16,7 @@ export type Recipe = {
 
 export type Meal = {
 	time:Date,
-	recipeId:number,
+	name:string,
 	room:string,
 	responsible:string
 }

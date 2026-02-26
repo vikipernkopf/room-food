@@ -2,7 +2,7 @@ import {Injectable, signal, WritableSignal} from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
-import {Writable} from 'node:stream';
+import { User } from '../../backend/model';
 
 function getApiBase(): string {
   // Runtime override: window.__API_URL can be injected into the page (e.g. by a script
@@ -18,15 +18,17 @@ function getApiBase(): string {
 export class AuthService {
 	private apiBase = getApiBase();
 	constructor(private http: HttpClient, private router: Router) {}
-	private currentUser: WritableSignal<string> = signal('Guest');
+	public readonly currentUser: WritableSignal<User | null> = signal(null);
 	public readonly loginError: WritableSignal<string> = signal('');
-	public signUpError: WritableSignal<string> = signal('');
+	public readonly signUpError: WritableSignal<string> = signal('');
 
 	login(credentials: any) {
-		this.http.post(`${this.apiBase}/login`, credentials).subscribe({
+		console.log("Logging in at endpoint:", `${this.apiBase}/login`);
+
+		this.http.post<User>(`${this.apiBase}/login`, credentials).subscribe({
 			next: (user) => {
-				console.log('Login successful for:', user);
-				this.currentUser.set(user.toString());
+				console.log('Login successful for:', user.username);
+				this.currentUser.set(user);
 				this.loginError.set('');
 				this.router.navigate(['/homepage']);
 			},
@@ -41,10 +43,10 @@ export class AuthService {
 	}
 
 	signUp(credentials: any) {
-		this.http.post(`${this.apiBase}/signup`, credentials).subscribe({
+		this.http.post<User>(`${this.apiBase}/signup`, credentials).subscribe({
 			next: (user) => {
 				console.log('Sign up successful for:', user);
-				this.currentUser.set(user.toString());
+				this.currentUser.set(user);
 				this.signUpError.set('');
 				this.router.navigate(['/homepage']);
 			},
@@ -56,9 +58,5 @@ export class AuthService {
 				}
 			}
 		});
-	}
-
-	getCurrentUser(): WritableSignal<string> {
-		return this.currentUser;
 	}
 }
