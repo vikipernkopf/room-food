@@ -23,6 +23,8 @@ export class AuthService {
 	public readonly signUpError: WritableSignal<string> = signal('');
 
 	login(credentials: any) {
+		console.log("Logging in at endpoint:", `${this.apiBase}/login`);
+
 		this.http.post<User>(`${this.apiBase}/login`, credentials).subscribe({
 			next: (user) => {
 				console.log('Login successful for:', user.username);

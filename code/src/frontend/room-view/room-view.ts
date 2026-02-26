@@ -21,7 +21,7 @@ export class RoomView {
 		this.currentUser = this.authService.currentUser;
 		effect(() => {
 			const user = this.currentUser();
-			console.log('Current user updated in room view:', user);
+			console.log('Current user updated in room view:', user?.username);
 
 			if (user?.username) {
 				console.log('Username available:', user.username);
