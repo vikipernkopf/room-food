@@ -25,7 +25,7 @@ export class AuthService {
 	login(credentials: any) {
 		this.http.post<User>(`${this.apiBase}/login`, credentials).subscribe({
 			next: (user) => {
-				console.log('Login successful for:', user);
+				console.log('Login successful for:', user.username);
 				this.currentUser.set(user);
 				this.loginError.set('');
 				this.router.navigate(['/homepage']);
