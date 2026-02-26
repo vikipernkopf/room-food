@@ -10,7 +10,7 @@
 	}
 </div>
 
-@if (meals().length > 0) {
+@if (meals() && meals().length > 0) {
 	<div class="meals-container">
 		@for(meal of meals(); track $index) {
 			<app-meal-plan [meal]="meal" [index]="$index"/>
