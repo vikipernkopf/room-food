@@ -1,9 +1,7 @@
 import {Injectable, signal, WritableSignal} from '@angular/core';
 import {environment} from '../../environments/environment';
 import {HttpClient} from '@angular/common/http';
-import {Router} from '@angular/router';
 import {Meal, User} from '../../backend/model';
-import {AuthService} from './auth-service';
 
 function getApiBase(): string {
 	// Runtime override: window.__API_URL can be injected into the page (e.g. by a script
@@ -18,7 +16,7 @@ function getApiBase(): string {
 })
 export class MealService {
 	private apiBase = getApiBase();
-	constructor(private http: HttpClient, private router: Router, private authService: AuthService) { }
+	constructor(private http: HttpClient) { }
 
 	public getAllMealsOfUser(user: User | null): WritableSignal<Meal[]> {
 		const mealsSignal = signal<Meal[]>([]);

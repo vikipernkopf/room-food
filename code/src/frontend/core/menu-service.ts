@@ -1,7 +1,6 @@
 import {Injectable, signal, WritableSignal} from '@angular/core';
 import {environment} from '../../environments/environment';
 import {HttpClient} from '@angular/common/http';
-import {Router} from '@angular/router';
 import {Meal} from '../../backend/model';
 import {Observable} from 'rxjs';
 
@@ -19,10 +18,9 @@ function getApiBase(): string {
 export class MenuService {
 	private apiBase = getApiBase();
 	public readonly saveError: WritableSignal<string> = signal('');
-	constructor(private http: HttpClient, private router: Router) {}
+	constructor(private http: HttpClient) {}
 
-
-	public postMealToDb(meal: Meal): Observable<Meal> {
+	public postMeal(meal: Meal): Observable<Meal> {
 		const apiUrl = `${this.apiBase}/meal`;
 		return this.http.post<Meal>(apiUrl, meal);
 	}

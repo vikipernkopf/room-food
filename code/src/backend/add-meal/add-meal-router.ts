@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import express from "express";
 import { Unit } from "../unit";
 import { AddMealService } from './add-meal-service';
 import { StatusCodes } from "http-status-codes";
@@ -10,7 +10,9 @@ addMealRouter.post("/meal", async (req, res): Promise<void> => {
 	const { time, name, room, responsible } = req.body;
 
 	if (!time || !name || !room || !responsible) {
-		res.status(StatusCodes.BAD_REQUEST).json({});
+		res.status(StatusCodes.BAD_REQUEST).json();
+		console.log("Missing required fields");
+
 		return;
 	}
 
@@ -29,6 +31,8 @@ addMealRouter.post("/meal", async (req, res): Promise<void> => {
 		if (result === "room not found") {
 			unit.complete(false);
 			res.status(StatusCodes.CONFLICT).json({ error: "Room not found" });
+			console.log("Room not found");
+
 			return;
 		}
 
@@ -40,19 +44,25 @@ addMealRouter.post("/meal", async (req, res): Promise<void> => {
 		if (result === "time taken") {
 			unit.complete(false);
 			res.status(StatusCodes.CONFLICT).json({ error: "Time slot already booked" });
+			console.log("Time slot already booked");
+
 			return;
 		}
 
 		if (result === "error") {
 			unit.complete(false);
 			res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: "Failed to create meal" });
+			console.log("Failed to create meal");
+
 			return;
 		}
 
 		unit.complete(true);
-		res.status(StatusCodes.CREATED).json(meal.name);
+		res.status(StatusCodes.CREATED).json(meal);
+		console.log("Created meal: ", meal.name);
 	} catch (error) {
 		unit.complete(false);
 		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json();
+		console.log("Failed to create meal");
 	}
 });

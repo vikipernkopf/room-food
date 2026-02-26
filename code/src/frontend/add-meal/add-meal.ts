@@ -8,11 +8,8 @@ import {MatTimepickerModule} from '@angular/material/timepicker';
 import {MatIconModule} from '@angular/material/icon';
 import {MatButtonModule} from '@angular/material/button';
 import {provideNativeDateAdapter} from '@angular/material/core';
-import { HttpClient } from '@angular/common/http';
-import { inject } from '@angular/core';
 import { AuthService } from '../core/auth-service';
 import {Meal, User} from '../../backend/model';
-import {MealService} from '../core/meal-service';
 import {MenuService} from '../core/menu-service';
 
 interface MealType {
@@ -65,7 +62,7 @@ export class AddMeal {
 		this.currentUser = this.authService.currentUser;
 	}
 
-	saveMeal() {
+	protected saveMeal(): void {
 		const user = this.authService.currentUser();
 		const currentUsername = user?.username;
 
@@ -83,17 +80,18 @@ export class AddMeal {
 			};
 
 			console.log('Posting to database...');
-			this.menuService.postMealToDb(newMeal).subscribe({
+
+			this.menuService.postMeal(newMeal).subscribe({
 				next: (meal) => {
-					console.log('Successfully saved meal: ', meal.name);
+					console.log('Successfully saved meal:', meal);
 					this.menuService.saveError.set('');
 					this.closePopup();
 				},
 				error: (err) => {
-					this.menuService.saveError.set('Unable to save meal: ' + err)
+					console.error('Error saving meal:', err);
+					this.menuService.saveError.set('Unable to save meal: ' + (err.error?.error || err.message || 'Unknown error'));
 				}
 			});
-
 		} else {
 			this.showError = true;
 		}
