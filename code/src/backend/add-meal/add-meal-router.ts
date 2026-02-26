@@ -6,48 +6,54 @@ import {Meal} from '../model';
 
 export const addMealRouter = express.Router();
 
-addMealRouter.post("/", (req: Request, res: Response) => {
-	const { meal} = req.body;
+addMealRouter.post("/", async (req, res): Promise<void> => {
+	const { time, name, room, responsible } = req.body;
 
-	if (!meal) {
-		return res.status(StatusCodes.BAD_REQUEST).json({
-			error: "Missing meal data or username"
-		});
+	if (!time || !name || !room || !responsible) {
+		res.status(StatusCodes.BAD_REQUEST).json({});
+		return;
 	}
 
 	const unit = new Unit(false);
-	const mealService = new AddMealService(unit);
-
 	try {
+		const meal = {
+			time: new Date(time),
+			name: name,
+			room: room,
+			responsible: responsible,
+		} as Meal;
+
+		const mealService = new AddMealService(unit);
 		const result = mealService.addMeal(meal);
 
 		if (result === "room not found") {
-			unit.complete(false); // Rollback
-			return res.status(StatusCodes.NOT_FOUND).json({ error: "Room not found" });
+			unit.complete(false);
+			res.status(StatusCodes.NOT_FOUND).json({ error: "Room not found" });
+			return;
 		}
 
-		if (result === "recipe not found") {
+		/*if (result === "recipe not found") {
 			unit.complete(false);
 			return res.status(StatusCodes.NOT_FOUND).json({ error: "The selected recipe does not exist" });
-		}
+		}*/
 
 		if (result === "time taken") {
 			unit.complete(false);
-			return res.status(StatusCodes.CONFLICT).json({ error: "Time slot already booked" });
+			res.status(StatusCodes.CONFLICT).json({ error: "Time slot already booked" });
+			return;
 		}
 
 		if (result === "error") {
 			unit.complete(false);
-			return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: "Failed to create meal" });
+			res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: "Failed to create meal" });
+			return;
 		}
 
 		unit.complete(true);
-		return res.status(StatusCodes.CREATED).json({ message: "Meal saved successfully" });
-
+		res.status(StatusCodes.CREATED).json(meal.name);
 	} catch (error) {
 		unit.complete(false);
-		console.error("Database Error:", error);
-		return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json();
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json();
 	}
 });
 
