@@ -1,6 +1,6 @@
 import {ServiceBase} from '../service-base';
 import {Unit} from '../unit';
-import {Meal, Recipe, Room, User} from '../model';
+import {Meal, Recipe} from '../model';
 import {LoginSignUpService} from '../login-sign-up/login-sign-up-service';
 
 export class AddMealService extends ServiceBase {
@@ -119,7 +119,6 @@ export class AddMealService extends ServiceBase {
 	/**
 	 * Check if there exists a meal at the specified time in the specified room
 	 *
-	 * @param time - time to check
 	 * @param roomCode - room to check
 	 * @return true if taken, false otherwise
 	 */
@@ -159,10 +158,10 @@ export class AddMealService extends ServiceBase {
 		}
 
 
-		let success:boolean;
+		let _:boolean;
 		let id:number;
 
-		[success, id] = this.executeStmt(
+		[_, id] = this.executeStmt(
 			this.unit.prepare(`
 			insert into Recipe(name, mealType, author) values (:n, :m, :a)
 			`, {n:recipe.name, m:recipe.mealType, a:recipe.author})
