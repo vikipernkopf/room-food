@@ -11,17 +11,17 @@ $color-orange-3: #FF9800;
 $color-orange-4: #FFB74D;
 $color-orange-5: #FFCC80;
 
-body {
-	background-color: #9ad49f !important;
+.homepage-container {
+	margin-top: 20vh;
 }
 
 .start {
 	display: flex;
 	flex-direction: column;
-	justify-content: center; /* vertical centering */
 	align-items: center;     /* horizontal centering */
 	text-align: center;
-	height: 400px; /* optional: centers it in the full screen */
+	background: $color-green-1;
+	min-height: calc(100vh - 64px);
 
 	.room {
 		color: #105B37; /* green */
@@ -48,6 +48,7 @@ body {
 	.buttons {
 		display: flex;
 		gap: 15px;
+		justify-content: center;
 	}
 
 	.get-start-btn {
