@@ -4,7 +4,6 @@ import {AuthService} from '../core/auth-service';
 import {Meal, User} from '../../backend/model';
 import {MealService} from '../core/meal-service';
 import {AddMeal} from '../add-meal/add-meal';
-import {Navbar} from '../navbar/navbar';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../../environments/environment';
 
@@ -20,8 +19,7 @@ function getApiBase(): string {
 	styleUrl: './room-view.scss',
 	imports: [
 		MealPlan,
-		AddMeal,
-		Navbar
+		AddMeal
 	]
 })
 export class RoomView implements OnDestroy {
