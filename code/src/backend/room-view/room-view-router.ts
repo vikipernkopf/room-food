@@ -23,13 +23,16 @@ roomViewRouter.get("/meals/:username", async (req, res): Promise<void> => {
 
 		unit.complete();
 
-		if (meals.length > 0) {
-			res.status(StatusCodes.OK).json(meals);
-		} else {
-			res.sendStatus(StatusCodes.NO_CONTENT);
-		}
+		res.status(StatusCodes.OK).json(meals || []);
 	} catch (error) {
+		console.error("Error fetching meals for user:", error);
+		if (error instanceof Error) {
+			console.error("Stack trace:", error.stack);
+		}
 		unit.complete();
-		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: "Failed to fetch meals for user" });
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+			error: "Failed to fetch meals for user",
+			details: error instanceof Error ? error.message : String(error)
+		});
 	}
 });
