@@ -10,4 +10,5 @@ import {Meal} from '../../../backend/model';
 })
 export class MealPlan {
 	@Input() meal: Meal | null = null;
+	@Input() index: number = 0;
 }

@@ -21,8 +21,10 @@ if (typeof globalThis.__dirname === 'undefined') {
 const browserDistFolder = join(import.meta.dirname, '../browser');
 
 const app = express();
-const angularApp = new AngularNodeAppEngine();
 
+const angularApp = new AngularNodeAppEngine({
+	allowedHosts: ['localhost', 'roomfood.onrender.com'],
+});
 
 app.use(cors());
 
