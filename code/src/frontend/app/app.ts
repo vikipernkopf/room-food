@@ -1,5 +1,4 @@
-import { Component, signal } from '@angular/core';
-import {Login} from '../login/login';
+import { Component } from '@angular/core';
 import {RouterOutlet} from '@angular/router';
 import {Navbar} from '../navbar/navbar';
 
@@ -12,10 +11,4 @@ import {Navbar} from '../navbar/navbar';
 	],
 	styleUrl: './app.scss'
 })
-export class App {
-  protected readonly title = signal('roomFood');
-
-  onButtonClick() {
-    console.log("hi");
-  }
-}
+export class App { }
