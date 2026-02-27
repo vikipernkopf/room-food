@@ -1,7 +1,5 @@
 import BetterSqlite3 from 'better-sqlite3';
-import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
-
+import { join } from 'node:path';
 
 export class Unit {
   private readonly db: BetterSqlite3.Database;
