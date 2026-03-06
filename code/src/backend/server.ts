@@ -28,17 +28,35 @@ const angularApp = new AngularNodeAppEngine({
 
 // Configure CORS to allow requests from frontend domains
 app.use(cors({
-	origin: [
-		'http://localhost:4200',        // Local development
-		'http://localhost:3000',        // Local production test
-		'https://roomfood.onrender.com' // Production on Render
-	],
-	credentials: true
+	origin: function (origin, callback) {
+		const allowedOrigins = [
+			'http://localhost:4200',
+			'http://localhost:3000',
+			'https://roomfood.onrender.com'
+		];
+
+		// Allow requests with no origin (like mobile apps or curl requests)
+		if (!origin || allowedOrigins.includes(origin)) {
+			callback(null, true);
+		} else {
+			console.log('CORS blocked origin:', origin);
+			callback(new Error('Not allowed by CORS'));
+		}
+	},
+	credentials: true,
+	methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+	allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Don't apply express.json() globally — it consumes the request stream and prevents
 // the Angular SSR handler from constructing a fresh Request from the raw incoming
 // message. Parse JSON only for API routes below.
+
+// Debug endpoint to verify CORS is working
+app.get('/api/test-cors', (req, res) => {
+	console.log('CORS test endpoint hit');
+	res.json({ message: 'CORS is working!', origin: req.get('origin') });
+});
 
 // Mount API router under /api and apply JSON body parsing only for API routes
 app.use('/api', express.json(), createApiRouter());
