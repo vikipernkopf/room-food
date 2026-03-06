@@ -1,7 +1,10 @@
 services:
-  - type: static_site
+  - type: web
     name: room-food-frontend
+    runtime: node
     buildCommand: cd code && NPM_CONFIG_PRODUCTION=false npm ci && npm run build
-    startCommand: echo "Static site ready"
-    publishPath: code/dist/roomFood/browser
+    startCommand: cd code && npx http-server dist/roomFood/browser -p $PORT
     plan: free
+    envVars:
+      - key: PORT
+        value: 3000
