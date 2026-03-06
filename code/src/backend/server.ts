@@ -26,7 +26,15 @@ const angularApp = new AngularNodeAppEngine({
 	allowedHosts: ['localhost', 'roomfood.onrender.com'],
 });
 
-app.use(cors());
+// Configure CORS to allow requests from frontend domains
+app.use(cors({
+	origin: [
+		'http://localhost:4200',        // Local development
+		'http://localhost:3000',        // Local production test
+		'https://roomfood.onrender.com' // Production on Render
+	],
+	credentials: true
+}));
 
 // Don't apply express.json() globally — it consumes the request stream and prevents
 // the Angular SSR handler from constructing a fresh Request from the raw incoming
