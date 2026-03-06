@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../core/auth-service';
+import { CookieService } from 'ngx-cookie-service';
 
 @Component({
 	selector: 'app-login-sign-up',
@@ -21,9 +22,13 @@ export class Login {
 	});
 	public loginError: WritableSignal<String>= signal('');
 
-	constructor(private authService: AuthService) {}
+	constructor(private authService: AuthService) { }
 	onFormSubmit() {
 		if (this.loginForm.valid) {
+			const expires = new Date();
+			expires.setDate(expires.getDate() + 7);
+
+			this.cookies.set('authToken', 'super-duper-funny-string-that-marc-might-criticize', expires);
 			this.authService.login(this.loginForm.value);
 			this.loginError = this.authService.loginError;
 		} else {

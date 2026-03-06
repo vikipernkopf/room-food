@@ -2,6 +2,7 @@ import express from "express";
 import { Unit } from "../unit";
 import { LoginSignUpService } from "./login-sign-up-service";
 import { StatusCodes } from "http-status-codes";
+import jwt from 'jsonwebtoken';
 
 export const loginSignUpRouter = express.Router();
 
@@ -26,8 +27,11 @@ loginSignUpRouter.post('/login', (req, res) => {
 	const unit = new Unit(false);
 	try {
 		const loginService = new LoginSignUpService(unit);
+		const userId = loginService.getUserIdFromUsername(username);
 		const user = loginService.getUserByUsername(username);
 		const check = loginService.checkLoginAttempt(username, password);
+
+		const token = jwt.sign({ userId }, 'secret-key', { expiresIn: '7d' });
 
 		if (check !== true) {
 			unit.complete(false);
@@ -35,7 +39,7 @@ loginSignUpRouter.post('/login', (req, res) => {
 		}
 
 		unit.complete(true);
-		res.status(StatusCodes.OK).json(user);
+		res.status(StatusCodes.OK).json(token);
 	} catch (e) {
 		console.error(e);
 		unit.complete(false);
@@ -43,6 +47,16 @@ loginSignUpRouter.post('/login', (req, res) => {
 	}
 })
 
+loginSignUpRouter.get('/profile', (req, res) => {
+	const token = req.cookies.authToken;
+
+	if (!token) {
+		res.status(401).json({ error: 'Not logged in' });
+	}
+
+	// Look up session in database...
+	res.json({ message: 'Profile data' });
+});
 
 loginSignUpRouter.post('/signup', (req, res) => {
 	const {username, password} = req.body;
