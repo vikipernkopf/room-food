@@ -1,18 +1,7 @@
 services:
   - type: static_site
     name: room-food-frontend
-    buildCommand: cd code && NPM_CONFIG_PRODUCTION=false npm ci && npm run frontend:build
+    buildCommand: cd code && NPM_CONFIG_PRODUCTION=false npm ci && npm run build
+    startCommand: echo "Static site ready"
     publishPath: code/dist/roomFood/browser
     plan: free
-
-  - type: web
-    name: room-food-backend
-    runtime: node
-    buildCommand: cd code && NPM_CONFIG_PRODUCTION=false npm ci && npm run backend:build
-    startCommand: cd code && npm run backend:start
-    env: node
-    plan: free
-    envVars:
-      - key: PORT
-        value: 10000
-

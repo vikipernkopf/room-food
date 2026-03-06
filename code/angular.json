@@ -25,7 +25,6 @@
 						"browser": "src/frontend/main.ts",
 						"tsConfig": "tsconfig.app.json",
 						"inlineStyleLanguage": "scss",
-						"externalDependencies": ["better-sqlite3"],
 						"assets": [
 							{
 								"glob": "**/*",
@@ -35,11 +34,6 @@
 						"styles": [
 							"src/frontend/styles.scss"
 						],
-						"server": "src/frontend/main.server.ts",
-						"outputMode": "server",
-						"ssr": {
-							"entry": "src/backend/server.ts"
-						},
 						"preserveSymlinks": true
 					},
 					"configurations": {
