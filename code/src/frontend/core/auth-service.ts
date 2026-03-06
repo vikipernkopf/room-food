@@ -1,10 +1,11 @@
 // noinspection GrazieInspection
 
 import {Injectable, signal, WritableSignal} from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import {HttpClient, HttpHeaders} from '@angular/common/http';
 import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
 import { User } from '../../backend/model';
+import {CookieService} from 'ngx-cookie-service';
 
 function getApiBase(): string {
   // Runtime override: window.__API_URL can be injected into the page (e.g. by a script
@@ -17,20 +18,26 @@ function getApiBase(): string {
 @Injectable({
   providedIn: 'root',
 })
+
 export class AuthService {
 	private apiBase = getApiBase();
 	constructor(private http: HttpClient, private router: Router) {}
 	public readonly currentUser: WritableSignal<User | null> = signal(null);
 	public readonly loginError: WritableSignal<string> = signal('');
 	public readonly signUpError: WritableSignal<string> = signal('');
+	public readonly cookie: WritableSignal<CookieService> = signal(new CookieService());
 
 	login(credentials: any) {
 		console.log("Logging in at endpoint:", `${this.apiBase}/login`);
 
-		this.http.post<User>(`${this.apiBase}/login`, credentials).subscribe({
-			next: (user) => {
-				console.log('Login successful for:', user.username);
-				this.currentUser.set(user);
+		this.http.post<string>(`${this.apiBase}/login`, credentials).subscribe({
+			next: (token) => {
+				//console.log('Login successful for:', user.username);
+				const expires = new Date();
+				let cookies = this.cookie();
+				cookies.set('authToken', token, expires);
+				this.cookie.set(cookies);
+				//this.currentUser.set(user);
 				this.loginError.set('');
 				// noinspection JSIgnoredPromiseFromCall
 				this.router.navigate(['/homepage']);
@@ -45,6 +52,24 @@ export class AuthService {
 		});
 	}
 
+	getProfile() {
+		const token = this.cookie().get('authToken'); // Get token from cookie
+
+		const headers = new HttpHeaders({
+			'Authorization': `Bearer ${token}`
+		});
+
+		return this.http.get(`${this.apiBase}/profile`, { headers }).subscribe({
+			next: (data) => {
+				console.log('Profile data:', data);
+			},
+			error: (err) => {
+				if (err.status === 401 || err.status === 403) {
+					// Token expired or invalid - redirect to login
+					this.router.navigate(['/login']);
+				}
+			}
+		});
 	signUp(credentials: any) {
 		this.http.post<User>(`${this.apiBase}/signup`, credentials).subscribe({
 			next: (user) => {

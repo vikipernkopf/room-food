@@ -144,6 +144,17 @@ export class LoginSignUpService extends ServiceBase {
     return user;
   }
 
+	public getUserIdFromUsername(username:string): number | undefined{
+		const user = this.unit.prepare(
+			`select u.id from User u where u.username=:n`,
+			{n:username}).get() as number;
+
+		if(!isNaN(user)){
+			throw new Error("Error while casting into user");
+		}
+
+		return user;
+	}
   /**
    * Check if a login-sign-up attempt is successful
    *
