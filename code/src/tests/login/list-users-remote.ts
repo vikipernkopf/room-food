@@ -81,4 +81,5 @@ async function main() {
   }
 }
 
+// noinspection JSIgnoredPromiseFromCall
 main();

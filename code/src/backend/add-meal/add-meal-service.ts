@@ -126,6 +126,7 @@ export class AddMealService extends ServiceBase {
 		return this.login.checkUserExists(roomCode); //! change in future sprints -- !!!!!!!!!!!!!!
 	}
 
+	// noinspection JSUnusedGlobalSymbols
 	/**
 	 * Get an array of meals for a room
 	 *
@@ -161,6 +162,7 @@ export class AddMealService extends ServiceBase {
 		let _:boolean;
 		let id:number;
 
+		// noinspection JSUnusedAssignment
 		[_, id] = this.executeStmt(
 			this.unit.prepare(`
 			insert into Recipe(name, mealType, author) values (:n, :m, :a)

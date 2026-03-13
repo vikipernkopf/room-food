@@ -44,7 +44,6 @@ export class AddMeal {
 
 	dish: string = '';
 	selectedValue!: string;
-	_ = '';
 	selectedDate!: Date;
 	selectedTime!: Date;
 	showError: boolean = false;

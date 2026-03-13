@@ -57,7 +57,7 @@ npx serve -s dist/roomFood/browser -l $PORT
 Why this works:
 - Angular currently emits `index.csr.html` for the browser bundle.
 - `scripts/postprocess-index.js` copies it to `index.html` after the build.
-- `serve -s` serves that file as the app entrypoint and also falls back to it for client-side routes.
+- `serve -s` serves that file as the app entrypoint and falls back to it for client-side routes.
 
 ## Remote backend deployment
 

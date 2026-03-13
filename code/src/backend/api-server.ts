@@ -1,10 +1,10 @@
-// TypeScript
 import express from 'express';
 import { loginSignUpRouter } from './login-sign-up/login-sign-up-router';
 import {roomViewRouter} from './room-view/room-view-router';
 import {addMealRouter} from './add-meal/add-meal-router';
 
 declare global {
+	// noinspection ES6ConvertVarToLetConst
 	var __roomFoodServerStarted: boolean | undefined;
 }
 
@@ -63,5 +63,3 @@ export function startServer() {
 
 // NOTE: removed automatic startup when imported. Call `startServer()` explicitly
 // from your main process (or mount `createApiApp()` into your SSR/combined server).
-
-export default createApiApp;
