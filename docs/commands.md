@@ -6,8 +6,8 @@ Only commands used for Render frontend deploy, remote backend deploy, and local 
 ## Active scripts
 
 - `build`
-  - Builds the production frontend bundle.
-  - Command: `ng build --configuration production --output-hashing none`
+  - Builds the production frontend bundle and creates a static `dist/roomFood/browser/index.html` from Angular's `index.csr.html` output.
+  - Command: `ng build --configuration production --output-hashing none && node scripts/postprocess-index.js`
 
 - `frontend:start`
   - Starts Angular dev server for local frontend testing.
@@ -47,8 +47,13 @@ npm run build
 - Start command:
 ```powershell
 cd code
-npx http-server dist/roomFood/browser -p $PORT
+npx serve -s dist/roomFood/browser -l $PORT
 ```
+
+Why this works:
+- Angular currently emits `index.csr.html` for the browser bundle.
+- `scripts/postprocess-index.js` copies it to `index.html` after the build.
+- `serve -s` serves that file as the app entrypoint and also falls back to it for client-side routes.
 
 ## Remote backend deployment
 

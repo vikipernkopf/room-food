@@ -3,7 +3,7 @@ services:
     name: room-food-frontend
     runtime: node
     buildCommand: cd code && NPM_CONFIG_PRODUCTION=false npm ci && npm run build
-    startCommand: cd code && npx http-server dist/roomFood/browser -p $PORT
+    startCommand: cd code && npx serve -s dist/roomFood/browser -l $PORT
     plan: free
     envVars:
       - key: PORT
