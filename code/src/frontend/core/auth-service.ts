@@ -1,3 +1,5 @@
+// noinspection GrazieInspection
+
 import {Injectable, signal, WritableSignal} from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
@@ -30,6 +32,7 @@ export class AuthService {
 				console.log('Login successful for:', user.username);
 				this.currentUser.set(user);
 				this.loginError.set('');
+				// noinspection JSIgnoredPromiseFromCall
 				this.router.navigate(['/homepage']);
 			},
 			error: (err) => {
@@ -48,6 +51,7 @@ export class AuthService {
 				console.log('Sign up successful for:', user);
 				this.currentUser.set(user);
 				this.signUpError.set('');
+				// noinspection JSIgnoredPromiseFromCall
 				this.router.navigate(['/homepage']);
 			},
 			error: (err) => {

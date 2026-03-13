@@ -2,14 +2,12 @@ import {Component, WritableSignal} from '@angular/core';
 import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {RouterLink} from '@angular/router';
 import {AuthService} from '../core/auth-service';
-import {NgIf} from '@angular/common';
 
 @Component({
   selector: 'app-signup',
 	imports: [
 		ReactiveFormsModule,
-		RouterLink,
-		NgIf
+		RouterLink
 	],
   templateUrl: './sign-up.html',
   styleUrl: './sign-up.scss',

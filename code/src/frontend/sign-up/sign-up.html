@@ -10,20 +10,38 @@
 			<label for="username">Username</label>
 			<input formControlName="username" id="username" type="text" placeholder="e.g. AlexJohnson">
 
-			<aside *ngIf="signUpForm.get('username')?.touched && signUpForm.get('username')?.invalid">
-				<span *ngIf="signUpForm.get('username')?.hasError('required')">Username is required</span>
-				<span *ngIf="signUpForm.get('username')?.hasError('pattern')">No spaces or special characters allowed</span>
-			</aside>
+			@if (signUpForm.get('username'); as usernameControl) {
+				@if (usernameControl.touched && usernameControl.invalid) {
+					<aside>
+						@if (usernameControl.hasError('required')) {
+							<span>Username is required</span>
+						}
+						@if (usernameControl.hasError('pattern')) {
+							<span>No spaces or special characters allowed</span>
+						}
+					</aside>
+				}
+			}
 		</div>
 
 		<div class="field-group">
 			<label for="password">Password</label>
 			<input formControlName="password" id="password" type="password" placeholder="Password" autocomplete="new-password">
-			<aside *ngIf="signUpForm.get('password')?.touched && signUpForm.get('password')?.invalid">
-				<span *ngIf="signUpForm.get('password')?.hasError('required')">Password is required</span>
-				<span *ngIf="signUpForm.get('password')?.hasError('minlength')">Password must be at least 8 characters</span>
-				<span *ngIf="signUpForm.get('password')?.hasError('pattern')">Password must contain at least one number and one special character (!&#64;#$%^&*)</span>
-			</aside>
+			@if (signUpForm.get('password'); as passwordControl) {
+				@if (passwordControl.touched && passwordControl.invalid) {
+					<aside>
+						@if (passwordControl.hasError('required')) {
+							<span>Password is required</span>
+						}
+						@if (passwordControl.hasError('minlength')) {
+							<span>Password must be at least 8 characters</span>
+						}
+						@if (passwordControl.hasError('pattern')) {
+							<span>Password must contain at least one number and one special character (!&#64;#$%^&*)</span>
+						}
+					</aside>
+				}
+			}
 		</div>
 
 		<div class="error-msg">

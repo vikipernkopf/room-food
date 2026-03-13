@@ -1,3 +1,5 @@
+// noinspection JSUnusedGlobalSymbols
+
 import BetterSqlite3 from 'better-sqlite3';
 import { join } from 'node:path';
 
@@ -25,7 +27,8 @@ export class Unit {
     return stmt as unknown as ITypedStatement<TResult, TParams>;
   }
 
-  public getLastRowId(): number {
+  // noinspection JSUnusedGlobalSymbols
+	public getLastRowId(): number {
     const stmt = this.prepare<{ id: number }>("SELECT last_insert_rowid() as \"id\"");
     const result = stmt.get();
     if (!result) {
@@ -48,7 +51,8 @@ export class Unit {
 }
 
 class DB {
-  public static createDBConnection(): BetterSqlite3.Database {
+  // noinspection JSUnusedGlobalSymbols
+	public static createDBConnection(): BetterSqlite3.Database {
     const dbFileName = join(process.cwd(), 'room-food.db');
     const db = new BetterSqlite3(dbFileName, {
       fileMustExist: false,

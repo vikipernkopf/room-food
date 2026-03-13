@@ -3,6 +3,7 @@ export type User = {
   password?:string
 };
 
+// noinspection JSUnusedGlobalSymbols
 export type Room = {
 	code:string
 };

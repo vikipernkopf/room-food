@@ -18,6 +18,7 @@ export class MealService {
 	private apiBase = getApiBase();
 	constructor(private http: HttpClient) { }
 
+	// noinspection JSUnusedGlobalSymbols
 	public getAllMealsOfUser(user: User | null): WritableSignal<Meal[]> {
 		const mealsSignal = signal<Meal[]>([]);
 

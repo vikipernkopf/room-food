@@ -12,4 +12,3 @@ if (!fs.existsSync(csrIndexPath)) {
 
 fs.copyFileSync(csrIndexPath, indexPath);
 console.log(`Created static entry file: ${indexPath}`);
-
