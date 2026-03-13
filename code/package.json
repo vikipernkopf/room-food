@@ -2,7 +2,8 @@
 	"name": "room-food",
 	"version": "0.0.0",
 	"scripts": {
-		"build": "ng build --configuration production --output-hashing none",
+		"build": "ng build --configuration production --output-hashing none && node scripts/postprocess-index.js",
+		"frontend:build": "npm run build",
 		"frontend:start": "ng serve --proxy-config proxy.conf.json",
 		"backend:build": "ng run roomFood:build:production",
 		"backend:dev": "npx tsx src/backend/start-api.ts",
