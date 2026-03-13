@@ -9,6 +9,10 @@ Only commands used for Render frontend deploy, remote backend deploy, and local 
   - Builds the production frontend bundle and creates a static `dist/roomFood/browser/index.html` from Angular's `index.csr.html` output.
   - Command: `ng build --configuration production --output-hashing none && node scripts/postprocess-index.js`
 
+- `frontend:build`
+  - CI-compatible alias for the frontend production build.
+  - Command: `npm run build`
+
 - `frontend:start`
   - Starts Angular dev server for local frontend testing.
   - Command: `ng serve --proxy-config proxy.conf.json`
