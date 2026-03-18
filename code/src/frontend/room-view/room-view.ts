@@ -101,6 +101,23 @@ export class RoomView implements OnDestroy {
 		this.mealToEdit.set(null);
 	}
 
+	protected handleMealDelete(meal: Meal): void {
+		if (!meal.id) {
+			this.mealService.saveError.set('Unable to delete meal: missing meal id');
+			return;
+		}
+
+		this.mealService.deleteMeal(meal.id).subscribe({
+			next: () => {
+				this.mealService.saveError.set('');
+				this.meals.update((currentMeals) => currentMeals.filter((m) => m.id !== meal.id));
+			},
+			error: (err) => {
+				this.mealService.saveError.set('Unable to delete meal: ' + (err.error?.error || err.message || 'Unknown error'));
+			}
+		});
+	}
+
 	protected handleMealSaved(): void {
 		const user = this.currentUser();
 		if (user?.username) {

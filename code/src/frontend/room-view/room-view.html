@@ -16,7 +16,7 @@
 @if (meals() && meals().length > 0) {
 	<div class="meals-container">
 		@for(meal of meals(); track meal.id ?? $index) {
-			<app-meal-plan [meal]="meal" [index]="$index" [onEdit]="openEditMealPopup.bind(this)"></app-meal-plan>
+			<app-meal-plan [meal]="meal" [index]="$index" [onEdit]="openEditMealPopup.bind(this)" [onDelete]="handleMealDelete.bind(this)"></app-meal-plan>
 		}
 	</div>
 } @else {

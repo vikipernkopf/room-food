@@ -134,3 +134,40 @@ mealManagementRouter.put('/meal/:id', async (req, res): Promise<void> => {
 	}
 });
 
+mealManagementRouter.delete('/meal/:id', async (req, res): Promise<void> => {
+	const mealId = Number(req.params.id);
+
+	if (!Number.isInteger(mealId) || mealId <= 0) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid meal id' });
+
+		return;
+	}
+
+	const unit = new Unit(false);
+
+	try {
+		const mealManagementService = new MealManagement(unit);
+		const result = mealManagementService.deleteMeal(mealId);
+
+		if (result === 'not_found') {
+			unit.complete(false);
+			res.status(StatusCodes.NOT_FOUND).json({ error: 'Meal not found' });
+
+			return;
+		}
+
+		if (result === 'error') {
+			unit.complete(false);
+			res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to delete meal' });
+
+			return;
+		}
+
+		unit.complete(true);
+		res.status(StatusCodes.OK).json({ id: mealId, deleted: true });
+	} catch (_error) {
+		unit.complete(false);
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to delete meal' });
+	}
+});
+

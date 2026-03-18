@@ -66,4 +66,9 @@ export class MealService {
 		const apiUrl = `${this.apiBase}/meal/${mealId}`;
 		return this.http.put<Meal>(apiUrl, { updatedMeal });
 	}
+
+	public deleteMeal(mealId: number): Observable<{ id: number; deleted: boolean }> {
+		const apiUrl = `${this.apiBase}/meal/${mealId}`;
+		return this.http.delete<{ id: number; deleted: boolean }>(apiUrl);
+	}
 }

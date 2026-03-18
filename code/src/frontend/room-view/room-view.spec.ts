@@ -19,6 +19,7 @@ class StubMealPlan {
   @Input() meal: Meal | null = null;
   @Input() index: number = 0;
   @Input() onEdit: ((meal: Meal) => void) | null = null;
+	@Input() onDelete: ((meal: Meal) => void) | null = null;
 }
 
 @Component({
