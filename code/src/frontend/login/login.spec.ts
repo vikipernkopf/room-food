@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
 
 import { Login } from './login';
 import { provideRouter } from '@angular/router';
@@ -13,6 +14,7 @@ describe('Login', () => {
     await TestBed.configureTestingModule({
       imports: [Login],
       providers: [
+        provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter([]),
         provideLocationMocks()

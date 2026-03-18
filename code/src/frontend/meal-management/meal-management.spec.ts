@@ -1,4 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { MealManagement } from './meal-management';
 
@@ -8,7 +10,11 @@ describe('Meal', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [MealManagement]
+      imports: [MealManagement],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting()
+      ]
     })
     .compileComponents();
 
