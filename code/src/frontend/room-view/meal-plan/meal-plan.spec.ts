@@ -60,4 +60,37 @@ describe('MealPlan', () => {
     const container = fixture.debugElement.query(By.css('.meal-plan'));
     expect(container.nativeElement.classList.contains('even')).toBe(true);
   });
+
+  it('calls onDelete callback when delete button is clicked', () => {
+    let deletedMealName = '';
+    component.meal = {
+      id: 42,
+      name: 'Soup',
+      time: new Date('2026-02-28T12:00:00Z'),
+      room: 'A1',
+      responsible: 'luni'
+    };
+    component.onDelete = (meal) => {
+      deletedMealName = meal.name;
+    };
+
+    fixture.detectChanges();
+
+    const deleteButton = fixture.debugElement.query(By.css('.delete-btn'));
+    deleteButton.triggerEventHandler('click');
+
+    expect(deletedMealName).toBe('Soup');
+  });
+
+  it('does not call onDelete when there is no meal', () => {
+    let deleteCallCount = 0;
+    component.meal = null;
+    component.onDelete = () => {
+      deleteCallCount += 1;
+    };
+
+    component.onDeleteClick();
+
+    expect(deleteCallCount).toBe(0);
+  });
 });

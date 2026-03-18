@@ -3,7 +3,7 @@ import {Unit} from '../unit';
 import {Meal, Recipe} from '../model';
 import {LoginSignUpService} from '../login-sign-up/login-sign-up-service';
 
-export class AddMealService extends ServiceBase {
+export class MealManagement extends ServiceBase {
 
 	private login:LoginSignUpService = new LoginSignUpService(this.unit);
 
@@ -17,20 +17,16 @@ export class AddMealService extends ServiceBase {
 	 * Add a meal for a room
 	 *
 	 * @param meal - meal to add
-	 * @return id if added, "room not found" if room doesn't exist, "time taken" if there already exists a recipe in that room at that time, "recipe not found" if the recipe doesn't exist and "error" otherwise.
+	 * @return id if added, "room_not_found" if room doesn't exist, "recipe_not_found" if the recipe doesn't exist and "error" otherwise.
 	 * "recipe not exists" is for future sprints
 	 */
-	public addMeal(meal:Meal):number | "room not found" | "time taken" | "recipe not found" | "error" {
+	public addMeal(meal:Meal):number | "room_not_found" | "recipe_not_found" | "error" {
 		if(!this.checkRoomExists(meal.room)){
-			return "room not found";
-		}
-
-		if(this.checkTimeTaken(meal.time, meal.room)){
-			return "time taken";
+			return "room_not_found";
 		}
 
 		/*if(!this.checkRecipeExists(meal.recipeId)){
-			return "recipe not found";
+			return "recipe_not_found";
 		}*/
 
 		let success:boolean;
@@ -52,24 +48,66 @@ export class AddMealService extends ServiceBase {
 	/**
 	 * Delete a meal from a room
 	 *
-	 * @param meal - meal to delete
+	 * @param mealId - meal id to delete
 	 * @return true if deleted, "not_found" if meal doesn't exist, "error" otherwise
 	 */
-	public deleteMeal(meal:Meal):true | "not_found" | "error" {
-		if(!this.checkTimeTaken(meal.time, meal.room)){
+	public deleteMeal(mealId:number):true | "not_found" | "error" {
+		if(!this.checkMealExists(mealId)){
 			return "not_found";
 		}
 
 		let result:boolean;
 
 		[result] = this.executeStmt(
-			this.unit.prepare(`delete from Meal where roomCode = :r and time=:t;`,
-				{r:meal.room, t:meal.time.toISOString()})
+			this.unit.prepare(`delete from Meal where id = :id;`,
+				{id:mealId})
 		);
 
 		if(!result) return "error";
 
 		else return true;
+	}
+
+	/**
+	 * Update an existing meal in a room
+	 *
+	 * @param mealId - current persisted meal id
+	 * @param updatedMeal - new meal values
+	 * @return true if updated, "not_found" if the original meal does not exist,
+	 * "room_not_found" if target room does not exist,
+	 * "error" on DB failure
+	 */
+	public updateMeal(
+		mealId: number,
+		updatedMeal: Meal
+	): true | "not_found" | "room_not_found" | "error" {
+		if (!this.checkRoomExists(updatedMeal.room)) {
+			return "room_not_found";
+		}
+
+		if (!this.checkMealExists(mealId)) {
+			return "not_found";
+		}
+
+		const [success] = this.executeStmt(
+			this.unit.prepare(
+				`update Meal set time=:newTime, name=:newName, responsible=:newResponsible, roomCode=:newRoom
+				 where id=:mealId`,
+				{
+					newTime: updatedMeal.time.toISOString(),
+					newName: updatedMeal.name,
+					newResponsible: updatedMeal.responsible,
+					newRoom: updatedMeal.room,
+					mealId: mealId,
+				}
+			)
+		);
+
+		if (!success) {
+			return "error";
+		}
+
+		return true;
 	}
 
 	/**
@@ -80,8 +118,9 @@ export class AddMealService extends ServiceBase {
 	 */
 	public getMealsForUser(username:string):Meal[]{
 		const fetch = this.unit.prepare(`
-    	select m.time, m.name, m.roomCode, m.responsible from Meal m where m.responsible=:n
+	    	select m.id, m.time, m.name, m.roomCode, m.responsible from Meal m where m.responsible=:n
     	`, {n:username}).all() as {time:string,
+			id:number,
 			name:string,
 			roomCode:string,
 			responsible:string}[];
@@ -92,27 +131,16 @@ export class AddMealService extends ServiceBase {
 
 		fetch.forEach(e =>{
 			const date:Date = new Date(Date.parse(e.time));
-			meals.push({time:date, name:e.name,
+			meals.push({id:e.id, time:date, name:e.name,
 				responsible:e.responsible, room:e.roomCode});
 		})
 
 		return meals;
 	}
 
-	/**
-	 * Check if there exists a meal at the specified time in the specified room
-	 *
-	 * @param time - time to check
-	 * @param roomCode - room to check
-	 * @return true if taken, false otherwise
-	 */
-	public checkTimeTaken(time:Date, roomCode:string):boolean{
-		if(!this.checkRoomExists(roomCode)){
-			return false;
-		}
-
+	public checkMealExists(mealId:number):boolean{
 		return this.unit.prepare(
-			`select * from Meal where roomCode=:r and time=:t`,{r:roomCode, t:time.toISOString()}
+			`select * from Meal where id=:id`,{id:mealId}
 		).get()!==undefined;
 	}
 
@@ -140,13 +168,15 @@ export class AddMealService extends ServiceBase {
 
 	// ----------------------- Recipe part ------------------------------
 
+	// noinspection JSUnusedGlobalSymbols
 	public checkRecipeExists(recipeId:number):boolean{
 		return this.unit.prepare(
 			`select * from Recipe where id=:r`,{r:recipeId}
 		).get()!==undefined;
 	}
 
-	public addRecipe(recipe:Recipe):number | "author not found" {
+	// noinspection JSUnusedGlobalSymbols
+	public addRecipe(recipe:Recipe):number | "author_not_found" {
 		/*
 
 		id:number,
@@ -155,7 +185,7 @@ export class AddMealService extends ServiceBase {
 	author:string
 		 */
 		if(!this.login.checkUserExists(recipe.author)){
-			return "author not found";
+			return "author_not_found";
 		}
 
 

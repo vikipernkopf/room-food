@@ -3,23 +3,16 @@ import {MealPlan} from './meal-plan/meal-plan';
 import {AuthService} from '../core/auth-service';
 import {Meal, User} from '../../backend/model';
 import {MealService} from '../core/meal-service';
-import {AddMeal} from '../add-meal/add-meal';
-import {HttpClient} from '@angular/common/http';
-import {environment} from '../../environments/environment';
-
-function getApiBase(): string {
-	const win = typeof window !== 'undefined' ? (window as any) : undefined;
-	const runtime = win && (win.__API_URL || win.API_URL);
-	return runtime || environment.apiUrl || '/api';
-}
+import {MealManagement} from '../meal-management/meal-management';
 
 @Component({
 	selector: 'app-room-view',
+	standalone: true,
 	templateUrl: './room-view.html',
 	styleUrl: './room-view.scss',
 	imports: [
 		MealPlan,
-		AddMeal
+		MealManagement
 	]
 })
 export class RoomView implements OnDestroy {
@@ -27,10 +20,10 @@ export class RoomView implements OnDestroy {
 	protected readonly username: WritableSignal<string> = signal("");
 	protected readonly currentUser: WritableSignal<User | null>;
 	protected readonly isPopupVisible = signal(false);
+	protected readonly mealToEdit: WritableSignal<Meal | null> = signal(null);
 	private refreshInterval: any = null;
-	private apiBase = getApiBase();
 
-	constructor(private authService: AuthService, private mealService: MealService, private http: HttpClient) {
+	constructor(private authService: AuthService, private mealService: MealService) {
 		this.currentUser = this.authService.currentUser;
 
 		effect(() => {
@@ -56,9 +49,7 @@ export class RoomView implements OnDestroy {
 	}
 
 	private fetchMealsForUser(username: string) {
-		const apiUrl = `${this.apiBase}/meals/${username}`;
-
-		this.http.get<Meal[]>(apiUrl).subscribe({
+		this.mealService.getMealsByUsername(username).subscribe({
 			next: (meals) => {
 				console.log('Successfully fetched meals:', meals);
 				this.meals.set(meals || []);
@@ -91,7 +82,48 @@ export class RoomView implements OnDestroy {
 		this.stopAutoRefresh();
 	}
 
+	// noinspection JSUnusedGlobalSymbols
 	togglePopup() {
 		this.isPopupVisible.update(val => !val);
+	}
+
+	protected openAddMealPopup(): void {
+		this.mealToEdit.set(null);
+		this.isPopupVisible.set(true);
+	}
+
+	protected openEditMealPopup(meal: Meal): void {
+		this.mealToEdit.set(meal);
+		this.isPopupVisible.set(true);
+	}
+
+	protected closeMealPopup(): void {
+		this.isPopupVisible.set(false);
+		this.mealToEdit.set(null);
+	}
+
+	protected handleMealDelete(meal: Meal): void {
+		if (!meal.id) {
+			this.mealService.saveError.set('Unable to delete meal: missing meal id');
+			return;
+		}
+
+		this.mealService.deleteMeal(meal.id).subscribe({
+			next: () => {
+				this.mealService.saveError.set('');
+				this.meals.update((currentMeals) => currentMeals.filter((m) => m.id !== meal.id));
+			},
+			error: (err) => {
+				this.mealService.saveError.set('Unable to delete meal: ' + (err.error?.error || err.message || 'Unknown error'));
+			}
+		});
+	}
+
+	protected handleMealSaved(): void {
+		const user = this.currentUser();
+		if (user?.username) {
+			this.fetchMealsForUser(user.username);
+		}
+		this.closeMealPopup();
 	}
 }
