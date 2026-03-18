@@ -1,6 +1,6 @@
 import { ServiceBase } from "../service-base";
 import { Unit } from "../unit";
-import { SignUpCredentials, User } from '../model';
+import { SignUpCredentials, UpdateProfilePayload, User } from '../model';
 
 
 export class LoginSignUpService extends ServiceBase {
@@ -88,6 +88,18 @@ export class LoginSignUpService extends ServiceBase {
     const fetch = this.unit.prepare(
       `select 1 from User u where lower(u.email)=lower(:email)`,
       { email: this.normalizeEmail(email) }
+    ).get();
+
+    return fetch !== undefined;
+  }
+
+  public checkEmailExistsForOtherUser(email: string, username: string): boolean {
+    const fetch = this.unit.prepare(
+      `select 1 from User u where lower(u.email)=lower(:email) and u.username != :username`,
+      {
+        email: this.normalizeEmail(email),
+        username
+      }
     ).get();
 
     return fetch !== undefined;
@@ -214,6 +226,67 @@ export class LoginSignUpService extends ServiceBase {
     ).get() as User | undefined;
 
     return user;
+  }
+
+  public updateUserProfile(username: string, payload: UpdateProfilePayload): true | 'not_found' | 'error' {
+    if (!this.checkUserExists(username)) {
+      return 'not_found';
+    }
+
+    const normalizedEmail = this.normalizeEmail(payload.email);
+    const trimmedPassword = (payload.password ?? '').trim();
+
+    let result: boolean;
+
+    if (trimmedPassword) {
+      [result] = this.executeStmt(
+        this.unit.prepare(
+          `update User
+           set email=:email,
+               first_name=:first_name,
+               last_name=:last_name,
+               bio=:bio,
+               dob=:dob,
+               profile_picture=:profile_picture,
+               password=:password
+           where username=:username`,
+          {
+            email: normalizedEmail,
+            first_name: payload.firstName,
+            last_name: payload.lastName,
+            bio: payload.bio,
+            dob: payload.dob,
+            profile_picture: payload.profilePicture,
+            password: trimmedPassword,
+            username
+          }
+        )
+      );
+    } else {
+      [result] = this.executeStmt(
+        this.unit.prepare(
+          `update User
+           set email=:email,
+               first_name=:first_name,
+               last_name=:last_name,
+               bio=:bio,
+               dob=:dob,
+               profile_picture=:profile_picture
+           where username=:username`,
+          {
+            email: normalizedEmail,
+            first_name: payload.firstName,
+            last_name: payload.lastName,
+            bio: payload.bio,
+            dob: payload.dob,
+            profile_picture: payload.profilePicture,
+            username
+          }
+        )
+      );
+    }
+
+    return result ? true : 'error';
   }
 
   /**

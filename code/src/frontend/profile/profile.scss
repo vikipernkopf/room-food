@@ -1,0 +1,158 @@
+$color-green-3: #2E7D32;
+$color-green-4: #105B37;
+$color-orange-1: #C85A04;
+$color-orange-3: #FF9800;
+$color-bg: #F0F4F8;
+$color-white: #ffffff;
+$color-text: #4A5568;
+$color-text-light: #A0AEC0;
+
+.profile-page {
+  min-height: calc(100vh - 64px);
+  background: $color-bg;
+  padding: 5.2rem 1rem 2rem;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+}
+
+.profile-card {
+  width: 100%;
+  max-width: 860px;
+  background: $color-white;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 1.5rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+
+  img {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid $color-orange-3;
+  }
+
+  h2 {
+    margin: 0;
+    color: $color-green-4;
+  }
+
+  .username {
+    margin: 0.25rem 0 0;
+    color: $color-text-light;
+    font-weight: 600;
+  }
+}
+
+.bio {
+  margin: 1rem 0 1.4rem;
+  color: $color-text;
+  line-height: 1.45;
+  white-space: pre-line;
+}
+
+h3 {
+  margin: 0 0 0.8rem;
+  color: $color-green-3;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+
+  label {
+    margin-bottom: 0.3rem;
+    color: $color-text;
+    font-weight: 600;
+    font-size: 0.92rem;
+  }
+
+  input,
+  textarea {
+    border: 1.5px solid #e2e8f0;
+    background: #f8fafc;
+    border-radius: 10px;
+    padding: 0.62rem 0.78rem;
+    font-size: 0.95rem;
+    color: $color-text;
+  }
+
+  textarea {
+    min-height: 72px;
+    resize: vertical;
+  }
+
+  aside {
+    margin-top: 0.2rem;
+    color: #e53e3e;
+    font-size: 0.82rem;
+  }
+}
+
+.field-group--full {
+  grid-column: 1 / -1;
+}
+
+button {
+  margin-top: 0.95rem;
+  border: none;
+  border-radius: 12px;
+  background: $color-orange-3;
+  color: $color-white;
+  font-weight: 700;
+  font-size: 0.98rem;
+  padding: 0.8rem 1rem;
+  cursor: pointer;
+
+  &:hover {
+    background: $color-orange-1;
+  }
+}
+
+.status {
+  margin: 0.55rem 0 0;
+  color: $color-text;
+  font-size: 0.9rem;
+}
+
+.status.error {
+  color: #e53e3e;
+}
+
+.status.success {
+  color: $color-green-3;
+}
+
+@media (max-width: 700px) {
+  .profile-card {
+    padding: 1rem;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+  }
+
+  .profile-header {
+    align-items: flex-start;
+
+    img {
+      width: 72px;
+      height: 72px;
+    }
+  }
+}
+
