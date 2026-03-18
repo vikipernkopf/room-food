@@ -102,6 +102,36 @@ cd code
 npm run frontend:start
 ```
 
+## Proxy config variants
+
+Use one of these `code/proxy.conf.json` versions depending on which backend you want.
+
+### A) Local backend proxy
+
+```json
+{
+  "/api": {
+    "target": "http://localhost:3001",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {}
+  }
+}
+```
+
+### B) Remote backend proxy
+
+```json
+{
+  "/api": {
+    "target": "https://roomfood-backend.black2.cf",
+    "secure": true,
+    "changeOrigin": true,
+    "pathRewrite": {}
+  }
+}
+```
+
 ## Backend URL sources
 
 Frontend API base URL is resolved in this order:
