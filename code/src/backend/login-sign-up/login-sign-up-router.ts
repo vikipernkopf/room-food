@@ -2,7 +2,7 @@ import express from "express";
 import { Unit } from "../unit";
 import { LoginSignUpService } from "./login-sign-up-service";
 import { StatusCodes } from "http-status-codes";
-import { SignUpCredentials, User } from "../model";
+import { PublicProfile, SignUpCredentials, UpdateProfilePayload, User } from "../model";
 
 const DEFAULT_PROFILE_PICTURE =
 	'https://i.imgur.com/tdi3NGa_d.webp?maxwidth=760&fidelity=grand';
@@ -106,6 +106,93 @@ loginSignUpRouter.post('/signup', (req, res) => {
 	}
 })
 
+loginSignUpRouter.get('/users/:username', (req, res) => {
+	const username = (req.params.username ?? '').trim();
+	if (!username) {
+		return res.sendStatus(StatusCodes.BAD_REQUEST);
+	}
+
+	const unit = new Unit(true);
+	try {
+		const loginSignUpService = new LoginSignUpService(unit);
+		const user = loginSignUpService.getUserByUsername(username);
+		unit.complete();
+
+		if (!user) {
+			return res.sendStatus(StatusCodes.NOT_FOUND);
+		}
+
+		return res.status(StatusCodes.OK).json(publicProfileFrom(user));
+	} catch (e) {
+		console.error(e);
+		unit.complete();
+		return res.sendStatus(StatusCodes.INTERNAL_SERVER_ERROR);
+	}
+});
+
+loginSignUpRouter.put('/users/:username', (req, res) => {
+	const username = (req.params.username ?? '').trim();
+	console.log('Profile update requested for:', username);
+	if (!username) {
+		console.log('Profile update failed: missing username');
+		return res.sendStatus(StatusCodes.BAD_REQUEST);
+	}
+
+	const payload = parseUpdateProfilePayload(req.body);
+	if (!payload) {
+		console.log('Profile update failed: invalid payload');
+		return res.status(StatusCodes.BAD_REQUEST).json({ reason: 'invalid_payload' });
+	}
+
+	if (payload.actorUsername !== username) {
+		console.log('Profile update forbidden: actor does not match target user');
+		return res.sendStatus(StatusCodes.FORBIDDEN);
+	}
+
+	const unit = new Unit(false);
+	try {
+		const loginSignUpService = new LoginSignUpService(unit);
+
+		if (loginSignUpService.checkEmailExistsForOtherUser(payload.email, username)) {
+			unit.complete(false);
+			console.log('Profile update conflict: email already in use');
+			return res.status(StatusCodes.CONFLICT).json({ reason: 'email_taken' });
+		}
+
+		const result = loginSignUpService.updateUserProfile(username, payload);
+		if (result === 'not_found') {
+			unit.complete(false);
+			console.log('Profile update failed: user not found');
+			return res.sendStatus(StatusCodes.NOT_FOUND);
+		}
+		if (result === 'error') {
+			unit.complete(false);
+			console.log('Profile update failed: service error');
+			return res.sendStatus(StatusCodes.INTERNAL_SERVER_ERROR);
+		}
+
+		const updatedUser = loginSignUpService.getUserByUsername(username);
+		unit.complete(true);
+
+		if (!updatedUser) {
+			console.log('Profile update failed: updated user could not be loaded');
+			return res.sendStatus(StatusCodes.INTERNAL_SERVER_ERROR);
+		}
+
+		console.log('Profile updated successfully for:', username);
+		return res.status(StatusCodes.OK).json(publicUserFrom(updatedUser));
+	} catch (e) {
+		console.error(e);
+		unit.complete(false);
+
+		if (isEmailUniqueConstraintError(e)) {
+			return res.status(StatusCodes.CONFLICT).json({ reason: 'email_taken' });
+		}
+
+		return res.sendStatus(StatusCodes.INTERNAL_SERVER_ERROR);
+	}
+});
+
 function parseSignUpPayload(body: unknown): SignUpCredentials | null {
 	if (!body || typeof body !== 'object') {
 		return null;
@@ -117,7 +204,7 @@ function parseSignUpPayload(body: unknown): SignUpCredentials | null {
 	const email = typeof payload['email'] === 'string' ? payload['email'].trim() : '';
 	const firstName = typeof payload['firstName'] === 'string' ? payload['firstName'].trim() : '';
 	const lastName = typeof payload['lastName'] === 'string' ? payload['lastName'].trim() : '';
-	const bio = typeof payload['bio'] === 'string' ? payload['bio'].trim() : '';
+	const bio = typeof payload['bio'] === 'string' ? payload['bio'] : '';
 	const dob = typeof payload['dob'] === 'string' ? payload['dob'].trim() : '';
 	const rawProfilePicture =
 		typeof payload['profilePicture'] === 'string' ? payload['profilePicture'].trim() : '';
@@ -144,6 +231,54 @@ function publicUserFrom(user: User): Omit<User, 'password'> {
 	return publicUser;
 }
 
+function publicProfileFrom(user: User): PublicProfile {
+	return {
+		username: user.username,
+		firstName: user.firstName,
+		lastName: user.lastName,
+		bio: user.bio,
+		profilePicture: user.profilePicture
+	};
+}
+
+function parseUpdateProfilePayload(body: unknown): UpdateProfilePayload | null {
+	if (!body || typeof body !== 'object') {
+		return null;
+	}
+
+	const payload = body as Record<string, unknown>;
+	const actorUsername =
+		typeof payload['actorUsername'] === 'string' ? payload['actorUsername'].trim() : '';
+	const email = typeof payload['email'] === 'string' ? payload['email'].trim() : '';
+	const firstName = typeof payload['firstName'] === 'string' ? payload['firstName'].trim() : '';
+	const lastName = typeof payload['lastName'] === 'string' ? payload['lastName'].trim() : '';
+	const bio = typeof payload['bio'] === 'string' ? payload['bio'] : '';
+	const dob = typeof payload['dob'] === 'string' ? payload['dob'].trim() : '';
+	const rawProfilePicture =
+		typeof payload['profilePicture'] === 'string' ? payload['profilePicture'].trim() : '';
+	const profilePicture = rawProfilePicture || DEFAULT_PROFILE_PICTURE;
+	const password = typeof payload['password'] === 'string' ? payload['password'] : '';
+
+	if (!actorUsername || !email || !firstName || !lastName || !dob) {
+		return null;
+	}
+
+	if (!isEmail(email)) {
+		return null;
+	}
+
+	return {
+		actorUsername,
+		email,
+		firstName,
+		lastName,
+		bio,
+		dob,
+		profilePicture,
+		password: password.trim()
+	};
+}
+
 function isEmailUniqueConstraintError(error: unknown): boolean {
 	const err = error as { code?: string; message?: string };
 	if (err?.code !== 'SQLITE_CONSTRAINT_UNIQUE' && err?.code !== 'SQLITE_CONSTRAINT') {
@@ -160,5 +295,9 @@ function isUsernameUniqueConstraintError(error: unknown): boolean {
 	}
 	const message = (err.message ?? '').toLowerCase();
 	return message.includes('uq_user') || message.includes('user.username');
+}
+
+function isEmail(email: string): boolean {
+	return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 

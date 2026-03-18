@@ -25,6 +25,25 @@ export type SignUpCredentials = {
 	profilePicture: string
 };
 
+export type PublicProfile = {
+	username: string,
+	firstName?: string,
+	lastName?: string,
+	bio?: string,
+	profilePicture?: string
+};
+
+export type UpdateProfilePayload = {
+	actorUsername: string,
+	email: string,
+	firstName: string,
+	lastName: string,
+	bio: string,
+	dob: string,
+	profilePicture: string,
+	password?: string
+};
+
 // noinspection JSUnusedGlobalSymbols
 export type Room = {
 	code:string

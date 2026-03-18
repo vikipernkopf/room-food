@@ -4,7 +4,8 @@ import {Injectable, signal, WritableSignal} from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
-import { LoginCredentials, SignUpCredentials, User } from '../../backend/model';
+import { LoginCredentials, PublicProfile, SignUpCredentials, UpdateProfilePayload, User } from '../../backend/model';
+import { Observable, tap } from 'rxjs';
 
 function getApiBase(): string {
   // Runtime override: window.__API_URL can be injected into the page (e.g. by a script
@@ -24,7 +25,7 @@ export class AuthService {
 	public readonly loginError: WritableSignal<string> = signal('');
 	public readonly signUpError: WritableSignal<string> = signal('');
 
-	login(credentials: LoginCredentials) {
+	login(credentials: LoginCredentials, returnUrl: string = '/homepage') {
 		console.log("Logging in at endpoint:", `${this.apiBase}/login`);
 
 		this.http.post<User>(`${this.apiBase}/login`, credentials).subscribe({
@@ -33,7 +34,7 @@ export class AuthService {
 				this.currentUser.set(user);
 				this.loginError.set('');
 				// noinspection JSIgnoredPromiseFromCall
-				this.router.navigate(['/homepage']);
+				this.router.navigateByUrl(returnUrl);
 			},
 			error: (err) => {
 				if (err.status === 401) {
@@ -69,5 +70,20 @@ export class AuthService {
 				}
 			}
 		});
+	}
+
+	getPublicProfile(username: string): Observable<PublicProfile> {
+		return this.http.get<PublicProfile>(`${this.apiBase}/users/${username}`);
+	}
+
+	updateProfile(username: string, payload: UpdateProfilePayload): Observable<User> {
+		return this.http.put<User>(`${this.apiBase}/users/${username}`, payload).pipe(
+			tap((updatedUser) => {
+				const existing = this.currentUser();
+				if (existing?.username === updatedUser.username) {
+					this.currentUser.set(updatedUser);
+				}
+			})
+		);
 	}
 }

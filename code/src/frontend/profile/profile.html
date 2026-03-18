@@ -1,0 +1,76 @@
+<section class="profile-page">
+  @if (isLoading()) {
+    <p class="status">Loading profile...</p>
+  } @else if (loadError()) {
+    <p class="status error">{{ loadError() }}</p>
+  } @else if (profile(); as profileData) {
+    <article class="profile-card">
+      <div class="profile-header">
+        <img [src]="profileImageUrl()" [alt]="profileData.username + ' profile image'" />
+        <div>
+          <h2>{{ profileData.firstName || profileData.username }} {{ profileData.lastName || '' }}</h2>
+          <p class="username">&#64;{{ profileData.username }}</p>
+        </div>
+      </div>
+
+      <p class="bio">
+        {{ profileData.bio || 'No bio yet.' }}
+      </p>
+
+      @if (isOwnProfile()) {
+        <h3>Edit your profile</h3>
+        <form [formGroup]="editForm" (ngSubmit)="saveProfile()" autocomplete="on">
+          <div class="form-grid">
+            <div class="field-group">
+              <label for="firstName">First name</label>
+              <input id="firstName" formControlName="firstName" type="text" autocomplete="given-name" />
+            </div>
+
+            <div class="field-group">
+              <label for="lastName">Last name</label>
+              <input id="lastName" formControlName="lastName" type="text" autocomplete="family-name" />
+            </div>
+
+            <div class="field-group">
+              <label for="email">E-mail</label>
+              <input id="email" formControlName="email" type="email" autocomplete="email" />
+            </div>
+
+            <div class="field-group">
+              <label for="dob">Date of birth</label>
+              <input id="dob" formControlName="dob" type="date" autocomplete="bday" />
+            </div>
+
+            <div class="field-group field-group--full">
+              <label for="profilePicture">Profile picture URL</label>
+              <input id="profilePicture" formControlName="profilePicture" type="url" autocomplete="photo" />
+            </div>
+
+            <div class="field-group field-group--full">
+              <label for="bio">Bio</label>
+              <textarea id="bio" formControlName="bio" rows="3"></textarea>
+            </div>
+
+            <div class="field-group field-group--full">
+              <label for="password">New password (optional)</label>
+              <input id="password" formControlName="password" type="password" autocomplete="new-password" />
+              @if (editForm.get('password')?.touched && editForm.get('password')?.hasError('minlength')) {
+                <aside>Password must be at least 8 characters.</aside>
+              }
+            </div>
+          </div>
+
+          @if (saveError()) {
+            <p class="status error">{{ saveError() }}</p>
+          }
+          @if (saveSuccess()) {
+            <p class="status success">{{ saveSuccess() }}</p>
+          }
+
+          <button type="submit">Save profile</button>
+        </form>
+      }
+    </article>
+  }
+</section>
+
