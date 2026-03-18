@@ -28,7 +28,7 @@ mealManagementRouter.post("/meal", async (req, res): Promise<void> => {
 		const mealManagementService = new MealManagement(unit);
 		const result = mealManagementService.addMeal(meal);
 
-		if (result === "room not found") {
+		if (result === "room_not_found") {
 			unit.complete(false);
 			res.status(StatusCodes.CONFLICT).json({ error: "Room not found" });
 			console.log("Room not found");
@@ -36,12 +36,12 @@ mealManagementRouter.post("/meal", async (req, res): Promise<void> => {
 			return;
 		}
 
-		/*if (result === "recipe not found") {
+		/*if (result === "recipe_not_found") {
 			unit.complete(false);
 			return res.status(StatusCodes.NOT_FOUND).json({ error: "The selected recipe does not exist" });
 		}*/
 
-		if (result === "time taken") {
+		if (result === "time_taken") {
 			unit.complete(false);
 			res.status(StatusCodes.CONFLICT).json({ error: "Time slot already booked" });
 			console.log("Time slot already booked");
@@ -114,14 +114,14 @@ mealManagementRouter.put('/meal', async (req, res): Promise<void> => {
 			return;
 		}
 
-		if (result === 'room not found') {
+		if (result === 'room_not_found') {
 			unit.complete(false);
 			res.status(StatusCodes.CONFLICT).json({ error: 'Room not found' });
 
 			return;
 		}
 
-		if (result === 'time taken') {
+		if (result === 'time_taken') {
 			unit.complete(false);
 			res.status(StatusCodes.CONFLICT).json({ error: 'Time slot already booked' });
 			return;

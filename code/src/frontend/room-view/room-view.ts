@@ -4,14 +4,6 @@ import {AuthService} from '../core/auth-service';
 import {Meal, User} from '../../backend/model';
 import {MealService} from '../core/meal-service';
 import {MealManagement} from '../meal-management/meal-management.component';
-import {HttpClient} from '@angular/common/http';
-import {environment} from '../../environments/environment';
-
-function getApiBase(): string {
-	const win = typeof window !== 'undefined' ? (window as any) : undefined;
-	const runtime = win && (win.__API_URL || win.API_URL);
-	return runtime || environment.apiUrl || '/api';
-}
 
 @Component({
 	selector: 'app-room-view',
@@ -29,9 +21,8 @@ export class RoomView implements OnDestroy {
 	protected readonly isPopupVisible = signal(false);
 	protected readonly mealToEdit: WritableSignal<Meal | null> = signal(null);
 	private refreshInterval: any = null;
-	private apiBase = getApiBase();
 
-	constructor(private authService: AuthService, private mealService: MealService, private http: HttpClient) {
+	constructor(private authService: AuthService, private mealService: MealService) {
 		this.currentUser = this.authService.currentUser;
 
 		effect(() => {
@@ -57,9 +48,7 @@ export class RoomView implements OnDestroy {
 	}
 
 	private fetchMealsForUser(username: string) {
-		const apiUrl = `${this.apiBase}/meals/${username}`;
-
-		this.http.get<Meal[]>(apiUrl).subscribe({
+		this.mealService.getMealsByUsername(username).subscribe({
 			next: (meals) => {
 				console.log('Successfully fetched meals:', meals);
 				this.meals.set(meals || []);

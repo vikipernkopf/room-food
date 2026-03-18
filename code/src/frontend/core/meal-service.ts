@@ -2,6 +2,7 @@ import {Injectable, signal, WritableSignal} from '@angular/core';
 import {environment} from '../../environments/environment';
 import {HttpClient} from '@angular/common/http';
 import {Meal, User} from '../../backend/model';
+import {Observable} from 'rxjs';
 
 function getApiBase(): string {
 	// Runtime override: window.__API_URL can be injected into the page (e.g. by a script
@@ -16,6 +17,7 @@ function getApiBase(): string {
 })
 export class MealService {
 	private apiBase = getApiBase();
+	public readonly saveError: WritableSignal<string> = signal('');
 	constructor(private http: HttpClient) { }
 
 	// noinspection JSUnusedGlobalSymbols
@@ -48,5 +50,20 @@ export class MealService {
 		});
 
 		return mealsSignal;
+	}
+
+	public getMealsByUsername(username: string): Observable<Meal[]> {
+		const apiUrl = `${this.apiBase}/meals/${username}`;
+		return this.http.get<Meal[]>(apiUrl);
+	}
+
+	public postMeal(meal: Meal): Observable<Meal> {
+		const apiUrl = `${this.apiBase}/meal`;
+		return this.http.post<Meal>(apiUrl, meal);
+	}
+
+	public updateMeal(originalMeal: Meal, updatedMeal: Meal): Observable<Meal> {
+		const apiUrl = `${this.apiBase}/meal`;
+		return this.http.put<Meal>(apiUrl, { originalMeal, updatedMeal });
 	}
 }

@@ -17,20 +17,20 @@ export class MealManagement extends ServiceBase {
 	 * Add a meal for a room
 	 *
 	 * @param meal - meal to add
-	 * @return id if added, "room not found" if room doesn't exist, "time taken" if there already exists a recipe in that room at that time, "recipe not found" if the recipe doesn't exist and "error" otherwise.
+	 * @return id if added, "room_not_found" if room doesn't exist, "time_taken" if there already exists a recipe in that room at that time, "recipe_not_found" if the recipe doesn't exist and "error" otherwise.
 	 * "recipe not exists" is for future sprints
 	 */
-	public addMeal(meal:Meal):number | "room not found" | "time taken" | "recipe not found" | "error" {
+	public addMeal(meal:Meal):number | "room_not_found" | "time_taken" | "recipe_not_found" | "error" {
 		if(!this.checkRoomExists(meal.room)){
-			return "room not found";
+			return "room_not_found";
 		}
 
 		if(this.checkTimeTaken(meal.time, meal.room)){
-			return "time taken";
+			return "time_taken";
 		}
 
 		/*if(!this.checkRecipeExists(meal.recipeId)){
-			return "recipe not found";
+			return "recipe_not_found";
 		}*/
 
 		let success:boolean;
@@ -78,15 +78,15 @@ export class MealManagement extends ServiceBase {
 	 * @param originalMeal - current persisted meal identity (room + time)
 	 * @param updatedMeal - new meal values
 	 * @return true if updated, "not_found" if the original meal does not exist,
-	 * "room not found" if target room does not exist, "time taken" if target slot is occupied,
+	 * "room_not_found" if target room does not exist, "time_taken" if target slot is occupied,
 	 * "error" on DB failure
 	 */
 	public updateMeal(
 		originalMeal: Meal,
 		updatedMeal: Meal
-	): true | "not_found" | "room not found" | "time taken" | "error" {
+	): true | "not_found" | "room_not_found" | "time_taken" | "error" {
 		if (!this.checkRoomExists(updatedMeal.room)) {
-			return "room not found";
+			return "room_not_found";
 		}
 
 		if (!this.checkTimeTaken(originalMeal.time, originalMeal.room)) {
@@ -98,7 +98,7 @@ export class MealManagement extends ServiceBase {
 			originalMeal.time.toISOString() !== updatedMeal.time.toISOString();
 
 		if (targetChanged && this.checkTimeTaken(updatedMeal.time, updatedMeal.room)) {
-			return "time taken";
+			return "time_taken";
 		}
 
 		const [success] = this.executeStmt(
@@ -197,7 +197,7 @@ export class MealManagement extends ServiceBase {
 		).get()!==undefined;
 	}
 
-	public addRecipe(recipe:Recipe):number | "author not found" {
+	public addRecipe(recipe:Recipe):number | "author_not_found" {
 		/*
 
 		id:number,
@@ -206,7 +206,7 @@ export class MealManagement extends ServiceBase {
 	author:string
 		 */
 		if(!this.login.checkUserExists(recipe.author)){
-			return "author not found";
+			return "author_not_found";
 		}
 
 

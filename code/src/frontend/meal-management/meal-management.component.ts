@@ -19,7 +19,7 @@ import {MatButtonModule} from '@angular/material/button';
 import {provideNativeDateAdapter} from '@angular/material/core';
 import { AuthService } from '../core/auth-service';
 import {Meal, User} from '../../backend/model';
-import {MenuService} from '../core/menu-service';
+import {MealService} from '../core/meal-service';
 
 interface MealType {
 	value: string;
@@ -68,7 +68,7 @@ export class MealManagement implements OnChanges {
 
 	protected readonly currentUser: WritableSignal<User | null>;
 
-	constructor(private authService: AuthService, private menuService: MenuService,) {
+	constructor(private authService: AuthService, private mealService: MealService) {
 		this.currentUser = this.authService.currentUser;
 	}
 
@@ -117,7 +117,7 @@ export class MealManagement implements OnChanges {
 			};
 
 			const request = this.isEditMode && this.mealToEdit
-				? this.menuService.updateMeal(
+				? this.mealService.updateMeal(
 					{
 						time: new Date(this.mealToEdit.time as unknown as string),
 						name: this.mealToEdit.name,
@@ -126,18 +126,18 @@ export class MealManagement implements OnChanges {
 					},
 					newMeal
 				)
-				: this.menuService.postMeal(newMeal);
+				: this.mealService.postMeal(newMeal);
 
 			request.subscribe({
 				next: (meal) => {
 					console.log('Successfully saved meal:', meal);
-					this.menuService.saveError.set('');
+					this.mealService.saveError.set('');
 					this.mealSaved.emit();
 					this.closePopup();
 				},
 				error: (err) => {
 					console.error('Error saving meal:', err);
-					this.menuService.saveError.set('Unable to save meal: ' + (err.error?.error || err.message || 'Unknown error'));
+					this.mealService.saveError.set('Unable to save meal: ' + (err.error?.error || err.message || 'Unknown error'));
 				}
 			});
 		} else {
