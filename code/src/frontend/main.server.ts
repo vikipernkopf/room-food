@@ -1,5 +1,6 @@
 // noinspection JSUnusedGlobalSymbols
 
+import 'zone.js/node';
 import { BootstrapContext, bootstrapApplication } from '@angular/platform-browser';
 import { App } from './app/app';
 import { config } from '../backend/app/app.config.server';
