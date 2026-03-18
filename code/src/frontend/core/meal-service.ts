@@ -62,8 +62,8 @@ export class MealService {
 		return this.http.post<Meal>(apiUrl, meal);
 	}
 
-	public updateMeal(originalMeal: Meal, updatedMeal: Meal): Observable<Meal> {
-		const apiUrl = `${this.apiBase}/meal`;
-		return this.http.put<Meal>(apiUrl, { originalMeal, updatedMeal });
+	public updateMeal(mealId: number, updatedMeal: Meal): Observable<Meal> {
+		const apiUrl = `${this.apiBase}/meal/${mealId}`;
+		return this.http.put<Meal>(apiUrl, { updatedMeal });
 	}
 }

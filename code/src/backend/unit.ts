@@ -117,12 +117,44 @@ class DB {
 				name text,
                 responsible text,
                 roomCode text not null,
-
-                constraint uq_mealtime unique (time),
                 constraint fk_responsible foreign key (responsible) REFERENCES User(username) ON DELETE CASCADE
 
                 ) strict`
     ); //!!!!!!!!!!! add a recipeId foreign key instead of name
+
+  DB.migrateMealTableToIdIdentity(connection);
+  }
+
+  private static migrateMealTableToIdIdentity(connection: BetterSqlite3.Database): void {
+    const row = connection.prepare(
+      `select sql from sqlite_master where type='table' and name='Meal'`
+    ).get() as { sql?: string } | undefined;
+
+    const sql = (row?.sql ?? '').toLowerCase();
+    const hasLegacyUniqueTime = sql.includes('uq_mealtime') || sql.includes('unique (time)');
+
+    if (!hasLegacyUniqueTime) {
+      return;
+    }
+
+    connection.exec(`
+      alter table Meal rename to Meal_legacy;
+
+      create table Meal
+      (
+        id integer primary key autoincrement,
+        time text not null,
+        name text,
+        responsible text,
+        roomCode text not null,
+        constraint fk_responsible foreign key (responsible) REFERENCES User(username) ON DELETE CASCADE
+      ) strict;
+
+      insert into Meal(id, time, name, responsible, roomCode)
+      select id, time, name, responsible, roomCode from Meal_legacy;
+
+      drop table Meal_legacy;
+    `);
   }
 }
 

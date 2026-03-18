@@ -2,7 +2,7 @@ import { Routes } from '@angular/router';
 import { Login } from '../../frontend/login/login';
 import { Homepage } from '../../frontend/homepage/homepage';
 import { SignUp} from '../../frontend/sign-up/sign-up';
-import { MealManagement} from '../../frontend/meal-management/meal-management.component';
+import { MealManagement} from '../../frontend/meal-management/meal-management';
 import { RoomView } from '../../frontend/room-view/room-view';
 
 

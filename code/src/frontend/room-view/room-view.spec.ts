@@ -18,6 +18,7 @@ import { Meal, User } from '../../backend/model';
 class StubMealPlan {
   @Input() meal: Meal | null = null;
   @Input() index: number = 0;
+  @Input() onEdit: ((meal: Meal) => void) | null = null;
 }
 
 @Component({
@@ -26,7 +27,9 @@ class StubMealPlan {
   template: ''
 })
 class StubAddMeal {
+  @Input() mealToEdit: Meal | null = null;
   @Output() close = new EventEmitter<void>();
+  @Output() mealSaved = new EventEmitter<void>();
 }
 
 @Component({

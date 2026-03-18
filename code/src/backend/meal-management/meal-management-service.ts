@@ -17,16 +17,12 @@ export class MealManagement extends ServiceBase {
 	 * Add a meal for a room
 	 *
 	 * @param meal - meal to add
-	 * @return id if added, "room_not_found" if room doesn't exist, "time_taken" if there already exists a recipe in that room at that time, "recipe_not_found" if the recipe doesn't exist and "error" otherwise.
+	 * @return id if added, "room_not_found" if room doesn't exist, "recipe_not_found" if the recipe doesn't exist and "error" otherwise.
 	 * "recipe not exists" is for future sprints
 	 */
-	public addMeal(meal:Meal):number | "room_not_found" | "time_taken" | "recipe_not_found" | "error" {
+	public addMeal(meal:Meal):number | "room_not_found" | "recipe_not_found" | "error" {
 		if(!this.checkRoomExists(meal.room)){
 			return "room_not_found";
-		}
-
-		if(this.checkTimeTaken(meal.time, meal.room)){
-			return "time_taken";
 		}
 
 		/*if(!this.checkRecipeExists(meal.recipeId)){
@@ -52,19 +48,19 @@ export class MealManagement extends ServiceBase {
 	/**
 	 * Delete a meal from a room
 	 *
-	 * @param meal - meal to delete
+	 * @param mealId - meal id to delete
 	 * @return true if deleted, "not_found" if meal doesn't exist, "error" otherwise
 	 */
-	public deleteMeal(meal:Meal):true | "not_found" | "error" {
-		if(!this.checkTimeTaken(meal.time, meal.room)){
+	public deleteMeal(mealId:number):true | "not_found" | "error" {
+		if(!this.checkMealExists(mealId)){
 			return "not_found";
 		}
 
 		let result:boolean;
 
 		[result] = this.executeStmt(
-			this.unit.prepare(`delete from Meal where roomCode = :r and time=:t;`,
-				{r:meal.room, t:meal.time.toISOString()})
+			this.unit.prepare(`delete from Meal where id = :id;`,
+				{id:mealId})
 		);
 
 		if(!result) return "error";
@@ -75,43 +71,34 @@ export class MealManagement extends ServiceBase {
 	/**
 	 * Update an existing meal in a room
 	 *
-	 * @param originalMeal - current persisted meal identity (room + time)
+	 * @param mealId - current persisted meal id
 	 * @param updatedMeal - new meal values
 	 * @return true if updated, "not_found" if the original meal does not exist,
-	 * "room_not_found" if target room does not exist, "time_taken" if target slot is occupied,
+	 * "room_not_found" if target room does not exist,
 	 * "error" on DB failure
 	 */
 	public updateMeal(
-		originalMeal: Meal,
+		mealId: number,
 		updatedMeal: Meal
-	): true | "not_found" | "room_not_found" | "time_taken" | "error" {
+	): true | "not_found" | "room_not_found" | "error" {
 		if (!this.checkRoomExists(updatedMeal.room)) {
 			return "room_not_found";
 		}
 
-		if (!this.checkTimeTaken(originalMeal.time, originalMeal.room)) {
+		if (!this.checkMealExists(mealId)) {
 			return "not_found";
-		}
-
-		const targetChanged =
-			originalMeal.room !== updatedMeal.room ||
-			originalMeal.time.toISOString() !== updatedMeal.time.toISOString();
-
-		if (targetChanged && this.checkTimeTaken(updatedMeal.time, updatedMeal.room)) {
-			return "time_taken";
 		}
 
 		const [success] = this.executeStmt(
 			this.unit.prepare(
 				`update Meal set time=:newTime, name=:newName, responsible=:newResponsible, roomCode=:newRoom
-				 where roomCode=:oldRoom and time=:oldTime`,
+				 where id=:mealId`,
 				{
 					newTime: updatedMeal.time.toISOString(),
 					newName: updatedMeal.name,
 					newResponsible: updatedMeal.responsible,
 					newRoom: updatedMeal.room,
-					oldRoom: originalMeal.room,
-					oldTime: originalMeal.time.toISOString(),
+					mealId: mealId,
 				}
 			)
 		);
@@ -131,8 +118,9 @@ export class MealManagement extends ServiceBase {
 	 */
 	public getMealsForUser(username:string):Meal[]{
 		const fetch = this.unit.prepare(`
-    	select m.time, m.name, m.roomCode, m.responsible from Meal m where m.responsible=:n
+	    	select m.id, m.time, m.name, m.roomCode, m.responsible from Meal m where m.responsible=:n
     	`, {n:username}).all() as {time:string,
+			id:number,
 			name:string,
 			roomCode:string,
 			responsible:string}[];
@@ -143,27 +131,16 @@ export class MealManagement extends ServiceBase {
 
 		fetch.forEach(e =>{
 			const date:Date = new Date(Date.parse(e.time));
-			meals.push({time:date, name:e.name,
+			meals.push({id:e.id, time:date, name:e.name,
 				responsible:e.responsible, room:e.roomCode});
 		})
 
 		return meals;
 	}
 
-	/**
-	 * Check if there exists a meal at the specified time in the specified room
-	 *
-	 * @param time - time to check
-	 * @param roomCode - room to check
-	 * @return true if taken, false otherwise
-	 */
-	public checkTimeTaken(time:Date, roomCode:string):boolean{
-		if(!this.checkRoomExists(roomCode)){
-			return false;
-		}
-
+	public checkMealExists(mealId:number):boolean{
 		return this.unit.prepare(
-			`select * from Meal where roomCode=:r and time=:t`,{r:roomCode, t:time.toISOString()}
+			`select * from Meal where id=:id`,{id:mealId}
 		).get()!==undefined;
 	}
 

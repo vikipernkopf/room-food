@@ -40,7 +40,7 @@ interface MealType {
 		MatIconModule, MatButtonModule,
 	],
 	templateUrl: './meal-management.html',
-	styleUrl: './meal-management.component.scss',
+	styleUrl: './meal-management.scss',
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 
@@ -116,16 +116,15 @@ export class MealManagement implements OnChanges {
 				room: currentUsername
 			};
 
-			const request = this.isEditMode && this.mealToEdit
-				? this.mealService.updateMeal(
-					{
-						time: new Date(this.mealToEdit.time as unknown as string),
-						name: this.mealToEdit.name,
-						responsible: this.mealToEdit.responsible,
-						room: this.mealToEdit.room,
-					},
-					newMeal
-				)
+			const editMealId = this.mealToEdit?.id;
+
+			if (this.isEditMode && !editMealId) {
+				this.mealService.saveError.set('Unable to update meal: missing meal id');
+				return;
+			}
+
+			const request = this.isEditMode && editMealId
+				? this.mealService.updateMeal(editMealId, newMeal)
 				: this.mealService.postMeal(newMeal);
 
 			request.subscribe({

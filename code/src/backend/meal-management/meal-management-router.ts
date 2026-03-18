@@ -41,14 +41,6 @@ mealManagementRouter.post("/meal", async (req, res): Promise<void> => {
 			return res.status(StatusCodes.NOT_FOUND).json({ error: "The selected recipe does not exist" });
 		}*/
 
-		if (result === "time_taken") {
-			unit.complete(false);
-			res.status(StatusCodes.CONFLICT).json({ error: "Time slot already booked" });
-			console.log("Time slot already booked");
-
-			return;
-		}
-
 		if (result === "error") {
 			unit.complete(false);
 			res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: "Failed to create meal" });
@@ -57,8 +49,15 @@ mealManagementRouter.post("/meal", async (req, res): Promise<void> => {
 			return;
 		}
 
+		if (typeof result !== 'number') {
+			unit.complete(false);
+			res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Invalid create result' });
+
+			return;
+		}
+
 		unit.complete(true);
-		res.status(StatusCodes.CREATED).json(meal);
+		res.status(StatusCodes.CREATED).json({ ...meal, id: result });
 		console.log("Created meal: ", meal.name);
 	} catch (error) {
 		unit.complete(false);
@@ -67,21 +66,26 @@ mealManagementRouter.post("/meal", async (req, res): Promise<void> => {
 	}
 });
 
-mealManagementRouter.put('/meal', async (req, res): Promise<void> => {
-	const { originalMeal, updatedMeal } = req.body;
+mealManagementRouter.put('/meal/:id', async (req, res): Promise<void> => {
+	const mealId = Number(req.params.id);
+	const { updatedMeal } = req.body;
 
-	if (!originalMeal || !updatedMeal) {
-		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Missing originalMeal or updatedMeal' });
+	if (!Number.isInteger(mealId) || mealId <= 0) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid meal id' });
 
 		return;
 	}
 
-	const requiredOriginal =
-		originalMeal.time && originalMeal.name && originalMeal.room && originalMeal.responsible;
+	if (!updatedMeal) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Missing updatedMeal' });
+
+		return;
+	}
+
 	const requiredUpdated =
 		updatedMeal.time && updatedMeal.name && updatedMeal.room && updatedMeal.responsible;
 
-	if (!requiredOriginal || !requiredUpdated) {
+	if (!requiredUpdated) {
 		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Missing required meal fields' });
 
 		return;
@@ -90,14 +94,8 @@ mealManagementRouter.put('/meal', async (req, res): Promise<void> => {
 	const unit = new Unit(false);
 
 	try {
-		const original = {
-			time: new Date(originalMeal.time),
-			name: originalMeal.name,
-			room: originalMeal.room,
-			responsible: originalMeal.responsible,
-		} as Meal;
-
 		const updated = {
+			id: mealId,
 			time: new Date(updatedMeal.time),
 			name: updatedMeal.name,
 			room: updatedMeal.room,
@@ -105,7 +103,7 @@ mealManagementRouter.put('/meal', async (req, res): Promise<void> => {
 		} as Meal;
 
 		const mealManagementService = new MealManagement(unit);
-		const result = mealManagementService.updateMeal(original, updated);
+		const result = mealManagementService.updateMeal(mealId, updated);
 
 		if (result === 'not_found') {
 			unit.complete(false);
@@ -121,12 +119,6 @@ mealManagementRouter.put('/meal', async (req, res): Promise<void> => {
 			return;
 		}
 
-		if (result === 'time_taken') {
-			unit.complete(false);
-			res.status(StatusCodes.CONFLICT).json({ error: 'Time slot already booked' });
-			return;
-		}
-
 		if (result === 'error') {
 			unit.complete(false);
 			res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to update meal' });
@@ -135,7 +127,7 @@ mealManagementRouter.put('/meal', async (req, res): Promise<void> => {
 		}
 
 		unit.complete(true);
-		res.status(StatusCodes.OK).json(updated);
+		res.status(StatusCodes.OK).json({ ...updated, id: mealId });
 	} catch (error) {
 		unit.complete(false);
 		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to update meal' });

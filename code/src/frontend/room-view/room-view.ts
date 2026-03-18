@@ -3,10 +3,11 @@ import {MealPlan} from './meal-plan/meal-plan';
 import {AuthService} from '../core/auth-service';
 import {Meal, User} from '../../backend/model';
 import {MealService} from '../core/meal-service';
-import {MealManagement} from '../meal-management/meal-management.component';
+import {MealManagement} from '../meal-management/meal-management';
 
 @Component({
 	selector: 'app-room-view',
+	standalone: true,
 	templateUrl: './room-view.html',
 	styleUrl: './room-view.scss',
 	imports: [
