@@ -90,11 +90,19 @@ class DB {
                 id integer primary key autoincrement,
                 username text not null,
                 password text not null,
+                email text,
+                first_name text,
+                last_name text,
+                bio text,
+                dob text,
+                profile_picture text,
 
-                constraint uq_user unique (username)
+                constraint uq_user unique (username),
+                constraint uq_user_email unique (email)
 
                 ) strict`
     );
+    DB.migrateUserTableToProfileColumns(connection);
     connection.exec(
       `create table if not exists Recipe
        (
@@ -123,6 +131,38 @@ class DB {
     ); //!!!!!!!!!!! add a recipeId foreign key instead of name
 
   DB.migrateMealTableToIdIdentity(connection);
+  }
+
+  private static migrateUserTableToProfileColumns(connection: BetterSqlite3.Database): void {
+    const columns = connection.prepare(`pragma table_info(User)`).all() as Array<{ name: string }>;
+    const existingColumns = new Set(columns.map((column) => column.name));
+
+    const migrations: string[] = [];
+
+    if (!existingColumns.has('email')) {
+      migrations.push(`alter table User add column email text;`);
+    }
+    if (!existingColumns.has('first_name')) {
+      migrations.push(`alter table User add column first_name text;`);
+    }
+    if (!existingColumns.has('last_name')) {
+      migrations.push(`alter table User add column last_name text;`);
+    }
+    if (!existingColumns.has('bio')) {
+      migrations.push(`alter table User add column bio text;`);
+    }
+    if (!existingColumns.has('dob')) {
+      migrations.push(`alter table User add column dob text;`);
+    }
+    if (!existingColumns.has('profile_picture')) {
+      migrations.push(`alter table User add column profile_picture text;`);
+    }
+
+    if (migrations.length > 0) {
+      connection.exec(migrations.join('\n'));
+    }
+
+    connection.exec(`create unique index if not exists uq_user_email on User(lower(email));`);
   }
 
   private static migrateMealTableToIdIdentity(connection: BetterSqlite3.Database): void {

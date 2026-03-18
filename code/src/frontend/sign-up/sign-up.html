@@ -1,30 +1,113 @@
 <section>
-	<form class="login-container" [formGroup]="signUpForm" (ngSubmit)="onFormSubmit()" autocomplete="off">
+	<form class="login-container" [formGroup]="signUpForm" (ngSubmit)="onFormSubmit()" autocomplete="on">
 		<header>
 			<h4>
 				Sign up
 			</h4>
 		</header>
 
-		<div class="field-group">
-			<label for="username">Username</label>
-			<input formControlName="username" id="username" type="text" placeholder="e.g. AlexJohnson">
+		<div class="form-grid">
+			<div class="field-group">
+				<label for="username">Username</label>
+				<input formControlName="username" id="username" type="text" placeholder="e.g. AlexJohnson" autocomplete="username">
 
-			@if (signUpForm.get('username'); as usernameControl) {
-				@if (usernameControl.touched && usernameControl.invalid) {
+				@if (signUpForm.get('username'); as usernameControl) {
+					@if (usernameControl.touched && usernameControl.invalid) {
+						<aside>
+							@if (usernameControl.hasError('required')) {
+								<span>Username is required</span>
+							}
+							@if (usernameControl.hasError('pattern')) {
+								<span>No spaces or special characters allowed</span>
+							}
+						</aside>
+					}
+				}
+			</div>
+
+			<div class="field-group">
+				<label for="email">E-mail</label>
+				<input formControlName="email" id="email" type="email" placeholder="e.g. alex@example.com" autocomplete="email">
+
+				@if (signUpForm.get('email'); as emailControl) {
+					@if (emailControl.touched && emailControl.invalid) {
+						<aside>
+							@if (emailControl.hasError('required')) {
+								<span>E-mail is required</span>
+							}
+							@if (emailControl.hasError('email')) {
+								<span>Enter a valid e-mail address</span>
+							}
+						</aside>
+					}
+				}
+			</div>
+
+			<div class="field-group">
+				<label for="firstName">First name</label>
+				<input formControlName="firstName" id="firstName" type="text" placeholder="First name" autocomplete="given-name">
+
+				@if (signUpForm.get('firstName'); as firstNameControl) {
+					@if (firstNameControl.touched && firstNameControl.invalid) {
+						<aside>
+							@if (firstNameControl.hasError('required')) {
+								<span>First name is required</span>
+							}
+						</aside>
+					}
+				}
+			</div>
+
+			<div class="field-group">
+				<label for="lastName">Last name</label>
+				<input formControlName="lastName" id="lastName" type="text" placeholder="Last name" autocomplete="family-name">
+
+				@if (signUpForm.get('lastName'); as lastNameControl) {
+					@if (lastNameControl.touched && lastNameControl.invalid) {
+						<aside>
+							@if (lastNameControl.hasError('required')) {
+								<span>Last name is required</span>
+							}
+						</aside>
+					}
+				}
+			</div>
+
+			<div class="field-group">
+				<label for="dob">Date of birth</label>
+				<input formControlName="dob" id="dob" type="date" autocomplete="bday">
+
+				@if (signUpForm.get('dob'); as dobControl) {
+					@if (dobControl.touched && dobControl.invalid) {
+						<aside>
+							@if (dobControl.hasError('required')) {
+								<span>Date of birth is required</span>
+							}
+						</aside>
+					}
+				}
+			</div>
+
+			<div class="field-group">
+				<label for="profilePicture">Profile picture URL</label>
+				<input formControlName="profilePicture" id="profilePicture" type="url" placeholder="https://..." autocomplete="photo">
+			</div>
+
+			<div class="field-group field-group--full">
+			<label for="bio">Bio</label>
+			<textarea formControlName="bio" id="bio" rows="3" placeholder="Tell others a bit about yourself" autocomplete="off"></textarea>
+			@if (signUpForm.get('bio'); as bioControl) {
+				@if (bioControl.touched && bioControl.invalid) {
 					<aside>
-						@if (usernameControl.hasError('required')) {
-							<span>Username is required</span>
-						}
-						@if (usernameControl.hasError('pattern')) {
-							<span>No spaces or special characters allowed</span>
+						@if (bioControl.hasError('maxlength')) {
+							<span>Bio must be at most 400 characters</span>
 						}
 					</aside>
 				}
 			}
 		</div>
 
-		<div class="field-group">
+		<div class="field-group field-group--full">
 			<label for="password">Password</label>
 			<input formControlName="password" id="password" type="password" placeholder="Password" autocomplete="new-password">
 			@if (signUpForm.get('password'); as passwordControl) {
@@ -42,6 +125,7 @@
 					</aside>
 				}
 			}
+		</div>
 		</div>
 
 		<div class="error-msg">

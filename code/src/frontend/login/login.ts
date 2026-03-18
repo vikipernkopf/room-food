@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../core/auth-service';
+import { LoginCredentials } from '../../backend/model';
 
 @Component({
 	selector: 'app-login-sign-up',
@@ -16,7 +17,7 @@ import { AuthService } from '../core/auth-service';
 export class Login {
 	// Form controls using FormGroup
 	loginForm = new FormGroup({
-		username: new FormControl('', [Validators.required]),
+		identifier: new FormControl('', [Validators.required]),
 		password: new FormControl('', [Validators.required])
 	});
 	public loginError: WritableSignal<String>= signal('');
@@ -24,9 +25,13 @@ export class Login {
 	constructor(private authService: AuthService) {}
 	onFormSubmit() {
 		if (this.loginForm.valid) {
-			this.authService.login(this.loginForm.value);
+			const identifier = this.loginForm.value.identifier ?? '';
+			const password = this.loginForm.value.password ?? '';
+			const credentials: LoginCredentials = { identifier, password };
+			this.authService.login(credentials);
 			this.loginError = this.authService.loginError;
 		} else {
+			this.loginForm.markAllAsTouched();
 			console.log('Form is invalid');
 		}
 	}

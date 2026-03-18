@@ -1,24 +1,31 @@
 <section>
-	<form class="login-container" [formGroup]="loginForm" (ngSubmit)="onFormSubmit()" autocomplete="off">
+	<form class="login-container" [formGroup]="loginForm" (ngSubmit)="onFormSubmit()" autocomplete="on">
 		<header>
 			<h4>Log in</h4>
 		</header>
 
 		<div class="field-group">
-			<label for="username">Username</label>
-			<input formControlName="username" id="username" type="text" placeholder="e.g. Alex Johnson">
+			<label for="identifier">Username or e-mail</label>
+			<input formControlName="identifier" id="identifier" type="text" placeholder="e.g. alex123 or alex@example.com" autocomplete="username">
 
-			@if (loginForm.get('username')?.touched && loginForm.get('username')?.invalid) {
+			@if (loginForm.get('identifier')?.touched && loginForm.get('identifier')?.invalid) {
 				<aside>
-					@if (loginForm.get('username')?.hasError('required')) {
-						<span>Username is required</span>
+					@if (loginForm.get('identifier')?.hasError('required')) {
+						<span>Username or e-mail is required</span>
 					}
 				</aside>
 			}
 		</div>
 		<div class="field-group">
 			<label for="password">Password</label>
-			<input formControlName="password" id="password" type="password" placeholder="Password" autocomplete="new-password">
+			<input formControlName="password" id="password" type="password" placeholder="Password" autocomplete="current-password">
+			@if (loginForm.get('password')?.touched && loginForm.get('password')?.invalid) {
+				<aside>
+					@if (loginForm.get('password')?.hasError('required')) {
+						<span>Password is required</span>
+					}
+				</aside>
+			}
 		</div>
 
 		<div class="error-msg">
