@@ -4,7 +4,7 @@ import {roomViewRouter} from './room-view/room-view-router';
 import {mealManagementRouter} from './meal-management/meal-management-router';
 
 declare global {
-	// noinspection ES6ConvertVarToLetConst
+	// noinspection ES6ConvertVarToLetConst,JSUnusedGlobalSymbols
 	var __roomFoodServerStarted: boolean | undefined;
 }
 

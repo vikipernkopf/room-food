@@ -82,6 +82,7 @@ export class RoomView implements OnDestroy {
 		this.stopAutoRefresh();
 	}
 
+	// noinspection JSUnusedGlobalSymbols
 	togglePopup() {
 		this.isPopupVisible.update(val => !val);
 	}

@@ -32,7 +32,8 @@ export class LoginSignUpService extends ServiceBase {
     else return id;
   }
 
-  /**
+  // noinspection JSUnusedGlobalSymbols
+	/**
    * Delete a user from the database
    *
    * @param username - username of the user to delete
@@ -69,7 +70,8 @@ export class LoginSignUpService extends ServiceBase {
     return fetch !== undefined;
   }
 
-  /**
+  // noinspection JSUnusedGlobalSymbols
+	/**
    * Check if a user exists in the database by the id
    *
    * @param id - id of the user to check
@@ -100,7 +102,8 @@ export class LoginSignUpService extends ServiceBase {
 	return users;
   }
 
-  /**
+  // noinspection JSUnusedGlobalSymbols
+	/**
    * Get user by id
    *
    * @param id - id of the user to get

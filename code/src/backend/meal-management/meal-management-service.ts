@@ -168,12 +168,14 @@ export class MealManagement extends ServiceBase {
 
 	// ----------------------- Recipe part ------------------------------
 
+	// noinspection JSUnusedGlobalSymbols
 	public checkRecipeExists(recipeId:number):boolean{
 		return this.unit.prepare(
 			`select * from Recipe where id=:r`,{r:recipeId}
 		).get()!==undefined;
 	}
 
+	// noinspection JSUnusedGlobalSymbols
 	public addRecipe(recipe:Recipe):number | "author_not_found" {
 		/*
 
