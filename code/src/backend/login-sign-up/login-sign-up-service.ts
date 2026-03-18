@@ -1,6 +1,6 @@
 import { ServiceBase } from "../service-base";
 import { Unit } from "../unit";
-import {User} from '../model';
+import { SignUpCredentials, User } from '../model';
 
 
 export class LoginSignUpService extends ServiceBase {
@@ -14,8 +14,10 @@ export class LoginSignUpService extends ServiceBase {
    * @param someone - user to add
    * @return id if added, "exists" if username is taken , "error" otherwise
    */
-  public addUser(someone:User):number | "exists" | "error" {
-    if(this.checkUserExists(someone.username)){
+  public addUser(someone: SignUpCredentials):number | "exists" | "error" {
+    const normalizedEmail = this.normalizeEmail(someone.email);
+
+    if (this.checkUserExists(someone.username) || this.checkEmailExists(normalizedEmail)) {
       return "exists";
     }
 
@@ -23,8 +25,20 @@ export class LoginSignUpService extends ServiceBase {
     let id:number;
 
     [result, id] = this.executeStmt(
-      this.unit.prepare(`insert into User(username, password) values(:u, :p)`,
-      {u:someone.username, p:someone.password})
+      this.unit.prepare(
+        `insert into User(username, password, email, first_name, last_name, bio, dob, profile_picture)
+         values(:username, :password, :email, :first_name, :last_name, :bio, :dob, :profile_picture)`,
+        {
+          username: someone.username,
+          password: someone.password,
+          email: normalizedEmail,
+          first_name: someone.firstName,
+          last_name: someone.lastName,
+          bio: someone.bio,
+          dob: someone.dob,
+          profile_picture: someone.profilePicture
+        }
+      )
     );
 
     if(!result) return "error";
@@ -70,6 +84,15 @@ export class LoginSignUpService extends ServiceBase {
     return fetch !== undefined;
   }
 
+  public checkEmailExists(email: string): boolean {
+    const fetch = this.unit.prepare(
+      `select 1 from User u where lower(u.email)=lower(:email)`,
+      { email: this.normalizeEmail(email) }
+    ).get();
+
+    return fetch !== undefined;
+  }
+
   // noinspection JSUnusedGlobalSymbols
 	/**
    * Check if a user exists in the database by the id
@@ -92,7 +115,15 @@ export class LoginSignUpService extends ServiceBase {
    */
   public getAllUsers():User[] {
     const users = this.unit.prepare(
-      `select u.username, u.password from User u`
+      `select u.username,
+              u.password,
+              u.email,
+              u.first_name as firstName,
+              u.last_name as lastName,
+              u.bio,
+              u.dob,
+              u.profile_picture as profilePicture
+       from User u`
     ).all() as User[];
 
     if(users===undefined){
@@ -111,7 +142,15 @@ export class LoginSignUpService extends ServiceBase {
    */
   public getUserById(id:number):User | undefined {
     const user = this.unit.prepare(
-      `select u.username, u.password from User u where u.id=:n`,
+      `select u.username,
+              u.password,
+              u.email,
+              u.first_name as firstName,
+              u.last_name as lastName,
+              u.bio,
+              u.dob,
+              u.profile_picture as profilePicture
+       from User u where u.id=:n`,
       {n:id}).get() as User;
 
     if(user===undefined){
@@ -133,7 +172,15 @@ export class LoginSignUpService extends ServiceBase {
    */
   public getUserByUsername(username:string):User | undefined{
     const user = this.unit.prepare(
-      `select u.username, u.password from User u where u.username=:n`,
+      `select u.username,
+              u.password,
+              u.email,
+              u.first_name as firstName,
+              u.last_name as lastName,
+              u.bio,
+              u.dob,
+              u.profile_picture as profilePicture
+       from User u where u.username=:n`,
       {n:username}).get() as User;
 
     if(user===undefined){
@@ -147,15 +194,37 @@ export class LoginSignUpService extends ServiceBase {
     return user;
   }
 
+  public getUserByUsernameOrEmail(identifier:string):User | undefined {
+    const normalizedIdentifier = identifier.trim();
+    if (!normalizedIdentifier) return undefined;
+
+    const user = this.unit.prepare(
+      `select u.username,
+              u.password,
+              u.email,
+              u.first_name as firstName,
+              u.last_name as lastName,
+              u.bio,
+              u.dob,
+              u.profile_picture as profilePicture
+       from User u
+       where u.username = :identifier or lower(u.email) = lower(:identifier)
+       limit 1`,
+      { identifier: normalizedIdentifier }
+    ).get() as User | undefined;
+
+    return user;
+  }
+
   /**
    * Check if a login-sign-up attempt is successful
    *
-   * @param username - username of the user to check
+   * @param identifier - username or email of the user to check
    * @param password - username of the user to check
    * @return true if yes, "no_user" if username doesn't exist, "wrong_password"
    */
-  public checkLoginAttempt(username:string, password:string):true | "no_user" | "wrong_password"{
-    const user = this.getUserByUsername(username);
+  public checkLoginAttempt(identifier:string, password:string):true | "no_user" | "wrong_password"{
+    const user = this.getUserByUsernameOrEmail(identifier);
 
     if(user == undefined){
       return "no_user";
@@ -166,5 +235,9 @@ export class LoginSignUpService extends ServiceBase {
     }
 
     return true;
+  }
+
+  private normalizeEmail(email: string): string {
+    return email.trim().toLowerCase();
   }
 }

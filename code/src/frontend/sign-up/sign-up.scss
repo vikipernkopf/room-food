@@ -28,49 +28,61 @@ $color-bluish-gray: #a0aec0;
 section {
 	display: flex;
 	justify-content: center;
-	align-items: center;
-	min-height: 100vh;
+	align-items: flex-start;
+	min-height: calc(100vh - 4.5rem);
+	padding: 4.35rem 1rem 1.2rem;
 	background-color: $color-still-gray-but-not-as-gray;
+	box-sizing: border-box;
 }
 
 .login-container {
 	background: white;
-	padding: 2.5rem;
+	padding: 1.6rem;
 	border-radius: 24px;
 	border: 1px solid $color-input-bg;
 	width: 100%;
-	max-width: 400px;
+	max-width: 860px;
 	box-shadow: 0 10px 25px rgba(0, 0, 0, 0.03);
 
 	header {
-		margin-bottom: 2rem;
+		margin-bottom: 0.85rem;
 		h4 {
 			color: $color-primary-orange;
-			font-size: 1.8rem;
+			font-size: 1.55rem;
 			font-weight: 800;
 			margin: 0;
 		}
 	}
 
 	.field-group {
-		margin-bottom: 1.25rem;
+		margin-bottom: 0.72rem;
+	}
+
+	.form-grid {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 0.8rem;
+	}
+
+	.field-group--full {
+		grid-column: 1 / -1;
 	}
 
 	label {
 		display: block;
 		font-weight: 600;
 		color: $color-label-gray;
-		margin-bottom: 0.6rem;
-		font-size: 0.95rem;
+		margin-bottom: 0.32rem;
+		font-size: 0.9rem;
 	}
 
 	input {
 		width: 100%;
-		padding: 1rem 1.2rem;
+		padding: 0.62rem 0.9rem;
 		background-color: $color-input-bg;
 		border: 1.5px solid $color-shade-gray;
-		border-radius: 14px;
-		font-size: 1rem;
+		border-radius: 12px;
+		font-size: 0.95rem;
 		color: $color-text-main;
 		transition: all 0.2s ease;
 		box-sizing: border-box;
@@ -85,18 +97,41 @@ section {
 		}
 	}
 
+	textarea {
+		width: 100%;
+		padding: 0.62rem 0.9rem;
+		background-color: $color-input-bg;
+		border: 1.5px solid $color-shade-gray;
+		border-radius: 12px;
+		font-size: 0.95rem;
+		color: $color-text-main;
+		transition: all 0.2s ease;
+		box-sizing: border-box;
+		resize: vertical;
+		min-height: 56px;
+
+		&::placeholder { color: $color-bluish-gray; }
+
+		&:focus {
+			outline: none;
+			border-color: $color-primary-orange;
+			background-color: white;
+			box-shadow: 0 0 0 4px rgba($color-peach-glow, 0.5);
+		}
+	}
+
 	button {
 		width: 100%;
-		padding: 1.1rem;
+		padding: 0.82rem;
 		background-color: $color-primary-orange;
 		color: white;
 		border: none;
 		border-radius: 16px;
-		font-size: 1.1rem;
+		font-size: 1rem;
 		font-weight: 700;
 		cursor: pointer;
 		transition: background-color 0.2s ease, transform 0.1s ease;
-		margin-top: 1rem;
+		margin-top: 0.35rem;
 		box-shadow: 0 4px 12px rgba(242, 121, 29, 0.2);
 
 		&:hover:not(:disabled) { background-color: $color-dark-orange; }
@@ -109,13 +144,13 @@ section {
 	}
 
 	aside {
-		margin-top: 0.4rem;
+		margin-top: 0.22rem;
 		span { color: $color-reddish; font-size: 0.85rem; font-weight: 500; }
 	}
 
 	nav {
 		text-align: center;
-		margin-top: 1.5rem;
+		margin-top: 0.8rem;
 		a {
 			color: $color-gray;
 			text-decoration: none;
@@ -126,8 +161,26 @@ section {
 	}
 
 	hr {
-		margin: 2rem 0 0.5rem;
+		margin: 1rem 0 0.25rem;
 		border: 0;
 		border-top: 1.5px solid $color-still-gray-but-not-as-gray;
+	}
+
+	@media (max-width: 900px) {
+		max-width: 760px;
+	}
+
+	@media (max-width: 720px) {
+		padding: 1.25rem;
+		max-height: unset;
+
+		.form-grid {
+			grid-template-columns: 1fr;
+			gap: 0;
+		}
+
+		.field-group {
+			margin-bottom: 1.1rem;
+		}
 	}
 }
