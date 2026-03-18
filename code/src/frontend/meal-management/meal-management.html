@@ -9,14 +9,14 @@
 		<div class="container">
 			<mat-form-field class="dish" subscriptSizing="dynamic">
 				<mat-label>Enter a dish</mat-label>
-				<input matInput name="dish" [(ngModel)]="dish">
+				<input matInput name="dish" [(ngModel)]="dish" (ngModelChange)="clearErrors()">
 			</mat-form-field>
 		</div>
 
 		<div class="container">
 			<mat-form-field subscriptSizing="dynamic">
 				<mat-label>Select meal type</mat-label>
-				<mat-select [(ngModel)]="selectedValue" name="food">
+				<mat-select [(ngModel)]="selectedValue" name="food" (ngModelChange)="clearErrors()">
 					@for (type of mealTypes; track type) {
 						<mat-option [value]="type.value">{{type.viewValue}}</mat-option>
 					}
@@ -28,7 +28,7 @@
 			<div class="container">
 				<mat-form-field subscriptSizing="dynamic">
 					<mat-label>Select date</mat-label>
-					<input matInput [matDatepicker]="datepicker" [(ngModel)]="selectedDate" name="date">
+					<input matInput [matDatepicker]="datepicker" [(ngModel)]="selectedDate" name="date" (ngModelChange)="clearErrors()">
 					<mat-datepicker-toggle matIconSuffix [for]="datepicker"></mat-datepicker-toggle>
 					<mat-datepicker #datepicker></mat-datepicker>
 				</mat-form-field>
@@ -37,18 +37,21 @@
 			<div class="container">
 				<mat-form-field subscriptSizing="dynamic">
 					<mat-label>Select time</mat-label>
-					<input matInput [matTimepicker]="minutesPicker" [(ngModel)]="selectedTime" name="time">
+					<input matInput [matTimepicker]="minutesPicker" [(ngModel)]="selectedTime" name="time" (ngModelChange)="clearErrors()">
 					<mat-timepicker-toggle matIconSuffix [for]="minutesPicker"></mat-timepicker-toggle>
 					<mat-timepicker interval="15min" #minutesPicker></mat-timepicker>
 				</mat-form-field>
 			</div>
 		</div>
 
-		<button mat-flat-button type="button" class="save-btn" (click)="saveMeal()">
+		<button mat-flat-button type="button" class="save-btn" (click)="saveMeal()" [disabled]="isSubmitting">
 			{{ isEditMode ? 'Update Meal' : 'Save Meal' }}
 		</button>
 		@if (showError) {
 			<div class="error-text">Please fill out all the fields</div>
+		}
+		@if (backendError) {
+			<div class="error-text">{{ backendError }}</div>
 		}
 	</form>
 </div>

@@ -58,6 +58,7 @@ export class MealManagement implements OnChanges {
 	selectedDate: Date | null = null;
 	selectedTime: Date | null = null;
 	showError: boolean = false;
+	isSubmitting: boolean = false;
 
 	mealTypes: MealType[] = [
 		{value: 'breakfast-0', viewValue: 'Breakfast'},
@@ -78,12 +79,23 @@ export class MealManagement implements OnChanges {
 		}
 	}
 
+	protected get backendError(): string {
+		return this.mealService.saveError();
+	}
+
+	protected clearErrors(): void {
+		this.showError = false;
+		if (this.mealService.saveError()) {
+			this.mealService.saveError.set('');
+		}
+	}
+
 	protected get isEditMode(): boolean {
 		return this.mealToEdit !== null;
 	}
 
 	private prefillFormFromInput(): void {
-		this.showError = false;
+		this.clearErrors();
 
 		if (!this.mealToEdit) {
 			this.dish = '';
@@ -100,6 +112,8 @@ export class MealManagement implements OnChanges {
 	}
 
 	protected saveMeal(): void {
+		this.clearErrors();
+
 		const user = this.authService.currentUser();
 		const currentUsername = user?.username;
 
@@ -127,15 +141,19 @@ export class MealManagement implements OnChanges {
 				? this.mealService.updateMeal(editMealId, newMeal)
 				: this.mealService.postMeal(newMeal);
 
+			this.isSubmitting = true;
+
 			request.subscribe({
 				next: (meal) => {
 					console.log('Successfully saved meal:', meal);
 					this.mealService.saveError.set('');
+					this.isSubmitting = false;
 					this.mealSaved.emit();
 					this.closePopup();
 				},
 				error: (err) => {
 					console.error('Error saving meal:', err);
+					this.isSubmitting = false;
 					this.mealService.saveError.set('Unable to save meal: ' + (err.error?.error || err.message || 'Unknown error'));
 				}
 			});
