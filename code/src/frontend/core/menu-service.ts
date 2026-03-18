@@ -24,4 +24,9 @@ export class MenuService {
 		const apiUrl = `${this.apiBase}/meal`;
 		return this.http.post<Meal>(apiUrl, meal);
 	}
+
+	public updateMeal(originalMeal: Meal, updatedMeal: Meal): Observable<Meal> {
+		const apiUrl = `${this.apiBase}/meal`;
+		return this.http.put<Meal>(apiUrl, { originalMeal, updatedMeal });
+	}
 }

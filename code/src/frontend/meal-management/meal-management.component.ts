@@ -1,4 +1,13 @@
-import {ChangeDetectionStrategy, Component, EventEmitter, Output, WritableSignal} from '@angular/core';
+import {
+	ChangeDetectionStrategy,
+	Component,
+	EventEmitter,
+	Input,
+	OnChanges,
+	Output,
+	SimpleChanges,
+	WritableSignal
+} from '@angular/core';
 import {MatInputModule} from '@angular/material/input';
 import {MatSelectModule} from '@angular/material/select';
 import {MatFormFieldModule} from '@angular/material/form-field';
@@ -30,22 +39,24 @@ interface MealType {
 		MatTimepickerModule,
 		MatIconModule, MatButtonModule,
 	],
-	templateUrl: './add-meal.html',
-	styleUrl: './add-meal.scss',
+	templateUrl: './meal-management.html',
+	styleUrl: './meal-management.component.scss',
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 
-export class AddMeal {
+export class MealManagement implements OnChanges {
 	@Output() close = new EventEmitter<void>();
+	@Output() mealSaved = new EventEmitter<void>();
+	@Input() mealToEdit: Meal | null = null;
 
 	closePopup() {
 		this.close.emit();
 	}
 
 	dish: string = '';
-	selectedValue!: string;
-	selectedDate!: Date;
-	selectedTime!: Date;
+	selectedValue: string = 'breakfast-0';
+	selectedDate: Date | null = null;
+	selectedTime: Date | null = null;
 	showError: boolean = false;
 
 	mealTypes: MealType[] = [
@@ -59,6 +70,33 @@ export class AddMeal {
 
 	constructor(private authService: AuthService, private menuService: MenuService,) {
 		this.currentUser = this.authService.currentUser;
+	}
+
+	ngOnChanges(changes: SimpleChanges): void {
+		if (changes['mealToEdit']) {
+			this.prefillFormFromInput();
+		}
+	}
+
+	protected get isEditMode(): boolean {
+		return this.mealToEdit !== null;
+	}
+
+	private prefillFormFromInput(): void {
+		this.showError = false;
+
+		if (!this.mealToEdit) {
+			this.dish = '';
+			this.selectedValue = 'breakfast-0';
+			this.selectedDate = null;
+			this.selectedTime = null;
+			return;
+		}
+
+		const mealTime = new Date(this.mealToEdit.time as unknown as string);
+		this.dish = this.mealToEdit.name;
+		this.selectedDate = mealTime;
+		this.selectedTime = mealTime;
 	}
 
 	protected saveMeal(): void {
@@ -78,12 +116,23 @@ export class AddMeal {
 				room: currentUsername
 			};
 
-			console.log('Posting to database...');
+			const request = this.isEditMode && this.mealToEdit
+				? this.menuService.updateMeal(
+					{
+						time: new Date(this.mealToEdit.time as unknown as string),
+						name: this.mealToEdit.name,
+						responsible: this.mealToEdit.responsible,
+						room: this.mealToEdit.room,
+					},
+					newMeal
+				)
+				: this.menuService.postMeal(newMeal);
 
-			this.menuService.postMeal(newMeal).subscribe({
+			request.subscribe({
 				next: (meal) => {
 					console.log('Successfully saved meal:', meal);
 					this.menuService.saveError.set('');
+					this.mealSaved.emit();
 					this.closePopup();
 				},
 				error: (err) => {

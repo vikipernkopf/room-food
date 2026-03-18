@@ -3,7 +3,7 @@
 		<mat-icon>x</mat-icon>
 	</button>
 
-	<h1 class="modal-title">Plan a Meal</h1>
+	<h1 class="modal-title">{{ isEditMode ? 'Edit Meal' : 'Plan a Meal' }}</h1>
 
 	<form>
 		<div class="container">
@@ -45,7 +45,7 @@
 		</div>
 
 		<button mat-flat-button type="button" class="save-btn" (click)="saveMeal()">
-			Save Meal
+			{{ isEditMode ? 'Update Meal' : 'Save Meal' }}
 		</button>
 		@if (showError) {
 			<div class="error-text">Please fill out all the fields</div>

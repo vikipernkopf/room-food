@@ -3,7 +3,7 @@ import {MealPlan} from './meal-plan/meal-plan';
 import {AuthService} from '../core/auth-service';
 import {Meal, User} from '../../backend/model';
 import {MealService} from '../core/meal-service';
-import {AddMeal} from '../add-meal/add-meal';
+import {MealManagement} from '../meal-management/meal-management.component';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../../environments/environment';
 
@@ -19,7 +19,7 @@ function getApiBase(): string {
 	styleUrl: './room-view.scss',
 	imports: [
 		MealPlan,
-		AddMeal
+		MealManagement
 	]
 })
 export class RoomView implements OnDestroy {
@@ -27,6 +27,7 @@ export class RoomView implements OnDestroy {
 	protected readonly username: WritableSignal<string> = signal("");
 	protected readonly currentUser: WritableSignal<User | null>;
 	protected readonly isPopupVisible = signal(false);
+	protected readonly mealToEdit: WritableSignal<Meal | null> = signal(null);
 	private refreshInterval: any = null;
 	private apiBase = getApiBase();
 
@@ -93,5 +94,28 @@ export class RoomView implements OnDestroy {
 
 	togglePopup() {
 		this.isPopupVisible.update(val => !val);
+	}
+
+	protected openAddMealPopup(): void {
+		this.mealToEdit.set(null);
+		this.isPopupVisible.set(true);
+	}
+
+	protected openEditMealPopup(meal: Meal): void {
+		this.mealToEdit.set(meal);
+		this.isPopupVisible.set(true);
+	}
+
+	protected closeMealPopup(): void {
+		this.isPopupVisible.set(false);
+		this.mealToEdit.set(null);
+	}
+
+	protected handleMealSaved(): void {
+		const user = this.currentUser();
+		if (user?.username) {
+			this.fetchMealsForUser(user.username);
+		}
+		this.closeMealPopup();
 	}
 }

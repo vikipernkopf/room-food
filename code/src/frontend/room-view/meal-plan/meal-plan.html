@@ -4,6 +4,7 @@
 		<p><strong>Time:</strong> {{ meal.time | date:'short' }}</p>
 		<p><strong>Room:</strong> {{ meal.room }}</p>
 		<p><strong>Responsible:</strong> {{ meal.responsible }}</p>
+		<button type="button" class="edit-btn" (click)="onEditClick()">Edit Meal</button>
 	</div>
 } @else {
 	<p>No meal data available</p>

@@ -3,7 +3,7 @@ import {Unit} from '../unit';
 import {Meal, Recipe} from '../model';
 import {LoginSignUpService} from '../login-sign-up/login-sign-up-service';
 
-export class AddMealService extends ServiceBase {
+export class MealManagement extends ServiceBase {
 
 	private login:LoginSignUpService = new LoginSignUpService(this.unit);
 
@@ -70,6 +70,57 @@ export class AddMealService extends ServiceBase {
 		if(!result) return "error";
 
 		else return true;
+	}
+
+	/**
+	 * Update an existing meal in a room
+	 *
+	 * @param originalMeal - current persisted meal identity (room + time)
+	 * @param updatedMeal - new meal values
+	 * @return true if updated, "not_found" if the original meal does not exist,
+	 * "room not found" if target room does not exist, "time taken" if target slot is occupied,
+	 * "error" on DB failure
+	 */
+	public updateMeal(
+		originalMeal: Meal,
+		updatedMeal: Meal
+	): true | "not_found" | "room not found" | "time taken" | "error" {
+		if (!this.checkRoomExists(updatedMeal.room)) {
+			return "room not found";
+		}
+
+		if (!this.checkTimeTaken(originalMeal.time, originalMeal.room)) {
+			return "not_found";
+		}
+
+		const targetChanged =
+			originalMeal.room !== updatedMeal.room ||
+			originalMeal.time.toISOString() !== updatedMeal.time.toISOString();
+
+		if (targetChanged && this.checkTimeTaken(updatedMeal.time, updatedMeal.room)) {
+			return "time taken";
+		}
+
+		const [success] = this.executeStmt(
+			this.unit.prepare(
+				`update Meal set time=:newTime, name=:newName, responsible=:newResponsible, roomCode=:newRoom
+				 where roomCode=:oldRoom and time=:oldTime`,
+				{
+					newTime: updatedMeal.time.toISOString(),
+					newName: updatedMeal.name,
+					newResponsible: updatedMeal.responsible,
+					newRoom: updatedMeal.room,
+					oldRoom: originalMeal.room,
+					oldTime: originalMeal.time.toISOString(),
+				}
+			)
+		);
+
+		if (!success) {
+			return "error";
+		}
+
+		return true;
 	}
 
 	/**

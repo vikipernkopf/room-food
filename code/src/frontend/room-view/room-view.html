@@ -1,17 +1,22 @@
 <div class="action-container">
-	<button class="fancy" (click)="togglePopup()">
+	<button class="fancy" (click)="openAddMealPopup()">
 		Add Meal
 	</button>
 
 	@if (isPopupVisible()) {
-		<app-add-meal class="popup-right" (close)="isPopupVisible.set(false)"></app-add-meal>
+		<app-add-meal
+			class="popup-right"
+			[mealToEdit]="mealToEdit()"
+			(close)="closeMealPopup()"
+			(mealSaved)="handleMealSaved()"
+		></app-add-meal>
 	}
 </div>
 
 @if (meals() && meals().length > 0) {
 	<div class="meals-container">
 		@for(meal of meals(); track $index) {
-			<app-meal-plan [meal]="meal" [index]="$index"/>
+			<app-meal-plan [meal]="meal" [index]="$index" (editMeal)="openEditMealPopup($event)"></app-meal-plan>
 		}
 	</div>
 } @else {
