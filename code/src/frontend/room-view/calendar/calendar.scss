@@ -1,48 +1,73 @@
 $hour-height: 65px;
-
-.month-year{
-	height:100px;
-}
+$theme-green: #08733F;
+$theme-orange: #f48f05;
 
 .wrapper {
-	max-width: 75%; // This is your "Skinny" setting
+	max-width: 85%;
 	margin: 0 auto;
-	overflow: hidden;
+	position: relative;
 }
 
 .header {
 	display: flex;
-	.time-spacer { width: 60px; } // Match time-column width
-	.day-label { flex: 1; text-align: center; }
+	padding-bottom: 10px;
+	.time-spacer { width: 45px; }
+	.day-label {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		.day-name { font-size: 11px; color: #888; text-transform: uppercase; }
+		.day-number {
+			font-size: 18px; width: 30px; height: 30px;
+			display: flex; align-items: center; justify-content: center;
+			&.today { background: #ff3b30; color: white; border-radius: 50%; }
+		}
+	}
 }
 
-.container-body {
-	display: flex; // Puts times next to the grid
-}
+.container-body { display: flex; }
 
 .time-column {
 	width: 45px;
-	flex-shrink: 0;
-	.time-slot {
-		height: $hour-height;
-		font-size: 12px;
-		text-align: right;
-		padding-right: 10px;
-	}
+	.time-slot { height: $hour-height; font-size: 11px; color: #999; text-align: right; padding-right: 8px; }
 }
 
 .grid-content {
 	display: flex;
-	flex: 1; // Takes up remaining width
+	flex: 1;
+	border-top: 1px solid #e5e5e5;
 
 	.day-track {
 		flex: 1;
 		height: calc(24 * #{$hour-height});
 		border-right: 1px solid #e5e5e5;
-		position: relative; // So events can be absolute
-
-		// This draws the lines!
+		position: relative;
 		background-image: linear-gradient(#e5e5e5 1px, transparent 1px);
 		background-size: 100% $hour-height;
+		cursor: pointer;
+		&:hover { background-color: rgba(0,0,0,0.01); }
 	}
+}
+
+.meal-box {
+	position: absolute;
+	left: 2px; right: 2px;
+	background-color: #f0fdf4;
+	border-left: 4px solid $theme-green;
+	color: $theme-green;
+	border-radius: 4px;
+	padding: 4px;
+	font-size: 11px;
+	box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+	z-index: 10;
+	overflow: hidden;
+	.meal-name { font-weight: bold; display: block; }
+}
+
+.modal-overlay {
+	position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+	background: rgba(0,0,0,0.4);
+	display: flex; justify-content: center; align-items: center;
+	z-index: 1000;
 }

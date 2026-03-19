@@ -1,9 +1,14 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, signal} from '@angular/core';
 import {DatePipe} from '@angular/common';
+import {MealManagement} from '../../meal-management/meal-management';
+import {MealService} from '../../core/meal-service';
+import {Meal} from '../../../backend/model';
+import {AuthService} from '../../core/auth-service';
 
 @Component({
   selector: 'app-calendar',
 	imports: [
+		MealManagement,
 		DatePipe
 	],
   templateUrl: './calendar.html',
@@ -14,11 +19,38 @@ export class Calendar implements OnInit {
 	currMonth: string = '';
 	currYear: number = 0;
 	dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-	hours: number[] = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23];
-	weekdays: {name: string; date: number; isToday: boolean}[] = [];
+	hours: number[] = Array.from({ length: 24 }, (_, i) => i);
+	weekdays: {name: string; date: number; month: number; year: number; isToday: boolean}[] = [];
+	protected hourHeight: number = 65;
+	showMealPopup = false;
+
+	meals = signal<Meal[]>([]);
+	selectedMeal: Meal | null = null;
+	selectedDateForPopup: Date | null = null;
+	selectedTimeForPopup: Date | null = null;
+
+	constructor(private mealService: MealService, private authService: AuthService) {}
 
 	ngOnInit() {
 		this.renderWeek();
+		this.loadMeals();
+	}
+
+	loadMeals() {
+		const user = this.authService.currentUser();
+		if (!user) return;
+
+		this.mealService.getMealsByUsername(user.username).subscribe({
+			next: (meals) => {
+				console.log('Meals received for calendar:', meals);
+				const formattedMeals = meals.map(m => ({
+					...m,
+					time: new Date(m.time)
+				}));
+				this.meals.set(formattedMeals);
+			},
+			error: (err) => console.error('Error loading meals', err)
+		});
 	}
 
 	renderWeek(): void {
@@ -39,25 +71,57 @@ export class Calendar implements OnInit {
 			this.weekdays.push({
 				name: this.dayNames[nextDay.getDay()],
 				date: nextDay.getDate(),
+				month: nextDay.getMonth(),
+				year: nextDay.getFullYear(),
 				isToday: nextDay.toDateString() === todayStr
 			});
 		}
 	}
 
-	nextWeek(): void {
-		this.viewDate.setDate(this.viewDate.getDate() + 7);
-		this.renderWeek();
+	handleColumnClick(event: MouseEvent, dayInfo: any) {
+		// Only open if we didn't click an existing meal (which stops propagation)
+		this.selectedMeal = null;
+
+		const clickedY = event.offsetY;
+		const totalMinutes = Math.floor((clickedY / this.hourHeight) * 60);
+		const hours = Math.floor(totalMinutes / 60);
+		const minutes = Math.round((totalMinutes % 60) / 15) * 15;
+
+		const targetDate = new Date(dayInfo.year, dayInfo.month, dayInfo.date);
+		const targetTime = new Date();
+		targetTime.setHours(hours, minutes, 0, 0);
+
+		this.selectedDateForPopup = targetDate;
+		this.selectedTimeForPopup = targetTime;
+		this.showMealPopup = true;
 	}
 
-	// Move backward 7 days
-	prevWeek(): void {
-		this.viewDate.setDate(this.viewDate.getDate() - 7);
-		this.renderWeek();
+	openEdit(meal: Meal) {
+		this.selectedMeal = meal;
+		this.showMealPopup = true;
 	}
 
-	// Jump back to the current real-time week
-	goToToday(): void {
-		this.viewDate = new Date();
-		this.renderWeek();
+	getMealsForDay(day: any) {
+		return this.meals().filter(meal => {
+			const mDate = new Date(meal.time);
+
+			const isSameYear = mDate.getFullYear() === day.year;
+			const isSameMonth = mDate.getMonth() === day.month;
+			const isSameDay = mDate.getDate() === day.date;
+
+			return isSameYear && isSameMonth && isSameDay;
+		});
 	}
+
+	getMealTop(meal: Meal): number {
+		const date = new Date(meal.time);
+		const hours = date.getHours();
+		const minutes = date.getMinutes();
+
+		return (hours * this.hourHeight) + ((minutes / 60) * this.hourHeight);
+	}
+
+	nextWeek() { this.viewDate.setDate(this.viewDate.getDate() + 7); this.renderWeek(); }
+	prevWeek() { this.viewDate.setDate(this.viewDate.getDate() - 7); this.renderWeek(); }
+	goToToday() { this.viewDate = new Date(); this.renderWeek(); }
 }
