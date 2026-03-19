@@ -162,8 +162,25 @@ export class MealManagementService extends ServiceBase {
 	 * @return array of meals the room is planning
 	 */
 	public getMealsForRoom(roomCode:string):Meal[]{
-		//! change in future sprints ---------------------- !!!!!!!!!!!!!!
-		return this.getMealsForUser(roomCode);
+		const fetch = this.unit.prepare(`
+	    	select m.id, m.time, m.name, m.roomCode, m.responsible from Meal m where m.roomCode=:c
+    	`, {c:roomCode}).all() as {time:string,
+			id:number,
+			name:string,
+			roomCode:string,
+			responsible:string}[];
+
+		if(fetch===undefined) return [];
+
+		const meals:Meal[] = [];
+
+		fetch.forEach(e =>{
+			const date:Date = new Date(Date.parse(e.time));
+			meals.push({id:e.id, time:date, name:e.name,
+				responsible:e.responsible, room:e.roomCode});
+		})
+
+		return meals;
 	}
 
 	// ----------------------- Recipe part ------------------------------
