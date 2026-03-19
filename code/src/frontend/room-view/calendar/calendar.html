@@ -1,9 +1,14 @@
 <div class="controls">
-	<button (click)="prevWeek()"> < </button>
-	<button (click)="goToToday()">Today</button>
-	<button (click)="nextWeek()"> > </button>
+	<h2>
+		<span class="month">{{currMonth}}</span>
+		<span class="year"> {{currYear}}</span>
+	</h2>
 
-	<h2>{{ currMonth }} {{ currYear }}</h2>
+	<div class="button-group">
+		<button (click)="prevWeek()"> < </button>
+		<button (click)="goToToday()">Today</button>
+		<button (click)="nextWeek()"> > </button>
+	</div>
 </div>
 <div class="wrapper">
 	<div class="header">
@@ -36,7 +41,7 @@
 								 (click)="$event.stopPropagation(); openEdit(meal)">
 								<span class="meal-time">{{ meal.time | date:'HH:mm' }}</span>
 								<span class="meal-name">{{ meal.name }}</span>
-								<span class="meal-name">{{ meal.responsible }}</span>
+								<span class="meal-responsible">{{ meal.responsible }}</span>
 							</div>
 						}
 					</div>
