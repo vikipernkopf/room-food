@@ -1,0 +1,37 @@
+<div class="controls">
+	<button (click)="prevWeek()"> < </button>
+	<button (click)="goToToday()">Today</button>
+	<button (click)="nextWeek()"> > </button>
+
+	<h2>{{ currMonth }} {{ currYear }}</h2>
+</div>
+<div class="wrapper">
+	<div class="header">
+		<div class="time-spacer"></div>
+		@for (day of weekdays; track day.date) {
+			<div class="day-label">
+				<span class="day-name">{{ day.name }}</span>
+				<span class="day-number" [class.today]="day.isToday">
+            {{ day.date }}
+         </span>
+			</div>
+		}
+	</div>
+
+	<div class="scroll-box">
+		<div class="container-body">
+			<div class="time-column">
+				@for (hour of hours; track hour) {
+					<div class="time-slot">{{ hour }}:00</div>
+				}
+			</div>
+
+			<div class="grid-content">
+				@for (day of weekdays; track day) {
+					<div class="day-track">
+					</div>
+				}
+			</div>
+		</div>
+	</div>
+</div>
