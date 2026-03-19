@@ -3,7 +3,7 @@ import {Unit} from '../unit';
 import {Meal, Recipe} from '../model';
 import {LoginSignUpService} from '../login-sign-up/login-sign-up-service';
 
-export class MealManagement extends ServiceBase {
+export class MealManagementService extends ServiceBase {
 
 	private login:LoginSignUpService = new LoginSignUpService(this.unit);
 

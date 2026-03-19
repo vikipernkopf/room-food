@@ -1,6 +1,6 @@
 import express from 'express';
 import {Unit} from '../unit';
-import {MealManagement} from '../meal-management/meal-management-service';
+import {MealManagementService} from '../meal-management/meal-management-service';
 import { StatusCodes } from "http-status-codes";
 
 export const roomViewRouter = express.Router();
@@ -18,7 +18,7 @@ roomViewRouter.get("/meals/:username", async (req, res): Promise<void> => {
 	const unit = new Unit(true);
 
 	try {
-		const mealManagementService = new MealManagement(unit);
+		const mealManagementService = new MealManagementService(unit);
 		const meals = mealManagementService.getMealsForUser(username);
 
 		unit.complete();
