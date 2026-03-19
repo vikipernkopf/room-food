@@ -5,6 +5,7 @@ import { SignUp} from '../../frontend/sign-up/sign-up';
 import { MealManagement} from '../../frontend/meal-management/meal-management';
 import { RoomView } from '../../frontend/room-view/room-view';
 import { Profile } from '../../frontend/profile/profile';
+import {Rooms} from '../../frontend/rooms/rooms';
 
 
 export const routes: Routes = [
@@ -13,7 +14,7 @@ export const routes: Routes = [
 	{ path: '', redirectTo: 'homepage', pathMatch: 'full' },
 	{ path: 'signup', component: SignUp },
 	{ path: 'mealmanagement', component: MealManagement },
-	{ path: 'roomview', component: RoomView },
+	{ path: 'myrooms', component: Rooms },
 	{ path: 'profile', component: Profile },
 	{ path: 'profile/:username', component: Profile },
 	{ path: '**', component: Homepage }
