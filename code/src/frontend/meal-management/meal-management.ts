@@ -48,6 +48,8 @@ export class MealManagement implements OnChanges {
 	@Output() close = new EventEmitter<void>();
 	@Output() mealSaved = new EventEmitter<void>();
 	@Input() mealToEdit: Meal | null = null;
+	@Input() initialDate: Date | null = null;
+	@Input() initialTime: Date | null = null;
 
 	closePopup() {
 		this.close.emit();

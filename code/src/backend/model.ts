@@ -44,7 +44,6 @@ export type UpdateProfilePayload = {
 	password?: string
 };
 
-// noinspection JSUnusedGlobalSymbols
 export type Room = {
 	code:string
 };

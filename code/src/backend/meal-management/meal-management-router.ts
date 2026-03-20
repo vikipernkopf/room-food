@@ -1,6 +1,6 @@
 import express from "express";
 import { Unit } from "../unit";
-import { MealManagement } from './meal-management-service';
+import { MealManagementService } from './meal-management-service';
 import { StatusCodes } from "http-status-codes";
 import {Meal} from '../model';
 
@@ -25,7 +25,7 @@ mealManagementRouter.post("/meal", async (req, res): Promise<void> => {
 			responsible: responsible,
 		} as Meal;
 
-		const mealManagementService = new MealManagement(unit);
+		const mealManagementService = new MealManagementService(unit);
 		const result = mealManagementService.addMeal(meal);
 
 		if (result === "room_not_found") {
@@ -102,7 +102,7 @@ mealManagementRouter.put('/meal/:id', async (req, res): Promise<void> => {
 			responsible: updatedMeal.responsible,
 		} as Meal;
 
-		const mealManagementService = new MealManagement(unit);
+		const mealManagementService = new MealManagementService(unit);
 		const result = mealManagementService.updateMeal(mealId, updated);
 
 		if (result === 'not_found') {
@@ -146,7 +146,7 @@ mealManagementRouter.delete('/meal/:id', async (req, res): Promise<void> => {
 	const unit = new Unit(false);
 
 	try {
-		const mealManagementService = new MealManagement(unit);
+		const mealManagementService = new MealManagementService(unit);
 		const result = mealManagementService.deleteMeal(mealId);
 
 		if (result === 'not_found') {
