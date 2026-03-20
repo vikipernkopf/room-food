@@ -2,6 +2,7 @@ import { Component, computed } from '@angular/core';
 import {NgOptimizedImage} from '@angular/common';
 import {RouterLink, RouterLinkActive} from '@angular/router';
 import { AuthService } from '../core/auth-service';
+import {User} from '../../backend/model';
 
 @Component({
   selector: 'app-navbar',
@@ -16,6 +17,7 @@ import { AuthService } from '../core/auth-service';
 export class Navbar {
   protected readonly profileLink;
   protected readonly profileQueryParams;
+  protected readonly isLoggedIn;
 
   constructor(private readonly authService: AuthService) {
 	this.profileLink = computed(() => {
@@ -27,6 +29,14 @@ export class Navbar {
 	  const username = this.authService.currentUser()?.username;
 	  return username ? null : { returnUrl: '/profile' };
 	});
+
+	this.isLoggedIn = computed(() => {
+	  return this.authService.currentUser() !== null;
+	});
+  }
+
+  logout(): void {
+	  this.authService.logout();
   }
 
 }

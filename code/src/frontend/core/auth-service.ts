@@ -72,6 +72,12 @@ export class AuthService {
 		});
 	}
 
+	logout() {
+		this.currentUser.set(null);
+		console.log("User logged out");
+		this.router.navigate(['/homepage']);
+	}
+
 	getPublicProfile(username: string): Observable<PublicProfile> {
 		return this.http.get<PublicProfile>(`${this.apiBase}/users/${username}`);
 	}
