@@ -198,3 +198,44 @@ roomsRouter.post("/room", async (req, res): Promise<void> => {
 		console.log("Failed to create room");
 	}
 });
+
+roomsRouter.post("/room/join", async (req, res): Promise<void> => {
+	const { user, roomName } = req.body;
+
+	if (!user || !roomName) {
+		res.status(StatusCodes.BAD_REQUEST).json();
+		console.log("Missing required fields");
+
+		return;
+	}
+
+	const unit = new Unit(false);
+	try {
+		const roomsService = new RoomsService(unit);
+		const result = roomsService.requestToJoin(user, roomName);
+
+		if(result=='exists'){
+			unit.complete(false);
+			res.status(StatusCodes.CONFLICT).json({ error: "Already a member or requesting to join the room" });
+			console.log("Failed to request to join room (already a member)");
+
+			return;
+		}
+
+		if (result == false) {
+			unit.complete(false);
+			res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: "Failed to request to join room" });
+			console.log("Failed to request to join room");
+
+			return;
+		}
+
+		unit.complete(true);
+		res.status(StatusCodes.CREATED).json({ result });
+		console.log("Requested to join room: ", result);
+	} catch (error) {
+		unit.complete(false);
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json();
+		console.log("Failed to create room");
+	}
+});

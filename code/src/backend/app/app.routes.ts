@@ -9,6 +9,7 @@ import {Rooms} from '../../frontend/rooms/rooms';
 import { RoomManagementView } from '../../frontend/room-management-view/room-management-view';
 import {ErrorPage} from '../../frontend/error-page/error-page';
 import {RoomCreation} from '../../frontend/room-creation/room-creation';
+import {JoinRoom} from '../../frontend/join-room/join-room';
 
 
 export const routes: Routes = [
@@ -23,5 +24,6 @@ export const routes: Routes = [
 	{ path: 'profile/:username', component: Profile },
 	{ path: 'room/create', component: RoomCreation},
 	{ path: 'room/manage/:code', component: RoomManagementView },
+	{ path: 'room/join', component: JoinRoom},
 	{ path: '**', component: ErrorPage }
 ];

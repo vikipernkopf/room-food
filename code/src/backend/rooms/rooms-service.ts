@@ -103,9 +103,15 @@ export class RoomsService extends ServiceBase {
 	 * @param code - room code
 	 * @return true if requested successfully, false otherwise
 	 */
-	public requestToJoin(user:string, code:string):boolean{
-		if(!this.users.checkUserExists(user) || !this.checkRoomExists(code) || this.checkUserRoomRequesting(user, code)){
+	public requestToJoin(user:string, code:string):boolean | "exists"{
+		if(!this.users.checkUserExists(user) || !this.checkRoomExists(code))
+		{
 			return false;
+		}
+
+		if(this.checkUserRoomRequesting(user, code) || this.checkUserRoomMember(user, code))
+		{
+			return "exists";
 		}
 
 		let success:boolean;

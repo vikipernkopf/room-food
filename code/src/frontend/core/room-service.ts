@@ -27,6 +27,12 @@ export class RoomService {
 		return this.http.post<{result:string}>(apiUrl, payload);
 	}
 
+	public requestToJoinRoom(user:string, roomCode:string): Observable<{result:boolean}> {``
+		const apiUrl = `${this.apiBase}/room/join`;
+		const payload: any = { user: user, roomName: roomCode };
+		return this.http.post<{result:boolean}>(apiUrl, payload);
+	}
+
 	public checkRoomExists(code: string): Observable<{exists: boolean}> {
 		const apiUrl = `${this.apiBase}/room/exists/${code}`;
 		return this.http.get<{exists: boolean}>(apiUrl);
