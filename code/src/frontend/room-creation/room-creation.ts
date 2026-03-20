@@ -62,7 +62,8 @@ export class RoomCreation {
 					this.isLoading = false;
 					this.roomService.saveError.set('');
 					// Navigate to the room or rooms list
-					this.router.navigate(['/myrooms']);
+					console.log(response);
+					this.router.navigate([`/bla/calendar/${response.result}`]);
 				},
 				error: (err) => {
 					this.isLoading = false;
