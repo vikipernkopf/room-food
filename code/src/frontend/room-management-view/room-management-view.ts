@@ -9,6 +9,15 @@ import {RoomService} from '../core/room-service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 
+interface Member {
+	username: string;
+	role: string;
+}
+
+interface Request {
+	username: string;
+}
+
 @Component({
   selector: 'app-room-management-view',
 	standalone: true,
@@ -27,6 +36,8 @@ import { CommonModule } from '@angular/common';
 })
 export class RoomManagementView implements OnDestroy {
 	protected readonly roomCode: WritableSignal<string> = signal("");
+	protected readonly members: WritableSignal<Member[]> = signal([]);
+	protected readonly requests: WritableSignal<Request[]> = signal([]);
 	private hasRedirected = false;
 	private lastProcessedCode: string = "";
 
@@ -76,8 +87,9 @@ export class RoomManagementView implements OnDestroy {
 			next: (response) => {
 				console.log('Room validation response:', response);
 				if (response.exists) {
-					console.log('Room exists, management view loaded');
+					console.log('Room exists, loading members and requests');
 					this.hasRedirected = false;
+					this.loadRoomData(roomCode);
 				} else {
 					console.log('Room does not exist in database, redirecting to error');
 					if (!this.hasRedirected) {
@@ -95,6 +107,82 @@ export class RoomManagementView implements OnDestroy {
 				}
 			}
 		});
+	}
+
+	private loadRoomData(roomCode: string) {
+		this.fetchMembers(roomCode);
+		this.fetchRequests(roomCode);
+	}
+
+	private fetchMembers(roomCode: string) {
+		this.roomService.getMembersPerRoom(roomCode).subscribe({
+			next: (members) => {
+				console.log('Successfully fetched members:', members);
+				this.members.set(members || []);
+			},
+			error: (error) => {
+				console.error('Error fetching members:', error);
+				this.members.set([]);
+			}
+		});
+	}
+
+	private fetchRequests(roomCode: string) {
+		this.roomService.getRequestsPerRoom(roomCode).subscribe({
+			next: (requests) => {
+				console.log('Successfully fetched requests:', requests);
+				this.requests.set(requests || []);
+			},
+			error: (error) => {
+				console.error('Error fetching requests:', error);
+				this.requests.set([]);
+			}
+		});
+	}
+
+	acceptRequest(username: string) {
+		const code = this.roomCode();
+		console.log('Accepting request for user:', username, 'in room:', code);
+
+		this.roomService.acceptRequest(code, username).subscribe({
+			next: (response) => {
+				console.log('Request accepted successfully:', response);
+				// Remove from requests list and refresh
+				this.requests.update(reqs => reqs.filter(req => req.username !== username));
+				// Refresh members list
+				this.fetchMembers(code);
+			},
+			error: (error) => {
+				console.error('Error accepting request:', error);
+				alert('Failed to accept request');
+			}
+		});
+	}
+
+	rejectRequest(username: string) {
+		const code = this.roomCode();
+		console.log('Rejecting request for user:', username, 'in room:', code);
+
+		this.roomService.rejectRequest(code, username).subscribe({
+			next: (response) => {
+				console.log('Request rejected successfully:', response);
+				// Remove from requests list
+				this.requests.update(reqs => reqs.filter(req => req.username !== username));
+			},
+			error: (error) => {
+				console.error('Error rejecting request:', error);
+				alert('Failed to reject request');
+			}
+		});
+	}
+
+	removeMember(username: string) {
+		const code = this.roomCode();
+		console.log('Removing member:', username, 'from room:', code);
+
+		// For now, show an alert that this feature needs to be implemented
+		// You would need a backend method to remove members
+		alert('Remove member functionality coming soon');
 	}
 
 	printcode() {

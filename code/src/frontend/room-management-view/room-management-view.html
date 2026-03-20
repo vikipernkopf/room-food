@@ -54,7 +54,19 @@
 			<!-- Roommates -->
 			<h3 class="section-title">Roommates:</h3>
 			<div class="member-list">
-				<!-- TODO -->
+				@for (member of members(); track member.username) {
+					<div class="member-item">
+						<div class="member-info">
+							<span class="member-username">{{member.username}}</span>
+							<span class="member-role">{{member.role}}</span>
+						</div>
+						<button mat-icon-button class="action-btn remove-btn" aria-label="Remove member" (click)="removeMember(member.username)">
+							✕
+						</button>
+					</div>
+				} @empty {
+					<div class="empty-message">No roommates yet</div>
+				}
 			</div>
 
 			<mat-divider class="section-divider"></mat-divider>
@@ -62,7 +74,23 @@
 			<!-- Requests -->
 			<h3 class="section-title">Requests</h3>
 			<div class="member-list">
-				<!-- TODO -->
+				@for (request of requests(); track request.username) {
+					<div class="request-item">
+						<div class="member-info">
+							<span class="member-username">{{request.username}}</span>
+						</div>
+						<div class="action-buttons">
+							<button mat-icon-button class="action-btn accept-btn" aria-label="Accept request" (click)="acceptRequest(request.username)">
+								✓
+							</button>
+							<button mat-icon-button class="action-btn reject-btn" aria-label="Reject request" (click)="rejectRequest(request.username)">
+								✕
+							</button>
+						</div>
+					</div>
+				} @empty {
+					<div class="empty-message">No pending requests</div>
+				}
 			</div>
 
 		</div>

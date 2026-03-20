@@ -231,7 +231,7 @@ export class RoomsService extends ServiceBase {
 		`, {c: roomCode}).get() !== undefined;
 	}
 
-	private removeFromRequestQueue(user: string, code: string):boolean {
+	public removeFromRequestQueue(user: string, code: string):boolean {
 		if(!this.checkUserRoomRequesting(user, code)){
 			return true;
 		}

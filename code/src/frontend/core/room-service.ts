@@ -31,4 +31,24 @@ export class RoomService {
 		const apiUrl = `${this.apiBase}/room/exists/${code}`;
 		return this.http.get<{exists: boolean}>(apiUrl);
 	}
+
+	public getMembersPerRoom(code: string): Observable<{username: string, role: string}[]> {
+		const apiUrl = `${this.apiBase}/room/${code}/members`;
+		return this.http.get<{username: string, role: string}[]>(apiUrl);
+	}
+
+	public getRequestsPerRoom(code: string): Observable<{username: string}[]> {
+		const apiUrl = `${this.apiBase}/room/${code}/requests`;
+		return this.http.get<{username: string}[]>(apiUrl);
+	}
+
+	public acceptRequest(code: string, username: string): Observable<{success: boolean}> {
+		const apiUrl = `${this.apiBase}/room/${code}/accept-request`;
+		return this.http.post<{success: boolean}>(apiUrl, { username });
+	}
+
+	public rejectRequest(code: string, username: string): Observable<{success: boolean}> {
+		const apiUrl = `${this.apiBase}/room/${code}/reject-request`;
+		return this.http.post<{success: boolean}>(apiUrl, { username });
+	}
 }

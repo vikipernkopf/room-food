@@ -185,90 +185,161 @@
 .member-list {
 	display: flex;
 	flex-direction: column;
-	gap: 10px;
+	gap: 12px;
 }
 
-/* ===== MEMBER CARD ===== */
-.member-card {
+/* ===== MEMBER ITEM ===== */
+.member-item {
 	display: flex;
 	align-items: center;
+	justify-content: space-between;
 	gap: 12px;
-	padding: 10px 14px;
+	padding: 12px 14px;
 	border-radius: 10px;
 	border: 1.5px solid #dde0ea;
 	background-color: #f8f9fc;
+	transition: all 0.2s ease;
 }
 
-.member-avatar mat-icon {
-	font-size: 36px;
-	width: 36px;
-	height: 36px;
-	color: #b0b7cc;
+.member-item:hover {
+	border-color: #c4c9db;
+	background-color: #f0f2f7;
 }
 
 .member-info {
 	display: flex;
-	flex-direction: column;
+	align-items: center;
+	gap: 10px;
 	flex: 1;
+	min-width: 0;
 }
 
-.member-name {
+.member-icon {
+	font-size: 24px;
+	width: 24px;
+	height: 24px;
+	color: #8a8fa3;
+	flex-shrink: 0;
+}
+
+.member-username {
 	font-size: 14px;
 	font-weight: 600;
 	color: #1a1d27;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
-.member-since {
-	font-size: 11px;
+.member-role {
+	font-size: 12px;
 	color: #8a8fa3;
+	background-color: #e8eaf3;
+	padding: 2px 8px;
+	border-radius: 4px;
+	white-space: nowrap;
+	flex-shrink: 0;
 }
 
-/* ===== CONFIRMED CHECKMARK ===== */
-.confirmed-icon {
-	color: #4caf50;
-	background-color: #e6f4ea;
-	border-radius: 50%;
-	padding: 2px;
-	font-size: 18px;
-	width: 24px;
-	height: 24px;
+.action-btn {
+	color: #8a8fa3;
+	width: 32px;
+	height: 32px;
+	flex-shrink: 0;
+	transition: all 0.2s ease;
+	font-size: 16px;
+	font-weight: bold;
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	line-height: 1;
 }
 
-/* ===== REQUEST ACTION BUTTONS ===== */
-.request-actions {
-	display: flex;
-	gap: 4px;
+.action-btn:hover {
+	color: #f07c21;
+	background-color: rgba(240, 124, 33, 0.08);
+}
+
+.remove-btn {
+	color: #f44336;
+}
+
+.remove-btn:hover {
+	color: #da190b;
+	background-color: rgba(244, 67, 54, 0.08);
 }
 
 .accept-btn {
 	color: #4caf50;
-	width: 32px;
-	height: 32px;
-	border: 1.5px solid #4caf50 !important;
-	border-radius: 6px !important;
+	font-size: 18px;
 }
 
-.accept-btn mat-icon {
-	font-size: 18px;
-	width: 18px;
-	height: 18px;
+.accept-btn:hover {
+	background-color: rgba(76, 175, 80, 0.08);
+	color: #45a049;
 }
 
 .reject-btn {
-	color: #e53935;
-	width: 32px;
-	height: 32px;
-	border: 1.5px solid #e53935 !important;
-	border-radius: 6px !important;
+	color: #f44336;
+	font-size: 18px;
 }
 
-.reject-btn mat-icon {
-	font-size: 18px;
-	width: 18px;
-	height: 18px;
+.reject-btn:hover {
+	background-color: rgba(244, 67, 54, 0.08);
+	color: #da190b;
+}
+
+/* ===== REQUEST ITEM ===== */
+.request-item {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 12px 14px;
+	border-radius: 10px;
+	border: 1.5px solid #dde0ea;
+	background-color: #f8f9fc;
+	transition: all 0.2s ease;
+}
+
+.request-item:hover {
+	border-color: #c4c9db;
+	background-color: #f0f2f7;
+}
+
+.action-buttons {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	flex-shrink: 0;
+}
+
+.accept-btn {
+	color: #4caf50;
+}
+
+.accept-btn:hover {
+	background-color: rgba(76, 175, 80, 0.08);
+	color: #45a049;
+}
+
+.reject-btn {
+	color: #f44336;
+}
+
+.reject-btn:hover {
+	background-color: rgba(244, 67, 54, 0.08);
+	color: #da190b;
+}
+
+.empty-message {
+	padding: 16px;
+	text-align: center;
+	color: #8a8fa3;
+	font-size: 14px;
+	background-color: #f8f9fc;
+	border-radius: 10px;
+	border: 1.5px solid #dde0ea;
 }
 
 /* ===== RESPONSIVE ===== */

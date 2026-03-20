@@ -2,10 +2,14 @@ import {Component, WritableSignal} from '@angular/core';
 import {RoomService} from '../core/room-service';
 import {AuthService} from '../core/auth-service';
 import {User} from '../../backend/model';
+import {RouterLink, RouterLinkActive} from '@angular/router';
 
 @Component({
   selector: 'app-rooms',
-  imports: [],
+	imports: [
+		RouterLink,
+		RouterLinkActive
+	],
   templateUrl: './rooms.html',
   styleUrl: './rooms.scss',
 })

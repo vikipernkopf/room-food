@@ -8,13 +8,7 @@
 </div>
 
 
-<button (click)="newRoom()" [disabled]="creating">{{ creating ? 'Creating...' : 'Create room' }}</button>
-
-@if(createdRoomCode){
-	<div>
-		<p>Created room code: {{ createdRoomCode }}</p>
-	</div>
-}
+<a class="nav-link" routerLink="/room/create" routerLinkActive="active">Create room</a>
 
 @if(!currentUser()?.username){
 	<div>
