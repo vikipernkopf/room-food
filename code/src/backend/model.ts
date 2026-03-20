@@ -45,7 +45,8 @@ export type UpdateProfilePayload = {
 };
 
 export type Room = {
-	code:string
+	code: string,
+	name: string,
 };
 
 export type Recipe = {
