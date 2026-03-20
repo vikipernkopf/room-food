@@ -1,8 +1,9 @@
 import express from "express";
-import { Unit } from "../unit";
-import { LoginSignUpService } from "./login-sign-up-service";
-import { StatusCodes } from "http-status-codes";
-import { PublicProfile, SignUpCredentials, UpdateProfilePayload, User } from "../model";
+import {Unit} from "../unit";
+import {LoginSignUpService} from "./login-sign-up-service";
+import {StatusCodes} from "http-status-codes";
+import {PublicProfile, SignUpCredentials, UpdateProfilePayload, User} from "../model";
+import {createHash} from 'crypto';
 
 const DEFAULT_PROFILE_PICTURE =
 	'https://i.imgur.com/tdi3NGa_d.webp?maxwidth=760&fidelity=grand';
@@ -11,6 +12,8 @@ export const loginSignUpRouter = express.Router();
 
 // Admin endpoint to list users (returns usernames only). No token required per request.
 loginSignUpRouter.get('/admin/users', (req, res) => {
+	req.headers
+
 	const unit = new Unit(true);
 	try {
 		const svc = new LoginSignUpService(unit);
@@ -39,9 +42,10 @@ loginSignUpRouter.post('/login', (req, res) => {
 	const unit = new Unit(false);
 	try {
 		const loginService = new LoginSignUpService(unit);
-		const user = loginService.getUserByUsernameOrEmail(identifier);
-		const check = loginService.checkLoginAttempt(identifier, password);
+		const hashedPassword = generateSHA256(password);
 
+		const user = loginService.getUserByUsernameOrEmail(identifier);
+		const check = loginService.checkLoginAttempt(identifier, hashedPassword);
 		if (check !== true) {
 			unit.complete(false);
 			return res.sendStatus(StatusCodes.UNAUTHORIZED);
@@ -52,7 +56,9 @@ loginSignUpRouter.post('/login', (req, res) => {
 			return res.sendStatus(StatusCodes.UNAUTHORIZED);
 		}
 
-		return res.status(StatusCodes.OK).json(publicUserFrom(user));
+		return res.status(StatusCodes.OK)/*
+		.setHeaders({'Set-Cookie': 'token=tokenVar; MaxAge=' + Date.now() + 7 })*/
+			.json(publicUserFrom(user));
 	} catch (e) {
 		console.error(e);
 		unit.complete(false);
@@ -70,7 +76,7 @@ loginSignUpRouter.post('/signup', (req, res) => {
 	const unit = new Unit(false);
 	try {
 		const loginSignUpService = new LoginSignUpService(unit);
-
+		signUpPayload.password = generateSHA256(signUpPayload.password);
 		if (loginSignUpService.getUserByUsername(signUpPayload.username)) {
 			unit.complete(false);
 			return res.status(StatusCodes.CONFLICT).json({ reason: 'username_taken' });
@@ -103,6 +109,37 @@ loginSignUpRouter.post('/signup', (req, res) => {
 		}
 
 		return res.sendStatus(StatusCodes.INTERNAL_SERVER_ERROR);
+	}
+})
+
+loginSignUpRouter.delete('/delete', (req, res) => {
+	const identifierRaw = req.body?.identifier ?? req.body?.username ?? req.body?.email;
+	if (!identifierRaw) {
+		console.log('Invalid identifierRaw');
+		res.sendStatus(StatusCodes.BAD_REQUEST);
+	}
+
+	const unit = new Unit(false);
+	try {
+		const loginService = new LoginSignUpService(unit);
+		const deletedUser = loginService.deleteUser(identifierRaw);
+		if (deletedUser === "error") {
+			console.log("While deleting user an error occured");
+			unit.complete(false);
+			res.sendStatus(StatusCodes.BAD_REQUEST);
+		}
+		if (deletedUser === "not_found") {
+			console.log("User could not be found.");
+			unit.complete(false);
+			res.sendStatus(StatusCodes.NOT_FOUND);
+		}
+
+		unit.complete(true);
+		res.sendStatus(StatusCodes.OK);
+	} catch (e) {
+		console.error(e);
+		unit.complete(false);
+		res.sendStatus(StatusCodes.INTERNAL_SERVER_ERROR);
 	}
 })
 
@@ -301,3 +338,6 @@ function isEmail(email: string): boolean {
 	return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
+function generateSHA256(input: string): string {
+	return createHash('sha256').update(input).digest('hex');
+}

@@ -214,6 +214,7 @@ export class Profile {
   }
 
   protected deleteUserBtn(): void {
+	  this.passwordText.set("Confirm delete with password");
 	  const currentUser = this.currentUser();
 	  if (!currentUser) {
 		  this.deleteError.set('You must be logged in to delete your profile.');
@@ -229,7 +230,6 @@ export class Profile {
 		  return;
 	  }
 
-	  this.passwordText.set("Confirm delete with password");
 	  this.deleteError.set('');
 	  this.authService.deleteUser({
 		  identifier: currentUser.username,
