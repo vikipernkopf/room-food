@@ -1,8 +1,26 @@
-	<div>
-		<span>Rooms I'm part of</span>
+<div>
+	<span>Rooms I'm part of</span>
 
-	</div>
+</div>
 
+<div>
+	<span>Rooms I own</span>
+</div>
+
+
+<button (click)="newRoom()" [disabled]="creating">{{ creating ? 'Creating...' : 'Create room' }}</button>
+
+@if(createdRoomCode){
 	<div>
-		<span>Rooms I own</span>
+		<p>Created room code: {{ createdRoomCode }}</p>
 	</div>
+}
+
+@if(!currentUser()?.username){
+	<div>
+		<p>You must be logged in to create a room.</p>
+	</div>
+}
+
+
+

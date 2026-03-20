@@ -2,13 +2,17 @@ import {ServiceBase} from '../service-base';
 import {Unit} from '../unit';
 import {Meal, Recipe} from '../model';
 import {LoginSignUpService} from '../login-sign-up/login-sign-up-service';
+import {RoomsService} from '../rooms/rooms-service';
 
 export class MealManagementService extends ServiceBase {
 
-	private login:LoginSignUpService = new LoginSignUpService(this.unit);
+	private login:LoginSignUpService;
+	private rooms:RoomsService;
 
 	constructor(unit: Unit) {
 		super(unit);
+		this.login = new LoginSignUpService(this.unit);
+		this.rooms = new RoomsService(this.unit);
 	}
 
 	// ----------------------- Meal part ------------------------------
@@ -151,7 +155,7 @@ export class MealManagementService extends ServiceBase {
 	 * @return true if taken, false otherwise
 	 */
 	public checkRoomExists(roomCode:string):boolean{
-		return this.login.checkUserExists(roomCode); //! change in future sprints -- !!!!!!!!!!!!!!
+		return this.rooms.checkRoomExists(roomCode);
 	}
 
 	// noinspection JSUnusedGlobalSymbols
@@ -163,8 +167,8 @@ export class MealManagementService extends ServiceBase {
 	 */
 	public getMealsForRoom(roomCode:string):Meal[]{
 		const fetch = this.unit.prepare(`
-	    	select m.id, m.time, m.name, m.roomCode, m.responsible from Meal m where m.roomCode=:c
-    	`, {c:roomCode}).all() as {time:string,
+			select m.id, m.time, m.name, m.roomCode, m.responsible from Meal m where m.roomCode=:c
+		`, {c:roomCode}).all() as {time:string,
 			id:number,
 			name:string,
 			roomCode:string,

@@ -17,7 +17,7 @@ export const routes: Routes = [
 	{ path: 'signup', component: SignUp },
 	{ path: 'mealmanagement', component: MealManagement },
 	{ path: 'myrooms', component: Rooms },
-	{ path: 'bla', component: RoomView}, //delete this later, only for testing right now
+	{ path: 'bla/:code', component: RoomView}, //delete this later, only for testing right now
 	{ path: 'room/manage/:code', component: RoomManagementView },
 	{ path: 'profile', component: Profile },
 	{ path: 'profile/:username', component: Profile },

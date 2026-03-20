@@ -27,6 +27,9 @@ export class RoomManagementView {
 				private router: Router) {
 	  this.route.paramMap.subscribe((paramMap) => {
 		  this.roomCode = (paramMap.get('code'));
+		  if(this.checkRoomExists(this.roomCode)){
+			  this.redirectToError();
+		  }
 	  });
 	}
 
@@ -34,11 +37,11 @@ export class RoomManagementView {
 		console.log(this.roomCode);
 	}
 
-	checkRoomExists(roomCode: string | null | undefined): boolean {
+	private checkRoomExists(roomCode: string | null | undefined): boolean {
 		return roomCode!=null && roomCode !=undefined && roomCode.length>0;
 	}
 
-	redirectToError():string {
+	private redirectToError():string {
 		this.router.navigate(['/error']);
 		return "redirection failed in room-management-view.ts";
 	}
