@@ -137,6 +137,35 @@ roomsRouter.get("/room/exists/:code", async (req, res): Promise<void> => {
 	}
 });
 
+roomsRouter.get("/room/name/:code", async (req, res): Promise<void> => {
+	const { code } = req.params;
+
+	if (!code) {
+		res.status(StatusCodes.BAD_REQUEST).json({ exists: false });
+		console.log("Missing room code");
+		return;
+	}
+
+	const unit = new Unit(true);
+	try {
+		const roomsService = new RoomsService(unit);
+		const name = roomsService.getNameForRoom(code);
+
+		if(name == ""){
+			unit.complete();
+			res.status(StatusCodes.NOT_FOUND);
+			return;
+		}
+
+		unit.complete();
+		res.status(StatusCodes.OK).json({ name });
+	} catch (error) {
+		unit.complete();
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ exists: false });
+		console.error("Error checking for name of room:", error);
+	}
+});
+
 roomsRouter.post("/room", async (req, res): Promise<void> => {
 	const { owner, roomName } = req.body;
 

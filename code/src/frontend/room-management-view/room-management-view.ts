@@ -36,6 +36,7 @@ interface Request {
 })
 export class RoomManagementView implements OnDestroy {
 	protected readonly roomCode: WritableSignal<string> = signal("");
+	protected readonly roomName: WritableSignal<string> = signal ("");
 	protected readonly members: WritableSignal<Member[]> = signal([]);
 	protected readonly requests: WritableSignal<Request[]> = signal([]);
 	private hasRedirected = false;
@@ -51,6 +52,15 @@ export class RoomManagementView implements OnDestroy {
 			  const code = paramMap.get('code') ?? "";
 			  console.log('Route param received, setting roomCode to:', code);
 			  this.roomCode.set(code);
+			  this.roomService.getRoomName(code).subscribe({
+				  next: (response) => {
+					  console.log(`Room name found for room ${this.roomCode()}: ${response.name}`);
+					  this.roomName.set(response.name);
+				  },
+				  error: (error) => {
+					  console.error('Error getting name:', error);
+				  }
+			  })
 		  });
 
 	  // Effect to handle room code changes

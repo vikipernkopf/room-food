@@ -231,6 +231,24 @@ export class RoomsService extends ServiceBase {
 		`, {c: roomCode}).get() !== undefined;
 	}
 
+	/**
+	 * Gets the name of a room with a specific code
+	 *
+	 * @param roomCode
+	 * @return name of the room if room with the specified code exists, empty string otherwise
+	 */
+	public getNameForRoom(roomCode:string):string{
+		if(!this.checkRoomExists(roomCode)){
+			return "";
+		}
+
+		let fetch = this.unit.prepare(`
+			SELECT r.name from Room r where code=:c
+		`, {c: roomCode}).get() as {name:string};
+
+		return fetch.name;
+	}
+
 	public removeFromRequestQueue(user: string, code: string):boolean {
 		if(!this.checkUserRoomRequesting(user, code)){
 			return true;

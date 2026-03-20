@@ -3,12 +3,14 @@ import {RoomService} from '../core/room-service';
 import {AuthService} from '../core/auth-service';
 import {User} from '../../backend/model';
 import {RouterLink, RouterLinkActive} from '@angular/router';
+import {MatButton} from '@angular/material/button';
 
 @Component({
   selector: 'app-rooms',
 	imports: [
 		RouterLink,
-		RouterLinkActive
+		RouterLinkActive,
+		MatButton
 	],
   templateUrl: './rooms.html',
   styleUrl: './rooms.scss',

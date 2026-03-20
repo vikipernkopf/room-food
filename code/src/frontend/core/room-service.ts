@@ -32,6 +32,11 @@ export class RoomService {
 		return this.http.get<{exists: boolean}>(apiUrl);
 	}
 
+	public getRoomName(code: string): Observable<{name: string}> {
+		const apiUrl = `${this.apiBase}/room/name/${code}`;
+		return this.http.get<{name: string}>(apiUrl);
+	}
+
 	public getMembersPerRoom(code: string): Observable<{username: string, role: string}[]> {
 		const apiUrl = `${this.apiBase}/room/${code}/members`;
 		return this.http.get<{username: string, role: string}[]>(apiUrl);

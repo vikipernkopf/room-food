@@ -6,41 +6,20 @@
 
 			<!-- Room Name -->
 			<div class="field-row room-name-row">
-				<mat-form-field appearance="fill" class="room-name-field">
-					<mat-label>Room</mat-label>
-					<input matInput value="Room 1" />
-				</mat-form-field>
-				<button mat-icon-button class="edit-btn" aria-label="Edit room name">
-					<mat-icon>edit</mat-icon>
-				</button>
+				<mat-label>Room: {{this.roomName()}}</mat-label>
 			</div>
 
 			<!-- Room Image -->
 			<div class="room-image-wrapper">
 				<div class="room-image-placeholder">
-					<mat-icon class="thumb-icon">thumb_up</mat-icon>
+
 				</div>
-				<button mat-icon-button class="edit-btn image-edit-btn" aria-label="Edit room image">
-					<mat-icon>edit</mat-icon>
-				</button>
 			</div>
 
 			<!-- Room Code -->
 			<div class="info-row">
 				<span class="info-label">Room code:</span>
 				<span class="info-value code-value">{{roomCode()}}</span>
-			</div>
-
-			<!-- Password -->
-			<div class="info-row password-row">
-				<span class="info-label">Password:</span>
-				<span class="info-value password-value">***</span>
-				<button mat-icon-button class="icon-btn" aria-label="Toggle password visibility">
-					<mat-icon>visibility</mat-icon>
-				</button>
-				<button mat-icon-button class="edit-btn icon-btn" aria-label="Edit password">
-					<mat-icon>edit</mat-icon>
-				</button>
 			</div>
 
 		</div>
