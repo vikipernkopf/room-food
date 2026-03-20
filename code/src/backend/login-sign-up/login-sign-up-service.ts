@@ -77,6 +77,7 @@ export class LoginSignUpService extends ServiceBase {
    * @return true if exists, false otherwise
    */
   public checkUserExists(username:string):boolean{
+	  console.log(`USER ERROR ${username}`);
     const fetch = this.unit.prepare(`
     select * from User u where u.username=:n
     `, {n:username}).get();

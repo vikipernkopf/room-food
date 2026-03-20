@@ -1,0 +1,109 @@
+$color-green-1: #6FC276;
+$color-green-2: #4CAF50;
+$color-green-3: #2E7D32;
+$color-green-4: #105B37;
+$color-green-5: #0A3D23;
+
+// Orange Palette
+$color-orange-1: #C85A04;
+$color-orange-2: #E67E22;
+$color-orange-3: #FF9800;
+$color-orange-4: #FFB74D;
+$color-orange-5: #FFCC80;
+
+.room-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 10px 0;
+	padding-left: 10px;
+	padding-right: 10px;
+	margin-bottom: 20px;
+	border-bottom: 1px solid #eee;
+
+	h1 {
+		margin: 0;
+		font-size: 40px;
+		color: #333;
+	}
+
+	.btn-join {
+		font-size: 20px;
+		width: 13rem;
+		padding: 8px 16px;
+		background-color: #08733F;
+		color: white;
+		border: none;
+		border-radius: 3px;
+		font-weight: 600;
+		cursor: pointer;
+		transition: background 0.2s;
+
+		&:hover {
+			background-color: #065a31;
+		}
+	}
+}
+
+.room-containers{
+	padding-left: 3rem;
+	padding-top: 1.3rem;
+
+	.btn-add {
+		background-color: #fafaf9;
+		color: $color-orange-2;
+		font-size: 5rem;
+		width: 20rem;
+		height: 13rem;
+
+		display: flex;
+		justify-content: center;
+		align-items: center;
+
+		border-radius: 1rem;
+		border: none;
+		box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+		cursor: pointer;
+
+		&:hover {
+			background-color: #f1f0ef;
+		}
+	}
+}
+
+.modal-overlay {
+	position: fixed !important;
+	top: 0 !important;
+	left: 0 !important;
+	width: 100vw !important;
+	height: 100vh !important;
+	background-color: rgba(0, 0, 0, 0.4) !important;
+	backdrop-filter: blur(4px);
+	display: flex !important;
+	justify-content: center;
+	align-items: center;
+	z-index: 9999 !important;
+}
+
+.modal-card {
+	height: 21rem;
+	width: 34rem;
+	background-color: #fff ;
+	border-radius: 1rem ;
+
+	.create-room{
+		display: flex;
+		justify-content: center;
+		font-size: 2.7rem;
+		border-bottom: 1px solid #ddd;
+		padding-bottom: 10px;
+		margin-bottom: 5px;
+	}
+
+
+}
+
+
+
+
+

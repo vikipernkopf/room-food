@@ -4,6 +4,7 @@ import { RouterLink, Router } from '@angular/router';
 import { AuthService } from '../core/auth-service';
 import { RoomService } from '../core/room-service';
 import { CommonModule } from '@angular/common';
+import {User} from '../../backend/model';
 
 const DEFAULT_ROOM_PICTURE =
 	'https://i.imgur.com/tdi3NGa_d.webp?maxwidth=760&fidelity=grand';
@@ -28,6 +29,8 @@ export class RoomCreation {
 
 	public createRoomError: WritableSignal<string>;
 	public isLoading = false;
+	protected currentUser: WritableSignal<User|null>;
+
 
 	constructor(
 		private authService: AuthService,
@@ -35,13 +38,14 @@ export class RoomCreation {
 		private router: Router
 	) {
 		this.createRoomError = this.roomService.saveError;
+		this.currentUser = this.authService.currentUser;
 	}
 
 	onFormSubmit() {
 		if (this.roomCreationForm.valid) {
-			const currentUser = this.authService.currentUser();
+			const user = this.currentUser();
 
-			if (!currentUser) {
+			if (!user) {
 				this.roomService.saveError.set('You must be logged in to create a room');
 				return;
 			}
@@ -50,8 +54,9 @@ export class RoomCreation {
 			const roomName = this.roomCreationForm.value.roomName ?? '';
 			const roomPictureUrl = (this.roomCreationForm.value.roomPictureUrl ?? '').trim();
 			const pfp = roomPictureUrl || DEFAULT_ROOM_PICTURE;
+			console.log(user);
 
-			this.roomService.createRoom(currentUser.username, roomName, pfp).subscribe({
+			this.roomService.createRoom(user.username, roomName, pfp).subscribe({
 				next: (response) => {
 					console.log('Room created successfully:', response);
 					this.isLoading = false;

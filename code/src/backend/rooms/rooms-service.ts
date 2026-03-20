@@ -8,6 +8,7 @@ export class RoomsService extends ServiceBase {
 
 	constructor(unit: Unit) {
 		super(unit);
+		this.users = new LoginSignUpService(this.unit)
 	}
 
 	private CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -39,6 +40,7 @@ export class RoomsService extends ServiceBase {
 				break;
 			}
 			if(i==this.MAX_ATTEMPTS){
+				console.log("ROOM CODE RRORR");
 				return "error";
 			}
 		}

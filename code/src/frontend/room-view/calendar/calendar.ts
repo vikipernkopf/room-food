@@ -9,13 +9,14 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {RoomService} from '../../core/room-service';
 
 @Component({
-  selector: 'app-calendar',
+	selector: 'app-calendar',
 	imports: [
 		MealManagement,
 		DatePipe
 	],
-  templateUrl: './calendar.html',
-  styleUrl: './calendar.scss',
+	templateUrl: './calendar.html',
+	styleUrl: './calendar.scss',
+	standalone: true
 })
 export class Calendar implements OnInit {
 	viewDate: Date = new Date();
