@@ -1,12 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, signal, WritableSignal } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { AuthService } from '../core/auth-service';
 import { PublicProfile, UpdateProfilePayload, User } from '../../backend/model';
-
-const DEFAULT_PROFILE_PICTURE =
-  'https://i.imgur.com/tdi3NGa_d.webp?maxwidth=760&fidelity=grand';
+import { DEFAULT_PROFILE_PICTURE, profileFieldValidators } from '../core/user-form-validation';
 
 @Component({
   selector: 'app-profile',
@@ -16,6 +14,8 @@ const DEFAULT_PROFILE_PICTURE =
   styleUrl: './profile.scss'
 })
 export class Profile {
+  private readonly sharedValidators = profileFieldValidators(false);
+
   protected readonly profile: WritableSignal<PublicProfile | null> = signal(null);
   protected readonly isLoading = signal(true);
   protected readonly loadError = signal('');
@@ -35,13 +35,13 @@ export class Profile {
   });
 
   protected readonly editForm = new FormGroup({
-    firstName: new FormControl('', [Validators.required, Validators.maxLength(50)]),
-    lastName: new FormControl('', [Validators.required, Validators.maxLength(50)]),
-    bio: new FormControl('', [Validators.maxLength(400)]),
-    profilePicture: new FormControl('', [Validators.maxLength(1000)]),
-    email: new FormControl('', [Validators.required, Validators.email]),
-    dob: new FormControl('', [Validators.required]),
-    password: new FormControl('', [Validators.minLength(8)])
+    firstName: new FormControl('', this.sharedValidators.firstName),
+    lastName: new FormControl('', this.sharedValidators.lastName),
+    bio: new FormControl('', this.sharedValidators.bio),
+    profilePicture: new FormControl('', this.sharedValidators.profilePicture),
+    email: new FormControl('', this.sharedValidators.email),
+    dob: new FormControl('', this.sharedValidators.dob),
+    password: new FormControl('', this.sharedValidators.password)
   });
 
   constructor(
@@ -63,6 +63,9 @@ export class Profile {
   }
 
   protected saveProfile(): void {
+    this.saveError.set('');
+    this.saveSuccess.set('');
+
     const profile = this.profile();
     const currentUser = this.currentUser();
     if (!profile || !currentUser || !this.isOwnProfile()) {
@@ -72,17 +75,30 @@ export class Profile {
 
     if (this.editForm.invalid) {
       this.editForm.markAllAsTouched();
-      this.saveError.set('Please fix the highlighted fields.');
+      const invalidField = this.getFirstInvalidFieldLabel();
+      this.saveError.set(invalidField ? `Please fix: ${invalidField}.` : 'Please fix the highlighted fields.');
       return;
     }
 
+    const trimmedEmail = (this.editForm.value.email ?? '').trim();
+    const trimmedFirstName = (this.editForm.value.firstName ?? '').trim();
+    const trimmedLastName = (this.editForm.value.lastName ?? '').trim();
+    const trimmedDob = (this.editForm.value.dob ?? '').trim();
+
+    this.editForm.patchValue({
+      email: trimmedEmail,
+      firstName: trimmedFirstName,
+      lastName: trimmedLastName,
+      dob: trimmedDob
+    }, { emitEvent: false });
+
     const payload: UpdateProfilePayload = {
       actorUsername: currentUser.username,
-      email: this.editForm.value.email ?? '',
-      firstName: this.editForm.value.firstName ?? '',
-      lastName: this.editForm.value.lastName ?? '',
+      email: trimmedEmail,
+      firstName: trimmedFirstName,
+      lastName: trimmedLastName,
         bio: this.editForm.value.bio ?? '',
-      dob: this.editForm.value.dob ?? '',
+      dob: trimmedDob,
       profilePicture: (this.editForm.value.profilePicture ?? '').trim() || DEFAULT_PROFILE_PICTURE,
       password: this.editForm.value.password ?? ''
     };
@@ -104,6 +120,9 @@ export class Profile {
       error: (err) => {
         if (err.status === 409 && err.error?.reason === 'email_taken') {
           this.saveError.set('This e-mail address is already in use.');
+        } else if (err.status === 400 && err.error?.reason === 'invalid_payload') {
+          const invalidField = this.getFirstInvalidFieldLabel();
+          this.saveError.set(invalidField ? `Invalid field: ${invalidField}.` : 'Some profile fields are invalid. Please check your input.');
         } else if (err.status === 403) {
           this.saveError.set('You can only edit your own profile.');
         } else {
@@ -161,6 +180,26 @@ export class Profile {
       email: user.email ?? '',
       dob: user.dob ?? ''
     });
+  }
+
+  private getFirstInvalidFieldLabel(): string {
+    const fieldLabels: Record<string, string> = {
+      firstName: 'First name',
+      lastName: 'Last name',
+      email: 'E-mail',
+      dob: 'Date of birth',
+      bio: 'Bio',
+      profilePicture: 'Profile picture URL',
+      password: 'New password'
+    };
+
+    for (const fieldName of Object.keys(fieldLabels)) {
+      if (this.editForm.get(fieldName)?.invalid) {
+        return fieldLabels[fieldName];
+      }
+    }
+
+    return '';
   }
 }
 

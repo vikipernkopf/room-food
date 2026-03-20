@@ -1,11 +1,18 @@
 import {Component, WritableSignal} from '@angular/core';
-import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
+import {AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, Validators} from '@angular/forms';
 import {RouterLink} from '@angular/router';
 import {AuthService} from '../core/auth-service';
 import { SignUpCredentials } from '../../backend/model';
+import { DEFAULT_PROFILE_PICTURE, profileFieldValidators } from '../core/user-form-validation';
 
-const DEFAULT_PROFILE_PICTURE =
-	'https://i.imgur.com/tdi3NGa_d.webp?maxwidth=760&fidelity=grand';
+function passwordsMatchValidator(control: AbstractControl): ValidationErrors | null {
+	const password = control.get('password')?.value ?? '';
+	const repeatPassword = control.get('repeatPassword')?.value ?? '';
+	if (!password || !repeatPassword) {
+		return null;
+	}
+	return password === repeatPassword ? null : {passwordMismatch: true};
+}
 
 @Component({
   selector: 'app-signup',
@@ -18,27 +25,37 @@ const DEFAULT_PROFILE_PICTURE =
 })
 export class SignUp {
 // Form controls using FormGroup
+	private readonly sharedValidators = profileFieldValidators(true);
+
 	signUpForm = new FormGroup({
 		username: new FormControl('', [Validators.required,
 			Validators.pattern('^[a-zA-Z0-9]*$')]),
-		email: new FormControl('', [Validators.required, Validators.email]),
-		firstName: new FormControl('', [Validators.required]),
-		lastName: new FormControl('', [Validators.required]),
-		bio: new FormControl('', [Validators.maxLength(400)]),
-		dob: new FormControl('', [Validators.required]),
-		profilePicture: new FormControl(''),
-		password: new FormControl('', [
-			Validators.required,
-			Validators.minLength(8),
-			Validators.pattern(/^(?=.*\d)(?=.*[!@#$%^&*])/)
-		])
-	});
+		email: new FormControl('', this.sharedValidators.email),
+		firstName: new FormControl('', this.sharedValidators.firstName),
+		lastName: new FormControl('', this.sharedValidators.lastName),
+		bio: new FormControl('', this.sharedValidators.bio),
+		dob: new FormControl('', this.sharedValidators.dob),
+		profilePicture: new FormControl('', this.sharedValidators.profilePicture),
+		password: new FormControl('', this.sharedValidators.password),
+		repeatPassword: new FormControl('', [Validators.required])
+	}, {validators: passwordsMatchValidator});
+
+	public showPassword = false;
+	public showRepeatPassword = false;
 
 	// Expose the service signal directly so template updates when service sets errors
 	public signUpError: WritableSignal<string>;
 
 	constructor(private authService: AuthService) {
 		this.signUpError = this.authService.signUpError;
+	}
+
+	togglePasswordVisibility() {
+		this.showPassword = !this.showPassword;
+	}
+
+	toggleRepeatPasswordVisibility() {
+		this.showRepeatPassword = !this.showRepeatPassword;
 	}
 
 
