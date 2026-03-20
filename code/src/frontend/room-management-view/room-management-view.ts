@@ -25,10 +25,7 @@ interface Request {
 		CommonModule,
 		MatDivider,
 		MatCard,
-		MatInput,
 		MatIconButton,
-		MatFormField,
-		MatIcon,
 		MatLabel
 	],
   templateUrl: './room-management-view.html',
