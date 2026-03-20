@@ -10,6 +10,7 @@ import { RoomManagementView } from '../../frontend/room-management-view/room-man
 import {ErrorPage} from '../../frontend/error-page/error-page';
 import {RoomCreation} from '../../frontend/room-creation/room-creation';
 import {JoinRoom} from '../../frontend/join-room/join-room';
+import {Calendar} from '../../frontend/room-view/calendar/calendar';
 
 
 export const routes: Routes = [
@@ -20,6 +21,7 @@ export const routes: Routes = [
 	{ path: 'mealmanagement', component: MealManagement },
 	{ path: 'myrooms', component: Rooms },
 	{ path: 'bla/:code', component: RoomView}, //delete this later, only for testing right now
+	{ path: 'bla/calendar/:code', component: Calendar},
 	{ path: 'profile', component: Profile },
 	{ path: 'profile/:username', component: Profile },
 	{ path: 'room/create', component: RoomCreation},
