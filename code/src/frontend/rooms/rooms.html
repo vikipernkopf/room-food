@@ -1,8 +1,21 @@
-	<div>
-		<span>Rooms I'm part of</span>
+<div>
+	<span>Rooms I'm part of</span>
 
-	</div>
+</div>
 
+<div>
+	<span>Rooms I own</span>
+</div>
+
+
+<a matButton class="nav-link" routerLink="/room/create" routerLinkActive="active">Create room</a>
+<a matButton class="nav-link" routerLink="/room/join" routerLinkActive="active">Join room</a>
+
+@if(!currentUser()?.username){
 	<div>
-		<span>Rooms I own</span>
+		<p>You must be logged in to create a room.</p>
 	</div>
+}
+
+
+

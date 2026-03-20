@@ -3,7 +3,11 @@ import {MealPlan} from './meal-plan/meal-plan';
 import {AuthService} from '../core/auth-service';
 import {Meal, User} from '../../backend/model';
 import {MealService} from '../core/meal-service';
+import {RoomService} from '../core/room-service';
 import {MealManagement} from '../meal-management/meal-management';
+import {ActivatedRoute, Router} from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { CommonModule } from '@angular/common';
 
 @Component({
 	selector: 'app-room-view',
@@ -11,6 +15,7 @@ import {MealManagement} from '../meal-management/meal-management';
 	templateUrl: './room-view.html',
 	styleUrl: './room-view.scss',
 	imports: [
+		CommonModule,
 		MealPlan,
 		MealManagement
 	]
@@ -18,38 +23,96 @@ import {MealManagement} from '../meal-management/meal-management';
 export class RoomView implements OnDestroy {
 	protected readonly meals: WritableSignal<Meal[]> = signal([]);
 	protected readonly username: WritableSignal<string> = signal("");
+	protected readonly roomCode: WritableSignal<string> = signal("");
 	protected readonly currentUser: WritableSignal<User | null>;
 	protected readonly isPopupVisible = signal(false);
 	protected readonly mealToEdit: WritableSignal<Meal | null> = signal(null);
 	private refreshInterval: any = null;
+	private hasRedirected = false;
+	private lastProcessedCode: string = ""; // track which code we've already processed
 
-	constructor(private authService: AuthService, private mealService: MealService) {
+	constructor(private route:ActivatedRoute, private router: Router, private authService: AuthService, private mealService: MealService, private roomService: RoomService) {
 		this.currentUser = this.authService.currentUser;
+		console.log('RoomView component initialized');
+
+		// Subscribe to route param 'code' and unsubscribe on destroy
+		this.route.paramMap
+			.pipe(takeUntilDestroyed())
+			.subscribe((paramMap) => {
+				const code = paramMap.get('code') ?? "";
+				console.log('Route param received, setting roomCode to:', code);
+				this.roomCode.set(code);
+			});
 
 		effect(() => {
-			const user = this.currentUser();
-			console.log('Current user updated in room view:', user?.username);
+			const code = this.roomCode();
+			console.log('Room code effect triggered with code:', code);
 
-			if (user?.username) {
-				console.log('Username available:', user.username);
-				this.username.set(user.username);
+			// Only process if the code has changed (avoid re-processing the same code)
+			if (code === this.lastProcessedCode) {
+				console.log('Code unchanged, skipping effect');
+				return;
+			}
 
-				this.fetchMealsForUser(user.username);
+			this.lastProcessedCode = code;
+			console.log('Processing new code:', code);
 
-				if (!this.refreshInterval) {
-					this.startAutoRefresh();
+			// If code is empty, redirect to error immediately
+			if (!code || code.length === 0) {
+				if (!this.hasRedirected) {
+					console.log('Room code is empty, redirecting to error');
+					this.hasRedirected = true;
+					this.meals.set([]);
+					this.stopAutoRefresh();
+					this.router.navigate(['/error']);
 				}
-			} else {
-				console.log('No user available');
-				this.username.set("Guest");
-				this.meals.set([]);
-				this.stopAutoRefresh();
+				return;
+			}
+
+			// Code is not empty, validate it exists in the database
+			console.log('Validating room code:', code);
+			this.validateAndLoadRoom(code);
+		});
+	}
+
+	private validateAndLoadRoom(roomCode: string) {
+		this.roomService.checkRoomExists(roomCode).subscribe({
+			next: (response) => {
+				console.log('Room validation response:', response);
+				if (response.exists) {
+					console.log('Room exists, loading meals');
+					this.hasRedirected = false;
+					this.fetchMealsForRoom(roomCode);
+
+					if (!this.refreshInterval) {
+						console.log('Starting auto-refresh');
+						this.startAutoRefresh();
+					}
+				} else {
+					console.log('Room does not exist in database, redirecting to error');
+					if (!this.hasRedirected) {
+						this.hasRedirected = true;
+						this.meals.set([]);
+						this.stopAutoRefresh();
+						this.router.navigate(['/error']);
+					}
+				}
+			},
+			error: (error) => {
+				console.error('Error validating room:', error);
+				// If validation fails, redirect to error
+				if (!this.hasRedirected) {
+					this.hasRedirected = true;
+					this.meals.set([]);
+					this.stopAutoRefresh();
+					this.router.navigate(['/error']);
+				}
 			}
 		});
 	}
 
-	private fetchMealsForUser(username: string) {
-		this.mealService.getMealsByUsername(username).subscribe({
+	private fetchMealsForRoom(roomCode: string) {
+		this.mealService.getMealsByRoomCode(roomCode).subscribe({
 			next: (meals) => {
 				console.log('Successfully fetched meals:', meals);
 				this.meals.set(meals || []);
@@ -63,12 +126,12 @@ export class RoomView implements OnDestroy {
 
 	private startAutoRefresh() {
 		this.refreshInterval = setInterval(() => {
-			const user = this.currentUser();
-			if (user?.username) {
-				console.log('Auto-refreshing meals...');
-				this.fetchMealsForUser(user.username);
+			const code = this.roomCode();
+			if (code) {
+				console.log('Auto-refreshing meals for room:', code);
+				this.fetchMealsForRoom(code);
 			}
-		}, 2000);
+		}, 10000);
 	}
 
 	private stopAutoRefresh() {
@@ -120,10 +183,14 @@ export class RoomView implements OnDestroy {
 	}
 
 	protected handleMealSaved(): void {
-		const user = this.currentUser();
-		if (user?.username) {
-			this.fetchMealsForUser(user.username);
+		const code = this.roomCode();
+		if (code) {
+			this.fetchMealsForRoom(code);
 		}
 		this.closeMealPopup();
+	}
+
+	private checkRoomExists(roomCode: string | null | undefined): boolean {
+		return roomCode != null && roomCode.length > 0;
 	}
 }

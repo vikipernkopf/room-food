@@ -1,0 +1,69 @@
+<section>
+	<form class="login-container" [formGroup]="roomCreationForm" (ngSubmit)="onFormSubmit()" autocomplete="on">
+		<header>
+			<h4>Create a Room</h4>
+		</header>
+
+		<div class="form-grid">
+			<div class="field-group field-group--full">
+				<label for="roomName">Room Name</label>
+				<input
+					formControlName="roomName"
+					id="roomName"
+					type="text"
+					placeholder="e.g. Apartment 3B"
+					autocomplete="off"
+					[disabled]="isLoading">
+
+				@if (roomCreationForm.get('roomName'); as roomNameControl) {
+					@if (roomNameControl.touched && roomNameControl.invalid) {
+						<aside>
+							@if (roomNameControl.hasError('required')) {
+								<span>Room name is required</span>
+							}
+							@if (roomNameControl.hasError('minlength')) {
+								<span>Room name must be at least 2 characters</span>
+							}
+						</aside>
+					}
+				}
+			</div>
+
+			<div class="field-group field-group--full">
+				<label for="roomPictureUrl">Room Picture URL (optional)</label>
+				<input
+					formControlName="roomPictureUrl"
+					id="roomPictureUrl"
+					type="url"
+					placeholder="https://example.com/image.jpg"
+					autocomplete="off"
+					[disabled]="isLoading">
+
+				@if (roomCreationForm.get('roomPictureUrl'); as pictureControl) {
+					@if (pictureControl.touched && pictureControl.invalid) {
+						<aside>
+							@if (pictureControl.hasError('invalidUrl')) {
+								<span>Please enter a valid URL</span>
+							}
+						</aside>
+					}
+				}
+			</div>
+		</div>
+
+		<div class="error-msg">
+			<span>{{ createRoomError() }}</span>
+		</div>
+
+		<button type="submit" [disabled]="isLoading">
+			{{ isLoading ? 'Creating Room...' : 'Create Room' }}
+		</button>
+
+		<nav>
+			<a [routerLink]="['/myrooms']">View my rooms</a>
+		</nav>
+
+		<hr>
+	</form>
+</section>
+

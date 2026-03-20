@@ -52,6 +52,7 @@
 				<div class="modal-overlay">
 					<app-add-meal
 						[mealToEdit]="selectedMeal"
+						[roomCode]="roomCode()"
 						[initialDate]="selectedDateForPopup"
 						[initialTime]="selectedTimeForPopup"
 						(close)="showMealPopup = false"

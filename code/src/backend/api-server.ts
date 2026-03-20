@@ -2,6 +2,7 @@ import express from 'express';
 import { loginSignUpRouter } from './login-sign-up/login-sign-up-router';
 import {roomViewRouter} from './room-view/room-view-router';
 import {mealManagementRouter} from './meal-management/meal-management-router';
+import { roomsRouter } from './rooms/rooms-router';
 
 declare global {
 	// noinspection ES6ConvertVarToLetConst,JSUnusedGlobalSymbols
@@ -18,6 +19,7 @@ export function createApiRouter() {
 	router.use('/', loginSignUpRouter);
 	router.use('/', mealManagementRouter)
 	router.use('/', roomViewRouter);
+	router.use('/', roomsRouter);
 
 	return router;
 }

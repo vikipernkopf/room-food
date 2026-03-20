@@ -87,8 +87,9 @@ class DB {
     connection.exec(
 	  `create table if not exists Room
 	   (
-		   	code text,
-		   	name text,
+		   	code text not null,
+		   	name text not null,
+			profile_picture text,
 
 		   	constraint pk_code primary key (code)
 	   ) strict`
@@ -112,14 +113,27 @@ class DB {
                 ) strict`
     );
 	  connection.exec(
-		  `create table if not exists RoomUser
+		  `create table if not exists RoomUserMember
             (
-                username text,
-				room_code text,
+                username text not null,
+				room_code text not null,
+				role text not null,
 
                 constraint pk_room_member primary key (username, room_code),
-				constraint fk_username foreign key (username) references User(username),
-				constraint fk_room_code foreign key (room_code) references Room(code)
+				constraint fk_username foreign key (username) references User(username) ON DELETE CASCADE,
+				constraint fk_room_code foreign key (room_code) references Room(code) ON DELETE CASCADE
+
+                ) strict`
+	  );
+	  connection.exec(
+		  `create table if not exists RoomUserRequest
+            (
+                username text not null,
+				room_code text not null,
+
+                constraint pk_room_member primary key (username, room_code),
+				constraint fk_username foreign key (username) references User(username) ON DELETE CASCADE,
+				constraint fk_room_code foreign key (room_code) references Room(code) ON DELETE CASCADE
 
                 ) strict`
 	  );
