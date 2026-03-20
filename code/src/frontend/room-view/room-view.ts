@@ -100,7 +100,7 @@ export class RoomView implements OnDestroy {
 				console.log('Auto-refreshing meals for room:', code);
 				this.fetchMealsForRoom(code);
 			}
-		}, 2000);
+		}, 10000);
 	}
 
 	private stopAutoRefresh() {
