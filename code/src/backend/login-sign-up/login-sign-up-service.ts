@@ -1,6 +1,6 @@
-import { ServiceBase } from "../service-base";
-import { Unit } from "../unit";
-import { SignUpCredentials, UpdateProfilePayload, User } from '../model';
+import {ServiceBase} from "../service-base";
+import {Unit} from "../unit";
+import {SignUpCredentials, UpdateProfilePayload, User} from '../model';
 
 
 export class LoginSignUpService extends ServiceBase {
@@ -210,22 +210,21 @@ export class LoginSignUpService extends ServiceBase {
     const normalizedIdentifier = identifier.trim();
     if (!normalizedIdentifier) return undefined;
 
-    const user = this.unit.prepare(
-      `select u.username,
-              u.password,
-              u.email,
-              u.first_name as firstName,
-              u.last_name as lastName,
-              u.bio,
-              u.dob,
-              u.profile_picture as profilePicture
-       from User u
-       where u.username = :identifier or lower(u.email) = lower(:identifier)
-       limit 1`,
-      { identifier: normalizedIdentifier }
-    ).get() as User | undefined;
-
-    return user;
+  	return this.unit.prepare(
+		`select u.username,
+				u.password,
+				u.email,
+				u.first_name      as firstName,
+				u.last_name       as lastName,
+				u.bio,
+				u.dob,
+				u.profile_picture as profilePicture
+		 from User u
+		 where u.username = :identifier
+			or lower(u.email) = lower(:identifier)
+		 limit 1`,
+		{identifier: normalizedIdentifier}
+	).get() as User | undefined;
   }
 
   public updateUserProfile(username: string, payload: UpdateProfilePayload): true | 'not_found' | 'error' {
