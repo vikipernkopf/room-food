@@ -1,0 +1,64 @@
+<div class="controls">
+	<h2>
+		<span class="month">{{currMonth}}</span>
+		<span class="year"> {{currYear}}</span>
+	</h2>
+
+	<div class="button-group">
+		<button (click)="prevWeek()"> < </button>
+		<button (click)="goToToday()">Today</button>
+		<button (click)="nextWeek()"> > </button>
+	</div>
+</div>
+<div class="wrapper">
+	<div class="header">
+		<div class="time-spacer"></div>
+		@for (day of weekdays; track day.date) {
+			<div class="day-label">
+				<span class="day-name">{{ day.name }}</span>
+				<span class="day-number" [class.today]="day.isToday">{{ day.date }}</span>
+			</div>
+		}
+	</div>
+
+	<div class="scroll-box">
+		<div class="container-body">
+			<div class="time-column">
+				@for (hour of hours; track hour) {
+					<div class="time-slot">{{ hour }}:00</div>
+				}
+			</div>
+
+			<div class="grid-content">
+				@for (day of weekdays; track day.date; let i = $index) {
+
+					<div class="day-track" (click)="handleColumnClick($event, day)">
+
+						@for (meal of getMealsForDay(day); track meal.id) {
+							<div class="meal-box"
+								 [style.top.px]="getMealTop(meal)"
+								 [style.height.px]="hourHeight"
+								 (click)="$event.stopPropagation(); openEdit(meal)">
+								<span class="meal-time">{{ meal.time | date:'HH:mm' }}</span>
+								<span class="meal-name">{{ meal.name }}</span>
+								<span class="meal-responsible">{{ meal.responsible }}</span>
+							</div>
+						}
+					</div>
+				}
+			</div>
+
+			@if (showMealPopup) {
+				<div class="modal-overlay">
+					<app-add-meal
+						[mealToEdit]="selectedMeal"
+						[initialDate]="selectedDateForPopup"
+						[initialTime]="selectedTimeForPopup"
+						(close)="showMealPopup = false"
+						(mealSaved)="showMealPopup = false; loadMeals()">
+					</app-add-meal>
+				</div>
+			}
+		</div>
+	</div>
+</div>

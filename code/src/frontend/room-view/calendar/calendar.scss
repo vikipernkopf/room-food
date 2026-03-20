@@ -1,0 +1,148 @@
+$hour-height: 65px;
+$color-green-1: #6FC276;
+$color-green-2: #4CAF50;
+$color-green-3: #2E7D32;
+$color-green-4: #105B37;
+$color-green-5: #0A3D23;
+
+// Orange Palette
+$color-orange-1: #C85A04;
+$color-orange-2: #E67E22;
+$color-orange-3: #FF9800;
+$color-orange-4: #FFB74D;
+$color-orange-5: #FFCC80;
+
+.controls {
+	display: flex;
+	justify-content: space-between; // This pushes H2 left and Buttons right
+	align-items: center;
+	max-width: 85%; // Match your .wrapper width so they align perfectly
+	margin: 30px auto 20px auto; // Centers the control bar itself
+	padding: 0;
+
+	.month {
+		font-family: Montserrat, sans-serif;
+		text-transform: uppercase;
+		font-size: 50px;
+		font-weight: 300;
+	}
+
+	.year {
+		font-family: Montserrat, sans-serif;
+		font-weight: 300;
+		font-size: 50px;
+	}
+
+	.button-group {
+		display: flex;
+		gap: 8px; // Space between the buttons themselves
+		font-family: Montserrat, sans-serif;
+		padding-bottom: 13px;
+
+		button {
+			padding: 6px 14px;
+			background-color: white;
+			border: 1px solid #ddd;
+			border-radius: 6px;
+			font-size: 14px;
+			cursor: pointer;
+			box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+			transition: all 0.2s;
+
+			&:hover {
+				background-color: #f9f9f9;
+				border-color: #ccc;
+			}
+
+			&:active {
+				background-color: #eee;
+			}
+		}
+	}
+}
+
+.wrapper {
+	max-width: 85%;
+	margin: 0 auto;
+	position: relative;
+}
+
+.header {
+	display: flex;
+	padding-bottom: 10px;
+	.time-spacer { width: 45px; }
+	.day-label {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		.day-name { font-size: 11px; color: #888; text-transform: uppercase; }
+		.day-number {
+			font-size: 18px; width: 30px; height: 30px;
+			display: flex; align-items: center; justify-content: center;
+			&.today { background: $color-orange-3 !important; color: white; border-radius: 50%; }
+		}
+	}
+}
+
+.container-body { display: flex; }
+
+.time-column {
+	width: 45px;
+	border-top: 1px solid transparent;
+
+	.time-slot {
+		height: $hour-height;
+		font-size: 11px;
+		color: #999;
+		text-align: right;
+		padding-right: 8px;
+		line-height: $hour-height;
+	}
+}
+
+.grid-content {
+	display: flex;
+	flex: 1;
+	border-top: 1px solid #e5e5e5;
+
+	.day-track {
+		flex: 1;
+		height: calc(24 * #{$hour-height});
+		border-right: 1px solid #e5e5e5;
+		position: relative;
+		background-image: linear-gradient(#e5e5e5 1px, transparent 1px);
+		background-size: 100% $hour-height;
+		cursor: pointer;
+		&:hover { background-color: rgba(0,0,0,0.01); }
+	}
+}
+
+.meal-box {
+	position: absolute;
+	left: 2px;
+	right: 2px;
+	background-color: #f0fdf4; // Very light green
+	border-left: 4px solid $color-green-3; // Using a DARKER green for the bar
+	color: $color-green-5; // Using the DARKEST green for the text
+	border-radius: 4px;
+	padding: 6px;
+	font-size: 11px;
+	box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+	z-index: 10;
+	overflow: hidden;
+	pointer-events: auto; // Ensures it's clickable
+
+	.meal-name {
+		font-weight: bold;
+		display: block;
+		color: $color-green-4; // Make the name pop
+	}
+}
+
+.modal-overlay {
+	position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+	background: rgba(0,0,0,0.4);
+	display: flex; justify-content: center; align-items: center;
+	z-index: 1000;
+}

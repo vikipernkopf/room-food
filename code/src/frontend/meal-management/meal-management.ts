@@ -48,7 +48,9 @@ export class MealManagement implements OnChanges {
 	@Output() close = new EventEmitter<void>();
 	@Output() mealSaved = new EventEmitter<void>();
 	@Input() mealToEdit: Meal | null = null;
-	@Input() roomCode: string = ""; // Add roomCode as input from parent component
+	@Input() roomCode: string = "";
+	@Input() initialDate: Date | null = null;
+	@Input() initialTime: Date | null = null;
 
 	closePopup() {
 		this.close.emit();
@@ -77,9 +79,6 @@ export class MealManagement implements OnChanges {
 	ngOnChanges(changes: SimpleChanges): void {
 		if (changes['mealToEdit']) {
 			this.prefillFormFromInput();
-		}
-		if (changes['roomCode']) {
-			console.log('roomCode changed to:', this.roomCode);
 		}
 	}
 
@@ -169,3 +168,4 @@ export class MealManagement implements OnChanges {
 		}
 	}
 }
+
