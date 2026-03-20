@@ -48,6 +48,9 @@ export class MealManagement implements OnChanges {
 	@Output() close = new EventEmitter<void>();
 	@Output() mealSaved = new EventEmitter<void>();
 	@Input() mealToEdit: Meal | null = null;
+	@Input() roomCode: string = "";
+	@Input() initialDate: Date | null = null;
+	@Input() initialTime: Date | null = null;
 
 	closePopup() {
 		this.close.emit();
@@ -117,7 +120,7 @@ export class MealManagement implements OnChanges {
 		const user = this.authService.currentUser();
 		const currentUsername = user?.username;
 
-		if (this.dish && this.selectedValue && this.selectedDate && this.selectedTime && currentUsername) {
+		if (this.dish && this.selectedValue && this.selectedDate && this.selectedTime && currentUsername && this.roomCode) {
 
 			const finalDate = new Date(this.selectedDate);
 			finalDate.setHours(this.selectedTime.getHours());
@@ -127,7 +130,7 @@ export class MealManagement implements OnChanges {
 				time: finalDate,
 				name: this.dish,
 				responsible: currentUsername ,
-				room: currentUsername
+				room: this.roomCode // Use the roomCode passed from parent instead of currentUsername
 			};
 
 			const editMealId = this.mealToEdit?.id;
@@ -159,6 +162,9 @@ export class MealManagement implements OnChanges {
 			});
 		} else {
 			this.showError = true;
+			if (!this.roomCode) {
+				this.mealService.saveError.set('Room code is missing. Please refresh the page.');
+			}
 		}
 	}
 }

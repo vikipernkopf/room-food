@@ -52,8 +52,42 @@ export class MealService {
 		return mealsSignal;
 	}
 
+	public getAllMealsForRoom(room: string | null): WritableSignal<Meal[]> {
+		const mealsSignal = signal<Meal[]>([]);
+
+		if (!room) {
+			console.log('No room code provided, returning empty signal');
+
+			return mealsSignal;
+		}
+
+		const apiUrl = `${this.apiBase}/room_meals/${room}`;
+
+		console.log('Fetching meals for room:', room);
+
+		this.http.get<Meal[]>(apiUrl).subscribe({
+			next: (meals) => {
+				console.log('Successfully fetched meals:', meals);
+				mealsSignal.set(meals);
+			},
+			error: (error) => {
+				console.error('Error fetching meals:', error);
+				console.error('Error status:', error.status);
+				console.error('Error message:', error.message);
+				mealsSignal.set([]);
+			}
+		});
+
+		return mealsSignal;
+	}
+
 	public getMealsByUsername(username: string): Observable<Meal[]> {
 		const apiUrl = `${this.apiBase}/meals/${username}`;
+		return this.http.get<Meal[]>(apiUrl);
+	}
+
+	public getMealsByRoomCode(code: string): Observable<Meal[]> {
+		const apiUrl = `${this.apiBase}/room_meals/${code}`;
 		return this.http.get<Meal[]>(apiUrl);
 	}
 

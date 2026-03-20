@@ -2,8 +2,6 @@ import { Component, computed } from '@angular/core';
 import {NgOptimizedImage} from '@angular/common';
 import {RouterLink, RouterLinkActive} from '@angular/router';
 import { AuthService } from '../core/auth-service';
-import {User} from '../../backend/model';
-
 @Component({
   selector: 'app-navbar',
 	imports: [

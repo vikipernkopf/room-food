@@ -1,0 +1,359 @@
+/* ===== PAGE WRAPPER ===== */
+.page-wrapper {
+	height: 100vh;
+	width: 100vw;
+	background-color: #eaecf2;
+	display: flex;
+	align-items: stretch;
+	justify-content: stretch;
+	padding: 0;
+	margin: 0;
+	font-family: 'Roboto', sans-serif;
+	box-sizing: border-box;
+}
+
+/* ===== MAIN CARD ===== */
+.room-card {
+	display: flex;
+	flex-direction: row;
+	gap: 40px;
+	padding: 48px 56px;
+	border-radius: 0 !important;
+	box-shadow: none !important;
+	background: #ffffff !important;
+	width: 100%;
+	height: 100%;
+	box-sizing: border-box;
+	overflow: auto;
+}
+
+/* ===== VERTICAL DIVIDER ===== */
+.vertical-divider {
+	align-self: stretch;
+	margin: 0 8px;
+}
+
+/* ===== COLUMNS ===== */
+.left-col {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+	min-width: 220px;
+	flex: 0 0 auto;
+}
+
+.right-col {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	flex: 1;
+}
+
+/* ===== ROOM NAME ROW ===== */
+.room-name-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.room-name-field {
+	flex: 1;
+}
+
+/* Angular Material fill style overrides to match sign-up page */
+.room-name-field .mat-mdc-form-field-flex,
+.room-name-field .mdc-text-field--filled {
+	background-color: #f0f2f7 !important;
+	border-radius: 10px !important;
+}
+
+.room-name-field .mdc-line-ripple {
+	display: none;
+}
+
+/* ===== ROOM IMAGE ===== */
+.room-image-wrapper {
+	position: relative;
+	width: 160px;
+	height: 140px;
+}
+
+.room-image-placeholder {
+	width: 100%;
+	height: 100%;
+	background-color: #f0f2f7;
+	border-radius: 12px;
+	border: 2px solid #dde0ea;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.thumb-icon {
+	font-size: 52px;
+	width: 52px;
+	height: 52px;
+	color: #b0b7cc;
+}
+
+.image-edit-btn {
+	position: absolute;
+	bottom: -10px;
+	right: -10px;
+	background: #ffffff !important;
+	border: 1px solid #dde0ea;
+	box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+/* ===== INFO ROWS (Room code, Password) ===== */
+.info-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.info-label {
+	font-size: 14px;
+	color: #5a5e6b;
+	font-weight: 500;
+	white-space: nowrap;
+}
+
+.info-value {
+	font-size: 14px;
+	color: #1a1d27;
+	font-weight: 600;
+}
+
+.code-value {
+	background-color: #f0f2f7;
+	padding: 3px 10px;
+	border-radius: 6px;
+	letter-spacing: 2px;
+	font-family: 'Courier New', monospace;
+}
+
+.password-value {
+	letter-spacing: 3px;
+	font-size: 16px;
+}
+
+.icon-btn {
+	color: #8a8fa3;
+	width: 32px;
+	height: 32px;
+	line-height: 32px;
+}
+
+.icon-btn mat-icon {
+	font-size: 18px;
+	width: 18px;
+	height: 18px;
+}
+
+/* ===== EDIT BUTTON (global) ===== */
+.edit-btn {
+	color: #8a8fa3;
+	width: 34px;
+	height: 34px;
+}
+
+.edit-btn mat-icon {
+	font-size: 18px;
+	width: 18px;
+	height: 18px;
+}
+
+.edit-btn:hover {
+	color: #f07c21;
+}
+
+/* ===== SECTION TITLE ===== */
+.section-title {
+	font-size: 16px;
+	font-weight: 600;
+	color: #1a1d27;
+	margin: 0 0 8px 0;
+}
+
+/* ===== SECTION DIVIDER ===== */
+.section-divider {
+	margin: 12px 0;
+}
+
+/* ===== MEMBER LIST ===== */
+.member-list {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+/* ===== MEMBER ITEM ===== */
+.member-item {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 12px 14px;
+	border-radius: 10px;
+	border: 1.5px solid #dde0ea;
+	background-color: #f8f9fc;
+	transition: all 0.2s ease;
+}
+
+.member-item:hover {
+	border-color: #c4c9db;
+	background-color: #f0f2f7;
+}
+
+.member-info {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex: 1;
+	min-width: 0;
+}
+
+.member-icon {
+	font-size: 24px;
+	width: 24px;
+	height: 24px;
+	color: #8a8fa3;
+	flex-shrink: 0;
+}
+
+.member-username {
+	font-size: 14px;
+	font-weight: 600;
+	color: #1a1d27;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.member-role {
+	font-size: 12px;
+	color: #8a8fa3;
+	background-color: #e8eaf3;
+	padding: 2px 8px;
+	border-radius: 4px;
+	white-space: nowrap;
+	flex-shrink: 0;
+}
+
+.action-btn {
+	color: #8a8fa3;
+	width: 32px;
+	height: 32px;
+	flex-shrink: 0;
+	transition: all 0.2s ease;
+	font-size: 16px;
+	font-weight: bold;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	line-height: 1;
+}
+
+.action-btn:hover {
+	color: #f07c21;
+	background-color: rgba(240, 124, 33, 0.08);
+}
+
+.remove-btn {
+	color: #f44336;
+}
+
+.remove-btn:hover {
+	color: #da190b;
+	background-color: rgba(244, 67, 54, 0.08);
+}
+
+.accept-btn {
+	color: #4caf50;
+	font-size: 18px;
+}
+
+.accept-btn:hover {
+	background-color: rgba(76, 175, 80, 0.08);
+	color: #45a049;
+}
+
+.reject-btn {
+	color: #f44336;
+	font-size: 18px;
+}
+
+.reject-btn:hover {
+	background-color: rgba(244, 67, 54, 0.08);
+	color: #da190b;
+}
+
+/* ===== REQUEST ITEM ===== */
+.request-item {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 12px 14px;
+	border-radius: 10px;
+	border: 1.5px solid #dde0ea;
+	background-color: #f8f9fc;
+	transition: all 0.2s ease;
+}
+
+.request-item:hover {
+	border-color: #c4c9db;
+	background-color: #f0f2f7;
+}
+
+.action-buttons {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	flex-shrink: 0;
+}
+
+.accept-btn {
+	color: #4caf50;
+}
+
+.accept-btn:hover {
+	background-color: rgba(76, 175, 80, 0.08);
+	color: #45a049;
+}
+
+.reject-btn {
+	color: #f44336;
+}
+
+.reject-btn:hover {
+	background-color: rgba(244, 67, 54, 0.08);
+	color: #da190b;
+}
+
+.empty-message {
+	padding: 16px;
+	text-align: center;
+	color: #8a8fa3;
+	font-size: 14px;
+	background-color: #f8f9fc;
+	border-radius: 10px;
+	border: 1.5px solid #dde0ea;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 640px) {
+	.room-card {
+		flex-direction: column;
+		padding: 28px 20px;
+	}
+
+	.vertical-divider {
+		display: none;
+	}
+
+	mat-divider.section-divider {
+		display: block;
+	}
+}

@@ -85,6 +85,16 @@ class DB {
 
   private static ensureTablesCreated(connection: BetterSqlite3.Database): void {
     connection.exec(
+	  `create table if not exists Room
+	   (
+		   	code text not null,
+		   	name text not null,
+			profile_picture text,
+
+		   	constraint pk_code primary key (code)
+	   ) strict`
+    );
+    connection.exec(
       `create table if not exists User
             (
                 id integer primary key autoincrement,
@@ -102,6 +112,32 @@ class DB {
 
                 ) strict`
     );
+	  connection.exec(
+		  `create table if not exists RoomUserMember
+            (
+                username text not null,
+				room_code text not null,
+				role text not null,
+
+                constraint pk_room_member primary key (username, room_code),
+				constraint fk_username foreign key (username) references User(username) ON DELETE CASCADE,
+				constraint fk_room_code foreign key (room_code) references Room(code) ON DELETE CASCADE
+
+                ) strict`
+	  );
+	  connection.exec(
+		  `create table if not exists RoomUserRequest
+            (
+                username text not null,
+				room_code text not null,
+
+                constraint pk_room_member primary key (username, room_code),
+				constraint fk_username foreign key (username) references User(username) ON DELETE CASCADE,
+				constraint fk_room_code foreign key (room_code) references Room(code) ON DELETE CASCADE
+
+                ) strict`
+	  );
+
     DB.migrateUserTableToProfileColumns(connection);
     connection.exec(
       `create table if not exists Recipe
