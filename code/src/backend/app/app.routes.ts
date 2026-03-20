@@ -5,6 +5,12 @@ import { SignUp} from '../../frontend/sign-up/sign-up';
 import { MealManagement} from '../../frontend/meal-management/meal-management';
 import { RoomView } from '../../frontend/room-view/room-view';
 import { Profile } from '../../frontend/profile/profile';
+import {Rooms} from '../../frontend/rooms/rooms';
+import { RoomManagementView } from '../../frontend/room-management-view/room-management-view';
+import {ErrorPage} from '../../frontend/error-page/error-page';
+import {RoomCreation} from '../../frontend/room-creation/room-creation';
+import {JoinRoom} from '../../frontend/join-room/join-room';
+import {Calendar} from '../../frontend/room-view/calendar/calendar';
 
 
 export const routes: Routes = [
@@ -13,8 +19,13 @@ export const routes: Routes = [
 	{ path: '', redirectTo: 'homepage', pathMatch: 'full' },
 	{ path: 'signup', component: SignUp },
 	{ path: 'mealmanagement', component: MealManagement },
-	{ path: 'roomview', component: RoomView },
+	{ path: 'myrooms', component: Rooms },
+	{ path: 'bla/:code', component: RoomView}, //delete this later, only for testing right now
+	{ path: 'bla/calendar/:code', component: Calendar},
 	{ path: 'profile', component: Profile },
 	{ path: 'profile/:username', component: Profile },
-	{ path: '**', component: Homepage }
+	{ path: 'room/create', component: RoomCreation},
+	{ path: 'room/manage/:code', component: RoomManagementView },
+	{ path: 'room/join', component: JoinRoom},
+	{ path: '**', component: ErrorPage }
 ];

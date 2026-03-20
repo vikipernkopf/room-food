@@ -1,6 +1,6 @@
 import express from "express";
 import { Unit } from "../unit";
-import { MealManagement } from './meal-management-service';
+import { MealManagementService } from './meal-management-service';
 import { StatusCodes } from "http-status-codes";
 import {Meal} from '../model';
 
@@ -25,8 +25,13 @@ mealManagementRouter.post("/meal", async (req, res): Promise<void> => {
 			responsible: responsible,
 		} as Meal;
 
-		const mealManagementService = new MealManagement(unit);
+		console.log("Creating meal with:", meal);
+
+		const mealManagementService = new MealManagementService(unit);
+		console.log("MealManagementService created");
+
 		const result = mealManagementService.addMeal(meal);
+		console.log("addMeal result:", result);
 
 		if (result === "room_not_found") {
 			unit.complete(false);
@@ -61,7 +66,12 @@ mealManagementRouter.post("/meal", async (req, res): Promise<void> => {
 		console.log("Created meal: ", meal.name);
 	} catch (error) {
 		unit.complete(false);
-		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json();
+		console.error("Exception in meal creation:", error);
+		if (error instanceof Error) {
+			console.error("Error message:", error.message);
+			console.error("Stack trace:", error.stack);
+		}
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Internal server error' });
 		console.log("Failed to create meal");
 	}
 });
@@ -102,7 +112,7 @@ mealManagementRouter.put('/meal/:id', async (req, res): Promise<void> => {
 			responsible: updatedMeal.responsible,
 		} as Meal;
 
-		const mealManagementService = new MealManagement(unit);
+		const mealManagementService = new MealManagementService(unit);
 		const result = mealManagementService.updateMeal(mealId, updated);
 
 		if (result === 'not_found') {
@@ -146,7 +156,7 @@ mealManagementRouter.delete('/meal/:id', async (req, res): Promise<void> => {
 	const unit = new Unit(false);
 
 	try {
-		const mealManagementService = new MealManagement(unit);
+		const mealManagementService = new MealManagementService(unit);
 		const result = mealManagementService.deleteMeal(mealId);
 
 		if (result === 'not_found') {
@@ -170,4 +180,3 @@ mealManagementRouter.delete('/meal/:id', async (req, res): Promise<void> => {
 		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to delete meal' });
 	}
 });
-

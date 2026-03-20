@@ -4,7 +4,7 @@
   } @else if (loadError()) {
     <p class="status error">{{ loadError() }}</p>
   } @else if (profile(); as profileData) {
-    <article class="profile-card">
+    <article class="profile-card" [class.profile-card--compact]="!isOwnProfile()">
       <div class="profile-header">
         <img [src]="profileImageUrl()" [alt]="profileData.username + ' profile image'" />
         <div>
@@ -48,7 +48,7 @@
 
             <div class="field-group field-group--full">
               <label for="bio">Bio</label>
-              <textarea id="bio" formControlName="bio" rows="3"></textarea>
+              <textarea id="bio" formControlName="bio" rows="3" maxlength="100"></textarea>
             </div>
 
             <div class="field-group field-group--full">

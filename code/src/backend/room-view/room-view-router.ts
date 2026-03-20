@@ -1,6 +1,6 @@
 import express from 'express';
 import {Unit} from '../unit';
-import {MealManagement} from '../meal-management/meal-management-service';
+import {MealManagementService} from '../meal-management/meal-management-service';
 import { StatusCodes } from "http-status-codes";
 
 export const roomViewRouter = express.Router();
@@ -18,7 +18,7 @@ roomViewRouter.get("/meals/:username", async (req, res): Promise<void> => {
 	const unit = new Unit(true);
 
 	try {
-		const mealManagementService = new MealManagement(unit);
+		const mealManagementService = new MealManagementService(unit);
 		const meals = mealManagementService.getMealsForUser(username);
 
 		unit.complete();
@@ -32,6 +32,38 @@ roomViewRouter.get("/meals/:username", async (req, res): Promise<void> => {
 		unit.complete();
 		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
 			error: "Failed to fetch meals for user",
+			details: error instanceof Error ? error.message : String(error)
+		});
+	}
+});
+
+roomViewRouter.get("/room_meals/:code", async (req, res): Promise<void> => {
+	const { code } = req.params;
+	console.log("Received request for meals for room with code:", code);
+
+	if (!code) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: "Room code is required" });
+
+		return;
+	}
+
+	const unit = new Unit(true);
+
+	try {
+		const mealManagementService = new MealManagementService(unit);
+		const meals = mealManagementService.getMealsForRoom(code);
+
+		unit.complete();
+
+		res.status(StatusCodes.OK).json(meals || []);
+	} catch (error) {
+		console.error("Error fetching meals for room:", error);
+		if (error instanceof Error) {
+			console.error("Stack trace:", error.stack);
+		}
+		unit.complete();
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+			error: "Failed to fetch meals for room",
 			details: error instanceof Error ? error.message : String(error)
 		});
 	}
