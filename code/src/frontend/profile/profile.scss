@@ -6,6 +6,7 @@ $color-bg: #F0F4F8;
 $color-white: #ffffff;
 $color-text: #4A5568;
 $color-text-light: #A0AEC0;
+$color-reddish: #E53E3EFF;
 
 .profile-page {
   min-height: calc(100vh - 64px);
@@ -122,6 +123,15 @@ button {
   }
 }
 
+.buttons {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	.delete {
+		background: $color-reddish
+	}
+}
+
 .status {
   margin: 0.55rem 0 0;
   color: $color-text;
@@ -155,4 +165,14 @@ button {
     }
   }
 }
+
+.error-msg {
+	display: flex;
+	min-height: 1.25rem;
+	color: $color-reddish;
+	font-size: 0.85rem;
+	font-weight: 500;
+	margin-top: 0.5rem;
+}
+
 
