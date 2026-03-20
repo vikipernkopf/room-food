@@ -26,4 +26,9 @@ export class RoomService {
 		if (pfp !== null) payload.pfp = pfp;
 		return this.http.post<{result:string}>(apiUrl, payload);
 	}
+
+	public checkRoomExists(code: string): Observable<{exists: boolean}> {
+		const apiUrl = `${this.apiBase}/room/exists/${code}`;
+		return this.http.get<{exists: boolean}>(apiUrl);
+	}
 }

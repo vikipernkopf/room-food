@@ -3,6 +3,7 @@ import {MealPlan} from './meal-plan/meal-plan';
 import {AuthService} from '../core/auth-service';
 import {Meal, User} from '../../backend/model';
 import {MealService} from '../core/meal-service';
+import {RoomService} from '../core/room-service';
 import {MealManagement} from '../meal-management/meal-management';
 import {ActivatedRoute, Router} from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -30,7 +31,7 @@ export class RoomView implements OnDestroy {
 	private hasRedirected = false;
 	private lastProcessedCode: string = ""; // track which code we've already processed
 
-	constructor(private route:ActivatedRoute, private router: Router, private authService: AuthService, private mealService: MealService) {
+	constructor(private route:ActivatedRoute, private router: Router, private authService: AuthService, private mealService: MealService, private roomService: RoomService) {
 		this.currentUser = this.authService.currentUser;
 		console.log('RoomView component initialized');
 
@@ -57,9 +58,9 @@ export class RoomView implements OnDestroy {
 			console.log('Processing new code:', code);
 
 			// If code is empty, redirect to error immediately
-			if (!this.checkRoomExists(code)) {
+			if (!code || code.length === 0) {
 				if (!this.hasRedirected) {
-					console.log('Room does not exist or code is empty, redirecting to error');
+					console.log('Room code is empty, redirecting to error');
 					this.hasRedirected = true;
 					this.meals.set([]);
 					this.stopAutoRefresh();
@@ -68,14 +69,44 @@ export class RoomView implements OnDestroy {
 				return;
 			}
 
-			// Code is valid, proceed with fetching meals
-			console.log('Current room:', code);
-			this.hasRedirected = false;
-			this.fetchMealsForRoom(code);
+			// Code is not empty, validate it exists in the database
+			console.log('Validating room code:', code);
+			this.validateAndLoadRoom(code);
+		});
+	}
 
-			if (!this.refreshInterval) {
-				console.log('Starting auto-refresh');
-				this.startAutoRefresh();
+	private validateAndLoadRoom(roomCode: string) {
+		this.roomService.checkRoomExists(roomCode).subscribe({
+			next: (response) => {
+				console.log('Room validation response:', response);
+				if (response.exists) {
+					console.log('Room exists, loading meals');
+					this.hasRedirected = false;
+					this.fetchMealsForRoom(roomCode);
+
+					if (!this.refreshInterval) {
+						console.log('Starting auto-refresh');
+						this.startAutoRefresh();
+					}
+				} else {
+					console.log('Room does not exist in database, redirecting to error');
+					if (!this.hasRedirected) {
+						this.hasRedirected = true;
+						this.meals.set([]);
+						this.stopAutoRefresh();
+						this.router.navigate(['/error']);
+					}
+				}
+			},
+			error: (error) => {
+				console.error('Error validating room:', error);
+				// If validation fails, redirect to error
+				if (!this.hasRedirected) {
+					this.hasRedirected = true;
+					this.meals.set([]);
+					this.stopAutoRefresh();
+					this.router.navigate(['/error']);
+				}
 			}
 		});
 	}

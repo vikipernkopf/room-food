@@ -7,6 +7,30 @@ import {RoomsService} from './rooms-service';
 
 export const roomsRouter = express.Router();
 
+roomsRouter.get("/room/exists/:code", async (req, res): Promise<void> => {
+	const { code } = req.params;
+
+	if (!code) {
+		res.status(StatusCodes.BAD_REQUEST).json({ exists: false });
+		console.log("Missing room code");
+		return;
+	}
+
+	const unit = new Unit(true);
+	try {
+		const roomsService = new RoomsService(unit);
+		const exists = roomsService.checkRoomExists(code);
+
+		unit.complete();
+		res.status(StatusCodes.OK).json({ exists });
+		console.log("Room exists check for code:", code, "Result:", exists);
+	} catch (error) {
+		unit.complete();
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ exists: false });
+		console.error("Error checking if room exists:", error);
+	}
+});
+
 roomsRouter.post("/room", async (req, res): Promise<void> => {
 	const { owner, roomName } = req.body;
 

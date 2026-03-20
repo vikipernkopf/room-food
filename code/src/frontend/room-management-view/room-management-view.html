@@ -28,7 +28,7 @@
 			<!-- Room Code -->
 			<div class="info-row">
 				<span class="info-label">Room code:</span>
-				<span class="info-value code-value">{{roomCode}}</span>
+				<span class="info-value code-value">{{roomCode()}}</span>
 			</div>
 
 			<!-- Password -->
@@ -68,20 +68,3 @@
 		</div>
 	</mat-card>
 </div>
-<div>
-	<div style="flex-direction: column">
-		hi hello <br>
-		@if (roomCode===null) {
-			<span>no room code</span>
-		} @else {
-			<span>room code: {{roomCode}} </span>
-		}
-
-		<button (click)="printcode()"> click me </button>
-	</div>
-	<div style="flex-direction: column">hi hello</div>
-</div>
-
-
-
-
