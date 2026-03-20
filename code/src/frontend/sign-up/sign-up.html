@@ -95,12 +95,12 @@
 
 			<div class="field-group field-group--full">
 			<label for="bio">Bio</label>
-			<textarea formControlName="bio" id="bio" rows="3" placeholder="Tell others a bit about yourself" autocomplete="off"></textarea>
+			<textarea formControlName="bio" id="bio" rows="3" placeholder="Tell others a bit about yourself" autocomplete="off" maxlength="100"></textarea>
 			@if (signUpForm.get('bio'); as bioControl) {
 				@if (bioControl.touched && bioControl.invalid) {
 					<aside>
 						@if (bioControl.hasError('maxlength')) {
-							<span>Bio must be at most 400 characters</span>
+							<span>Bio must be at most 100 characters</span>
 						}
 					</aside>
 				}
@@ -109,7 +109,14 @@
 
 		<div class="field-group field-group--full">
 			<label for="password">Password</label>
-			<input formControlName="password" id="password" type="password" placeholder="Password" autocomplete="new-password">
+			<div class="password-input-wrap">
+				<input formControlName="password" id="password" [type]="showPassword ? 'text' : 'password'" placeholder="Password" autocomplete="new-password">
+				<button class="password-toggle" type="button" (click)="togglePasswordVisibility()" [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'">
+					<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+						<path d="M12 5c-5.5 0-9.8 4.3-10.9 6 1.1 1.7 5.4 6 10.9 6s9.8-4.3 10.9-6c-1.1-1.7-5.4-6-10.9-6zm0 10a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/>
+					</svg>
+				</button>
+			</div>
 			@if (signUpForm.get('password'); as passwordControl) {
 				@if (passwordControl.touched && passwordControl.invalid) {
 					<aside>
@@ -126,13 +133,39 @@
 				}
 			}
 		</div>
+
+		<div class="field-group field-group--full">
+			<label for="repeatPassword">Repeat password</label>
+			<div class="password-input-wrap">
+				<input formControlName="repeatPassword" id="repeatPassword" [type]="showRepeatPassword ? 'text' : 'password'" placeholder="Repeat password" autocomplete="new-password">
+				<button class="password-toggle" type="button" (click)="toggleRepeatPasswordVisibility()" [attr.aria-label]="showRepeatPassword ? 'Hide repeated password' : 'Show repeated password'">
+					<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+						<path d="M12 5c-5.5 0-9.8 4.3-10.9 6 1.1 1.7 5.4 6 10.9 6s9.8-4.3 10.9-6c-1.1-1.7-5.4-6-10.9-6zm0 10a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/>
+					</svg>
+				</button>
+			</div>
+			@if (signUpForm.get('repeatPassword'); as repeatPasswordControl) {
+				@if (repeatPasswordControl.touched && repeatPasswordControl.invalid) {
+					<aside>
+						@if (repeatPasswordControl.hasError('required')) {
+							<span>Please repeat your password</span>
+						}
+					</aside>
+				}
+			}
+			@if (signUpForm.hasError('passwordMismatch') && (signUpForm.get('password')?.touched || signUpForm.get('repeatPassword')?.touched)) {
+				<aside>
+					<span>Passwords do not match</span>
+				</aside>
+			}
+		</div>
 		</div>
 
 		<div class="error-msg">
 			<span>{{ signUpError() }}</span>
 		</div>
 
-		<button  type="submit">
+		<button class="submit-btn" type="submit">
 			Sign up
 		</button>
 

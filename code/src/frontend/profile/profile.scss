@@ -10,7 +10,7 @@ $color-text-light: #A0AEC0;
 .profile-page {
   min-height: calc(100vh - 64px);
   background: $color-bg;
-  padding: 5.2rem 1rem 2rem;
+  padding: 2rem 1rem 2rem;
   box-sizing: border-box;
   display: flex;
   justify-content: center;
@@ -23,7 +23,15 @@ $color-text-light: #A0AEC0;
   border: 1px solid #e2e8f0;
   border-radius: 18px;
   padding: 1.5rem;
+  margin: 1rem;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+}
+
+.profile-card--compact {
+  max-width: 560px;
+  padding: 1.5rem;
+	margin-top: 3rem;
+	height: 100%;
 }
 
 .profile-header {
