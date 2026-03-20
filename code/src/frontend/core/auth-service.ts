@@ -45,7 +45,14 @@ export class AuthService {
 			}
 		});
 	}
-
+	deleteUser(credentials: LoginCredentials): Observable<User> {
+		return this.http.delete<User>(`${this.apiBase}/delete`, { body: credentials }).pipe(
+			tap((user) => {
+				console.log(`User ${user.username} deleted successfully`);
+				this.logout();
+			})
+		);
+	}
 	signUp(credentials: SignUpCredentials) {
 		this.http.post<User>(`${this.apiBase}/signup`, credentials).subscribe({
 			next: (user) => {
@@ -70,6 +77,12 @@ export class AuthService {
 				}
 			}
 		});
+	}
+
+	logout() {
+		this.currentUser.set(null);
+		console.log("User logged out");
+		this.router.navigate(['/homepage']);
 	}
 
 	getPublicProfile(username: string): Observable<PublicProfile> {

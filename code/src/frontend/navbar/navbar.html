@@ -16,12 +16,18 @@
 				<li class="nav-item">
 					<a class="nav-link" routerLink="/homepage" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a>
 				</li>
-				<li class="nav-item">
-					<a class="nav-link" routerLink="/login" routerLinkActive="active">Log in</a>
-				</li>
-				<li class="nav-item">
-					<a class="nav-link" routerLink="/signup" routerLinkActive="active">Sign up</a>
-				</li>
+				@if (!isLoggedIn()) {
+					<li class="nav-item">
+						<a class="nav-link" routerLink="/login" routerLinkActive="active">Log in</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" routerLink="/signup" routerLinkActive="active">Sign up</a>
+					</li>
+				} @else {
+					<li class="nav-item">
+						<button class="nav-link" (click)="logout()" routerLinkActive="active">Log out</button>
+					</li>
+				}
 				<li class="nav-item">
 					<a class="nav-link" [routerLink]="profileLink()" [queryParams]="profileQueryParams()" routerLinkActive="active">Profile</a>
 				</li>

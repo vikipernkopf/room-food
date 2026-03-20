@@ -52,11 +52,16 @@
             </div>
 
             <div class="field-group field-group--full">
-              <label for="password">New password (optional)</label>
+              <label for="password">{{ passwordText() }}</label>
               <input id="password" formControlName="password" type="password" autocomplete="new-password" />
               @if (editForm.get('password')?.touched && editForm.get('password')?.hasError('minlength')) {
                 <aside>Password must be at least 8 characters.</aside>
               }
+				@if (true) {
+				  <div class="error-msg">
+				    <p>{{deleteError()}}</p>
+				  </div>
+				}
             </div>
           </div>
 
@@ -66,8 +71,10 @@
           @if (saveSuccess()) {
             <p class="status success">{{ saveSuccess() }}</p>
           }
-
-          <button type="submit">Save profile</button>
+		  <div class="buttons">
+			<button type="submit">Save profile</button>
+			<button class="delete" type="submit" (click)="deleteUserBtn()">Delete profile</button>
+		  </div>
         </form>
       }
     </article>

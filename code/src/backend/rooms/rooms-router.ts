@@ -1,7 +1,5 @@
 import {StatusCodes} from 'http-status-codes';
 import {Unit} from '../unit';
-import {Meal} from '../model';
-import {MealManagementService} from '../meal-management/meal-management-service';
 import express from 'express';
 import {RoomsService} from './rooms-service';
 
@@ -222,7 +220,7 @@ roomsRouter.post("/room/join", async (req, res): Promise<void> => {
 			return;
 		}
 
-		if (result == false) {
+		if (!result) {
 			unit.complete(false);
 			res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: "Failed to request to join room" });
 			console.log("Failed to request to join room");

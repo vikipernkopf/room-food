@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, signal, WritableSignal } from '@angular/core';
+import { Component, computed, effect, signal, WritableSignal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../core/auth-service';
 import { PublicProfile, UpdateProfilePayload, User } from '../../backend/model';
 import { DEFAULT_PROFILE_PICTURE, profileFieldValidators } from '../core/user-form-validation';
@@ -21,7 +21,8 @@ export class Profile {
   protected readonly loadError = signal('');
   protected readonly saveError = signal('');
   protected readonly saveSuccess = signal('');
-
+  protected readonly deleteError = signal('');
+  protected readonly passwordText : WritableSignal<string> = signal('New password (optional)');
   protected readonly currentUser: WritableSignal<User | null>;
 
   protected readonly isOwnProfile = computed(() => {
@@ -46,15 +47,25 @@ export class Profile {
 
   constructor(
     private readonly route: ActivatedRoute,
+    private readonly router: Router,
     private readonly authService: AuthService
   ) {
     this.currentUser = this.authService.currentUser;
 
-    this.route.paramMap.subscribe((paramMap) => {
-        const username = (paramMap.get('username') ?? this.currentUser()?.username ?? '').trim();
+    effect(() => {
+      const routeUsername = this.route.snapshot.paramMap.get('username');
+      const currentUserUsername = this.currentUser()?.username;
+
+      const username = (routeUsername ?? currentUserUsername ?? '').trim();
+
       if (!username) {
-        this.loadError.set('No profile selected. Log in to view your profile.');
-        this.isLoading.set(false);
+        // If no username in route and not logged in, redirect to login
+        if (!this.currentUser()) {
+          this.router.navigate(['/login'], { queryParams: { returnUrl: '/profile' } });
+        } else {
+          this.loadError.set('No profile selected. Log in to view your profile.');
+          this.isLoading.set(false);
+        }
         return;
       }
 
@@ -200,6 +211,42 @@ export class Profile {
     }
 
     return '';
+  }
+
+  protected deleteUserBtn(): void {
+	  const currentUser = this.currentUser();
+	  if (!currentUser) {
+		  this.deleteError.set('You must be logged in to delete your profile.');
+		  return;
+	  }
+
+	  if (!this.editForm.value.password) {
+		  this.deleteError.set('Please enter your password to delete your profile.');
+		  return;
+	  }
+
+	  if (!confirm('Are you sure you want to permanently delete your profile? This cannot be undone.')) {
+		  return;
+	  }
+
+	  this.passwordText.set("Confirm delete with password");
+	  this.deleteError.set('');
+	  this.authService.deleteUser({
+		  identifier: currentUser.username,
+		  password: this.editForm.value.password
+	  }).subscribe({
+		  next: () => {
+			  // Deletion was successful, logout handled by service
+			  this.deleteError.set('');
+		  },
+		  error: (err) => {
+			  if (err.status === 401) {
+				  this.deleteError.set('Wrong password. Please try again.');
+			  } else {
+				  this.deleteError.set('Failed to delete account. Please try again later.');
+			  }
+		  }
+	  });
   }
 }
 

@@ -1,10 +1,9 @@
-import { Component, OnInit, OnDestroy, signal, WritableSignal, effect } from '@angular/core';
-import {ActivatedRoute, ParamMap, Router} from '@angular/router';
+import { Component, OnDestroy, signal, WritableSignal, effect } from '@angular/core';
+import {ActivatedRoute, Router} from '@angular/router';
 import {MatDivider} from '@angular/material/divider';
 import {MatCard} from '@angular/material/card';
-import {MatFormField, MatInput, MatLabel} from '@angular/material/input';
+import {MatLabel} from '@angular/material/input';
 import {MatIconButton} from '@angular/material/button';
-import {MatIcon} from '@angular/material/icon';
 import {RoomService} from '../core/room-service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
@@ -192,7 +191,7 @@ export class RoomManagementView implements OnDestroy {
 		alert('Remove member functionality coming soon');
 	}
 
-	printcode() {
+	printCode() {
 		console.log(this.roomCode());
 	}
 
