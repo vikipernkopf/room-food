@@ -44,8 +44,8 @@
 		"zone.js": "~0.15.1"
 	},
 	"devDependencies": {
-		"@angular/build": "^20.3.20",
-		"@angular/cli": "^20.3.20",
+		"@angular/build": "^20.3.22",
+		"@angular/cli": "^20.3.22",
 		"@angular/compiler-cli": "^20.3.18",
 		"@types/better-sqlite3": "^7.6.13",
 		"@types/cors": "^2.8.19",
