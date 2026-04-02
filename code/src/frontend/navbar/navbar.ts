@@ -2,13 +2,15 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
+  Inject,
   OnDestroy,
+  PLATFORM_ID,
   ViewChild,
   computed,
   effect,
   signal,
 } from '@angular/core';
-import {NgOptimizedImage} from '@angular/common';
+import {isPlatformBrowser, NgOptimizedImage} from '@angular/common';
 import {RouterLink, RouterLinkActive} from '@angular/router';
 import { AuthService } from '../core/auth-service';
 @Component({
@@ -37,10 +39,16 @@ export class Navbar implements AfterViewInit, OnDestroy {
   protected readonly isMenuOpen = signal(false);
 
   private readonly handleWindowResize = () => this.queueLayoutRecalculation();
+  private readonly isBrowser: boolean;
   private resizeObserver: ResizeObserver | null = null;
   private layoutFrame: number | null = null;
 
-  constructor(private readonly authService: AuthService) {
+  constructor(
+  private readonly authService: AuthService,
+  @Inject(PLATFORM_ID) platformId: object
+  ) {
+  this.isBrowser = isPlatformBrowser(platformId);
+
 	this.profileLink = computed(() => {
 	  const username = this.authService.currentUser()?.username;
 	  return username ? ['/profile', username] : ['/login'];
@@ -72,6 +80,10 @@ export class Navbar implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
+	if (!this.isBrowser) {
+	  return;
+	}
+
 	window.addEventListener('resize', this.handleWindowResize);
 	if (typeof ResizeObserver !== 'undefined' && this.navbarShell) {
 	  this.resizeObserver = new ResizeObserver(() => this.queueLayoutRecalculation());
@@ -81,6 +93,10 @@ export class Navbar implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+	if (!this.isBrowser) {
+	  return;
+	}
+
 	window.removeEventListener('resize', this.handleWindowResize);
 	this.resizeObserver?.disconnect();
 	if (this.layoutFrame !== null) {
@@ -108,7 +124,7 @@ export class Navbar implements AfterViewInit, OnDestroy {
   }
 
   private queueLayoutRecalculation(): void {
-	if (typeof window === 'undefined') {
+	if (!this.isBrowser) {
 	  return;
 	}
 
