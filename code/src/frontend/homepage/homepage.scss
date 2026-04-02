@@ -11,17 +11,27 @@ $color-orange-3: #FF9800;
 $color-orange-4: #FFB74D;
 $color-orange-5: #FFCC80;
 
+:host {
+	display: block;
+	height: calc(100dvh - 68px);
+	overflow: hidden;
+}
+
 .homepage-container {
 	margin-top: 20vh;
+	max-width: 760px;
+	padding: 0 1rem;
 }
 
 .start {
 	display: flex;
 	flex-direction: column;
-	align-items: center;     /* horizontal centering */
+	align-items: center;
 	text-align: center;
 	background: $color-green-1;
-	min-height: calc(100vh - 64px);
+	height: 100%;
+	overflow: hidden;
+	box-sizing: border-box;
 
 	.room {
 		color: #105B37; /* green */
