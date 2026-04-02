@@ -4,6 +4,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 
 import { Navbar } from './navbar';
+import { AuthService } from '../core/auth-service';
 
 describe('Navbar', () => {
   let component: Navbar;
@@ -86,5 +87,21 @@ describe('Navbar', () => {
     fixture.detectChanges();
 
     expect((component as any).isCollapsed()).toBeTruthy();
+  });
+
+  it('routes My Rooms through login with returnUrl when logged out', () => {
+    const authService = TestBed.inject(AuthService);
+    authService.currentUser.set(null);
+
+    expect((component as any).myRoomsLink()).toEqual(['/login']);
+    expect((component as any).myRoomsQueryParams()).toEqual({ returnUrl: '/myrooms' });
+  });
+
+  it('routes My Rooms directly when logged in', () => {
+    const authService = TestBed.inject(AuthService);
+    authService.currentUser.set({ username: 'alice' } as any);
+
+    expect((component as any).myRoomsLink()).toEqual(['/myrooms']);
+    expect((component as any).myRoomsQueryParams()).toBeNull();
   });
 });

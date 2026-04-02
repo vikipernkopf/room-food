@@ -44,7 +44,7 @@
 					<a class="nav-link" [routerLink]="profileLink()" [queryParams]="profileQueryParams()" routerLinkActive="active" (click)="handleMenuItemClick()">Profile</a>
 				</li>
 				<li class="nav-item">
-					<a class="nav-link" routerLink="/myrooms" routerLinkActive="active" (click)="handleMenuItemClick()">My Rooms</a>
+					<a class="nav-link" [routerLink]="myRoomsLink()" [queryParams]="myRoomsQueryParams()" routerLinkActive="active" (click)="handleMenuItemClick()">My Rooms</a>
 				</li>
 			</ul>
 		</div>
@@ -78,7 +78,7 @@
 						<a class="nav-link" [routerLink]="profileLink()" [queryParams]="profileQueryParams()" routerLinkActive="active">Profile</a>
 					</li>
 					<li class="nav-item">
-						<a class="nav-link" routerLink="/myrooms" routerLinkActive="active">My Rooms</a>
+						<a class="nav-link" [routerLink]="myRoomsLink()" [queryParams]="myRoomsQueryParams()" routerLinkActive="active">My Rooms</a>
 					</li>
 				</ul>
 			</div>

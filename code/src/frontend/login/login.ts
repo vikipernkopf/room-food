@@ -22,11 +22,13 @@ export class Login {
 	});
 	public loginError: WritableSignal<String>= signal('');
 	private returnUrl = '/homepage';
+	protected signUpQueryParams: { returnUrl: string } | null = null;
 
 	constructor(private authService: AuthService, private route: ActivatedRoute) {
 		const requestedReturn = this.route.snapshot.queryParamMap.get('returnUrl');
 		if (requestedReturn && requestedReturn.startsWith('/')) {
 			this.returnUrl = requestedReturn;
+			this.signUpQueryParams = { returnUrl: requestedReturn };
 		}
 	}
 	onFormSubmit() {

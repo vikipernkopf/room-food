@@ -30,6 +30,8 @@ export class Navbar implements AfterViewInit, OnDestroy {
 
   protected readonly profileLink;
   protected readonly profileQueryParams;
+  protected readonly myRoomsLink;
+  protected readonly myRoomsQueryParams;
   protected readonly isLoggedIn;
   protected readonly isCollapsed = signal(false);
   protected readonly isMenuOpen = signal(false);
@@ -47,6 +49,16 @@ export class Navbar implements AfterViewInit, OnDestroy {
 	this.profileQueryParams = computed(() => {
 	  const username = this.authService.currentUser()?.username;
 	  return username ? null : { returnUrl: '/profile' };
+	});
+
+	this.myRoomsLink = computed(() => {
+	  const user = this.authService.currentUser();
+	  return user ? ['/myrooms'] : ['/login'];
+	});
+
+	this.myRoomsQueryParams = computed(() => {
+	  const user = this.authService.currentUser();
+	  return user ? null : { returnUrl: '/myrooms' };
 	});
 
 	this.isLoggedIn = computed(() => {
