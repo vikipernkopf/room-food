@@ -1,3 +1,5 @@
+// noinspection GrazieInspection
+
 import {Component, effect, OnInit, signal, WritableSignal} from '@angular/core';
 import {DatePipe} from '@angular/common';
 import {MealManagement} from '../../meal-management/meal-management';
@@ -78,6 +80,7 @@ export class Calendar implements OnInit {
 					if (!this.hasRedirected) {
 						this.hasRedirected = true;
 						this.meals.set([]);
+						// noinspection JSIgnoredPromiseFromCall
 						this.router.navigate(['/error']);
 					}
 				}
@@ -91,6 +94,7 @@ export class Calendar implements OnInit {
 				if (!this.hasRedirected) {
 					this.hasRedirected = true;
 					this.meals.set([]);
+					// noinspection JSIgnoredPromiseFromCall
 					this.router.navigate(['/error']);
 				}
 			}
@@ -109,6 +113,7 @@ export class Calendar implements OnInit {
 			if (!this.hasRedirected) {
 				this.hasRedirected = true;
 				this.meals.set([]);
+				// noinspection JSIgnoredPromiseFromCall
 				this.router.navigate(['/error']);
 			}
 			return;
