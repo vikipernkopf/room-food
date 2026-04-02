@@ -1,27 +1,39 @@
-<nav class="navbar navbar-expand-lg">
-	<div class="container">
-		<!-- Logo on the left -->
+<nav class="navbar">
+	<div class="container navbar-shell" #navbarShell>
 		<a class="navbar-brand" [routerLink]="['/homepage']">
 			<img ngSrc="/images/logo.png" alt="RoomFood" height="1024" width="1024" priority>
 			<span id="span">Room</span><span class="brand-food">Food</span>
 		</a>
 
-		<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navContent">
-			<span class="navbar-toggler-icon"></span>
-		</button>
+		@if (isCollapsed()) {
+			<button
+				class="navbar-toggler"
+				type="button"
+				[attr.aria-expanded]="isMenuOpen()"
+				aria-controls="navContent"
+				aria-label="Toggle navigation"
+				(click)="toggleMenu()"
+			>
+				<span class="navbar-toggler-icon"></span>
+			</button>
+		}
 
-		<!-- Navigation items pushed to the right -->
-		<div class="collapse navbar-collapse justify-content-end" id="navContent">
-			<ul class="navbar-nav align-items-center">
+		<div
+			id="navContent"
+			class="navbar-menu"
+			[class.is-collapsed]="isCollapsed()"
+			[class.is-open]="!isCollapsed() || isMenuOpen()"
+		>
+			<ul class="navbar-links">
 				<li class="nav-item">
-					<a class="nav-link" routerLink="/homepage" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a>
+					<a class="nav-link" routerLink="/homepage" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" (click)="handleMenuItemClick()">Home</a>
 				</li>
 				@if (!isLoggedIn()) {
 					<li class="nav-item">
-						<a class="nav-link" routerLink="/login" routerLinkActive="active">Log in</a>
+						<a class="nav-link" routerLink="/login" routerLinkActive="active" (click)="handleMenuItemClick()">Log in</a>
 					</li>
 					<li class="nav-item">
-						<a class="nav-link" routerLink="/signup" routerLinkActive="active">Sign up</a>
+						<a class="nav-link" routerLink="/signup" routerLinkActive="active" (click)="handleMenuItemClick()">Sign up</a>
 					</li>
 				} @else {
 					<li class="nav-item">
@@ -29,15 +41,47 @@
 					</li>
 				}
 				<li class="nav-item">
-					<a class="nav-link" [routerLink]="profileLink()" [queryParams]="profileQueryParams()" routerLinkActive="active">Profile</a>
+					<a class="nav-link" [routerLink]="profileLink()" [queryParams]="profileQueryParams()" routerLinkActive="active" (click)="handleMenuItemClick()">Profile</a>
 				</li>
 				<li class="nav-item">
-					<a class="nav-link" routerLink="/myrooms" routerLinkActive="active">My Rooms</a>
+					<a class="nav-link" routerLink="/myrooms" routerLinkActive="active" (click)="handleMenuItemClick()">My Rooms</a>
 				</li>
 			</ul>
-			<span class="navbar-text">
-        Showcase
-    </span>
+		</div>
+	</div>
+
+	<div class="navbar-measure" aria-hidden="true">
+		<div class="container navbar-shell" #navbarMeasure>
+			<a class="navbar-brand" [routerLink]="['/homepage']">
+				<img ngSrc="/images/logo.png" alt="RoomFood" height="1024" width="1024" priority>
+				<span id="span">Room</span><span class="brand-food">Food</span>
+			</a>
+
+			<div class="navbar-menu is-open">
+				<ul class="navbar-links">
+					<li class="nav-item">
+						<a class="nav-link" routerLink="/homepage" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a>
+					</li>
+					@if (!isLoggedIn()) {
+						<li class="nav-item">
+							<a class="nav-link" routerLink="/login" routerLinkActive="active">Log in</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" routerLink="/signup" routerLinkActive="active">Sign up</a>
+						</li>
+					} @else {
+						<li class="nav-item">
+							<button class="nav-link">Log out</button>
+						</li>
+					}
+					<li class="nav-item">
+						<a class="nav-link" [routerLink]="profileLink()" [queryParams]="profileQueryParams()" routerLinkActive="active">Profile</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" routerLink="/myrooms" routerLinkActive="active">My Rooms</a>
+					</li>
+				</ul>
+			</div>
 		</div>
 	</div>
 </nav>
