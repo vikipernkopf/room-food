@@ -1,3 +1,5 @@
+﻿@use '../styles/theme' as *;
+
 * {
 	font-family: 'Inter', sans-serif;
 }
@@ -12,22 +14,44 @@
 	display: block;
 }
 
+:host-context(.modal-overlay) {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	width: 100%;
+	height: 100%;
+	position: fixed;
+	top: 0;
+	left: 0;
+	z-index: 1000;
+}
+
+.modal-title {
+	margin-bottom: 2rem !important;
+}
+
 .popup-bubble {
 	position: relative;
-	background-color: #fff2dd !important;
+	background-color: $color-orange-5 !important;
 	padding: 30px;
 	border-radius: 12px;
-	box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+	box-shadow: 0 10px 30px $color-overlay-20;
 	width: 450px;
 	display: flex;
 	flex-direction: column;
 	margin: 0;
 
-	h1 { margin: 0 0 15px 0; color: #08733F; }
+	:host-context(.modal-overlay) & {
+		box-shadow: 0 20px 40px $color-overlay-15;
+		width: 90%;
+		max-width: 500px;
+	}
+
+	h1 { margin: 0 0 15px 0; color: $color-green-4; }
 
 	.close-x-btn {
 		position: absolute; top: 15px; right: 15px;
-		color: black;
+		color: $color-black;
 	}
 
 	form { width: 100%; display: flex; flex-direction: column; }
@@ -43,7 +67,7 @@
 	}
 
 	.container {
-		background: #fff9f0 !important;
+		background: $color-lighter-gray !important;
 		padding: 0;
 		border-radius: 5px 5px 0 0;
 		margin-bottom: 12px;
@@ -52,7 +76,7 @@
 		height: 52px;
 		position: relative;
 		overflow: visible;
-		color: #08733F;
+		color: $color-green-4;
 
 		::ng-deep {
 			.mat-mdc-form-field-subscript-wrapper { display: none !important; }
@@ -62,7 +86,7 @@
 			.mat-mdc-text-field-wrapper {
 				padding: 0 12px !important;
 				height: 100% !important;
-				background: transparent !important;
+				background: $color-transparent !important;
 				min-height: unset !important;
 			}
 
@@ -86,7 +110,7 @@
 
 	::ng-deep .mat-mdc-form-field.mat-focused {
 		.mdc-line-ripple::after {
-			border-bottom-color: #08733F !important;
+			border-bottom-color: $color-green-4 !important;
 			border-bottom-width: 2px !important;
 			transform: scaleX(1) !important;
 		}
@@ -94,24 +118,44 @@
 		.mat-mdc-select-arrow,
 		.mat-datepicker-toggle button,
 		.mat-timepicker-toggle button {
-			color: black !important;
+			color: $color-black !important;
 		}
 	}
 
 	.error-text {
-		color: #d32f2f !important;
+		color: $color-red !important;
 		font-size: 13px;
 		font-weight: bold;
 		margin-top: 10px;
 		animation: errorShake 0.2s ease-in-out 0s 2;
 	}
 
+	.action-row {
+		display: flex;
+		gap: 0.7rem;
+		align-items: center;
+		margin-top: 0.8rem;
+	}
+
 	.save-btn {
-		background-color: #f48f05 !important;
-		color: white !important;
+		background-color: $color-orange-3 !important;
+		color: $color-white !important;
 		padding: 10px 25px !important;
 		border-radius: 4px;
 		align-self: flex-start;
+		margin-top: 0;
+
+		&:disabled {
+			opacity: 0.65;
+			cursor: not-allowed;
+		}
+	}
+
+	.delete-btn {
+		border-color: $color-orange-1 !important;
+		color: $color-orange-1 !important;
+		padding: 8px 20px !important;
+		border-radius: 4px;
 
 		&:disabled {
 			opacity: 0.65;
@@ -123,15 +167,15 @@
 ::ng-deep .mat-mdc-select-panel,
 ::ng-deep .mat-datepicker-content,
 ::ng-deep .mat-timepicker-panel {
-	background-color: #fff9f0 !important;
-	box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1) !important;
+	background-color: $color-lighter-gray !important;
+	box-shadow: 0 5px 15px $color-overlay-10 !important;
 }
 
 ::ng-deep .mat-calendar-body-cell:not(.mat-calendar-body-disabled):hover {
 	.mat-calendar-body-cell-content {
-		background-color: #ffd18c !important; /* The gray circle */
+		background-color: $color-orange-5 !important; /* The gray circle */
 		border-radius: 50% !important;        /* Makes it a circle */
-		color: black !important;              /* Keeps text readable */
+		color: $color-black !important;              /* Keeps text readable */
 	}
 }
 
@@ -142,8 +186,8 @@
 
 /* Target the tooltip overlay pane specifically */
 ::ng-deep .mat-mdc-tooltip .mdc-tooltip__surface {
-	background-color: #ffd18c !important; /* Dark gray background */
-	color: black !important;               /* White text for contrast */
+	background-color: $color-orange-5 !important; /* Dark gray background */
+	color: $color-black !important;               /* White text for contrast */
 	border-radius: 4px !important;         /* Rounded corners */
 	padding: 4px 8px !important;           /* Space around the text */
 	font-size: 12px !important;
@@ -156,8 +200,13 @@
 }
 
 ::ng-deep .mat-datepicker-content {
-	background-color: #fff9f0 !important; /* Change this to your desired background color */
+	background-color: $color-lighter-gray !important; /* Change this to your desired background color */
 	border-radius: 12px !important;
 	font-family: 'Inter', sans-serif;
-	color: #08733F;
+	color: $color-green-4;
 }
+
+
+
+
+

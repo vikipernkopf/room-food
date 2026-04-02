@@ -40,7 +40,7 @@ export class RoomsService extends ServiceBase {
 				break;
 			}
 			if(i==this.MAX_ATTEMPTS){
-				console.log("ROOM CODE RRORR");
+				console.log("ROOM CODE ERROR");
 				return "error";
 			}
 		}

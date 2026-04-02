@@ -1,37 +1,42 @@
-$color-green-1: #6FC276;
-$color-green-2: #4CAF50;
-$color-green-3: #2E7D32;
-$color-green-4: #105B37;
-$color-green-5: #0A3D23;
+﻿@use '../styles/theme' as *;
 
-// Orange Palette
-$color-orange-1: #C85A04;
-$color-orange-2: #E67E22;
-$color-orange-3: #FF9800;
-$color-orange-4: #FFB74D;
-$color-orange-5: #FFCC80;
+:host {
+	display: block;
+	flex: 1;
+	min-height: 0;
+	background: $color-green-1;
+	overflow: hidden;
+}
+
+.start {
+	min-height: 100%;
+}
 
 .homepage-container {
 	margin-top: 20vh;
+	max-width: 760px;
+	padding: 0 1rem;
 }
 
 .start {
 	display: flex;
 	flex-direction: column;
-	align-items: center;     /* horizontal centering */
+	align-items: center;
 	text-align: center;
 	background: $color-green-1;
-	min-height: calc(100vh - 64px);
+	height: 100%;
+	overflow: hidden;
+	box-sizing: border-box;
 
 	.room {
-		color: #105B37; /* green */
-		font-family: "Britannic", fantasy;
+		color: $color-green-4; /* green */
+		font-family: 'Inter', sans-serif;
 		font-size: 80px;
 	}
 
 	.food {
 		color: #FF8F00;
-		font-family: "Britannic", fantasy;
+		font-family: 'Inter', sans-serif;
 		font-size: 80px;
 	}
 
@@ -40,8 +45,8 @@ $color-orange-5: #FFCC80;
 		max-width: 600px; /* controls when it breaks into two lines */
 		font-size: 18px;
 		line-height: 1.5;
-		color: #0A3D23;
-		font-family: "SansSerif", sans-serif;
+		color: $color-green-5;
+		font-family: 'Inter', sans-serif;
 		font-weight: bold;
 	}
 
@@ -57,10 +62,10 @@ $color-orange-5: #FFCC80;
 		font-size: 18px;
 		border: none;
 		cursor: pointer;
-		background-color: #FF9800;
-		font-family: "SansSerif", sans-serif;
+		background-color: $color-orange-3;
+		font-family: 'Inter', sans-serif;
 		font-weight: bold;
-		color: white;
+		color: $color-white;
 	}
 
 	.learn-more-btn{
@@ -69,9 +74,9 @@ $color-orange-5: #FFCC80;
 		font-size: 18px;
 		border: none;
 		cursor: pointer;
-		background-color: #2E7D32;
-		font-family: "SansSerif", sans-serif;
+		background-color: $color-green-3;
+		font-family: 'Inter', sans-serif;
 		font-weight: bold;
-		color: white;
+		color: $color-white;
 	}
 }

@@ -1,14 +1,5 @@
-$color-dark-orange: #c85a04;
-$color-primary-orange: #f2791d;
-$color-peach-glow: #ffd18c;
-$color-text-main: #2d3748;
-$color-label-gray: #4a5568;
-$color-input-bg: #f8fafc;
-$color-shade-gray: #e2e8f0;
-$color-gray: #718096;
-$color-still-gray-but-not-as-gray: #f1f5f9;
-$color-reddish: #e53e3e;
-$color-bluish-gray: #a0aec0;
+﻿@use '../styles/theme' as *;
+
 
 * {
 	font-family: 'Inter', sans-serif;
@@ -19,7 +10,7 @@ $color-bluish-gray: #a0aec0;
 	align-items: center;
 	justify-content: center;
 	min-height: 1.25rem;
-	color: $color-reddish;
+	color: $color-red;
 	font-size: 0.85rem;
 	font-weight: 500;
 	margin-top: 0.4rem;
@@ -31,23 +22,23 @@ section {
 	align-items: flex-start;
 	min-height: calc(100vh - 4.5rem);
 	padding: 4.35rem 1rem 1.2rem;
-	background-color: $color-still-gray-but-not-as-gray;
+	background-color: $color-lighter-gray;
 	box-sizing: border-box;
 }
 
 .login-container {
-	background: white;
+	background: $color-white;
 	padding: 1.6rem;
 	border-radius: 24px;
 	border: 1px solid $color-input-bg;
 	width: 100%;
 	max-width: 860px;
-	box-shadow: 0 10px 25px rgba(0, 0, 0, 0.03);
+	box-shadow: 0 10px 25px $color-overlay-3;
 
 	header {
 		margin-bottom: 0.85rem;
 		h4 {
-			color: $color-primary-orange;
+			color: $color-orange-2;
 			font-size: 1.55rem;
 			font-weight: 800;
 			margin: 0;
@@ -80,20 +71,20 @@ section {
 		width: 100%;
 		padding: 0.62rem 0.9rem;
 		background-color: $color-input-bg;
-		border: 1.5px solid $color-shade-gray;
+		border: 1.5px solid $color-light-gray;
 		border-radius: 12px;
 		font-size: 0.95rem;
 		color: $color-text-main;
 		transition: all 0.2s ease;
 		box-sizing: border-box;
 
-		&::placeholder { color: $color-bluish-gray; }
+		&::placeholder { color: $color-blue-gray; }
 
 		&:focus {
 			outline: none;
-			border-color: $color-primary-orange;
-			background-color: white;
-			box-shadow: 0 0 0 4px rgba($color-peach-glow, 0.5);
+			border-color: $color-orange-2;
+			background-color: $color-white;
+			box-shadow: 0 0 0 4px rgba($color-orange-5, 0.5);
 		}
 	}
 
@@ -118,7 +109,7 @@ section {
 		padding: 0;
 		margin: 0;
 		border: none;
-		background: transparent;
+		background: $color-transparent;
 		color: $color-gray;
 		box-shadow: none;
 		cursor: pointer;
@@ -130,11 +121,11 @@ section {
 		}
 
 		&:hover {
-			color: $color-primary-orange;
+			color: $color-orange-2;
 		}
 
 		&:focus-visible {
-			outline: 2px solid $color-primary-orange;
+			outline: 2px solid $color-orange-2;
 			outline-offset: 2px;
 			border-radius: 8px;
 		}
@@ -144,7 +135,7 @@ section {
 		width: 100%;
 		padding: 0.62rem 0.9rem;
 		background-color: $color-input-bg;
-		border: 1.5px solid $color-shade-gray;
+		border: 1.5px solid $color-light-gray;
 		border-radius: 12px;
 		font-size: 0.95rem;
 		color: $color-text-main;
@@ -153,21 +144,21 @@ section {
 		resize: vertical;
 		min-height: 56px;
 
-		&::placeholder { color: $color-bluish-gray; }
+		&::placeholder { color: $color-blue-gray; }
 
 		&:focus {
 			outline: none;
-			border-color: $color-primary-orange;
-			background-color: white;
-			box-shadow: 0 0 0 4px rgba($color-peach-glow, 0.5);
+			border-color: $color-orange-2;
+			background-color: $color-white;
+			box-shadow: 0 0 0 4px rgba($color-orange-5, 0.5);
 		}
 	}
 
 	.submit-btn {
 		width: 100%;
 		padding: 0.82rem;
-		background-color: $color-primary-orange;
-		color: white;
+		background-color: $color-orange-2;
+		color: $color-white;
 		border: none;
 		border-radius: 16px;
 		font-size: 1rem;
@@ -175,12 +166,12 @@ section {
 		cursor: pointer;
 		transition: background-color 0.2s ease, transform 0.1s ease;
 		margin-top: 0.35rem;
-		box-shadow: 0 4px 12px rgba(242, 121, 29, 0.2);
+		box-shadow: 0 4px 12px rgba($color-orange-2, 0.2);
 
-		&:hover:not(:disabled) { background-color: $color-dark-orange; }
+		&:hover:not(:disabled) { background-color: $color-orange-1; }
 		&:active:not(:disabled) { transform: scale(0.98); }
 		&:disabled {
-			background-color: #cbd5e1;
+			background-color: $color-slate-1;
 			cursor: not-allowed;
 			box-shadow: none;
 		}
@@ -188,7 +179,7 @@ section {
 
 	aside {
 		margin-top: 0.22rem;
-		span { color: $color-reddish; font-size: 0.85rem; font-weight: 500; }
+		span { color: $color-red; font-size: 0.85rem; font-weight: 500; }
 	}
 
 	nav {
@@ -199,14 +190,14 @@ section {
 			text-decoration: none;
 			font-size: 0.9rem;
 			font-weight: 500;
-			&:hover { color: $color-primary-orange; text-decoration: underline; }
+			&:hover { color: $color-orange-2; text-decoration: underline; }
 		}
 	}
 
 	hr {
 		margin: 1rem 0 0.25rem;
 		border: 0;
-		border-top: 1.5px solid $color-still-gray-but-not-as-gray;
+		border-top: 1.5px solid $color-light-gray;
 	}
 
 	@media (max-width: 900px) {
@@ -227,3 +218,6 @@ section {
 		}
 	}
 }
+
+
+

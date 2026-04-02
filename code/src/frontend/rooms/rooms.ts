@@ -1,32 +1,63 @@
-import {Component, WritableSignal} from '@angular/core';
+import {Component, effect, signal, WritableSignal} from '@angular/core';
 import {RoomService} from '../core/room-service';
 import {AuthService} from '../core/auth-service';
 import {User} from '../../backend/model';
 import {FormControl, ReactiveFormsModule, Validators} from '@angular/forms';
-import {RoomCreation} from '../room-creation/room-creation';
+import {RoomCreation} from './create-room/create-room';
+import {JoinRoom} from './join-room/join-room';
+import {RouterLink} from '@angular/router';
+
+type MemberRoom = { code: string, role: string };
 
 @Component({
   selector: 'app-rooms',
 	imports: [
 		ReactiveFormsModule,
-		RoomCreation
+		RoomCreation,
+		JoinRoom,
+		RouterLink
 	],
   templateUrl: './rooms.html',
   styleUrl: './rooms.scss',
 })
 export class Rooms {
+	protected activePopup: 'create' | 'join' | null = null;
 	protected readonly currentUser: WritableSignal<User | null>;
 
 	// holds the most recently created room code for display
 	protected createdRoomCode?: string | null = null;
 	protected creating = false;
-	protected showAddRoom = false;
+	protected readonly memberRooms = signal<MemberRoom[]>([]);
+	protected readonly roomsLoadError = signal('');
 
 	// Create a control for the room name input
 	protected roomNameControl = new FormControl('', [Validators.required, Validators.minLength(3)]);
 
 	constructor(private roomsService: RoomService, private authService: AuthService) {
 		this.currentUser = this.authService.currentUser;
+
+		effect(() => {
+			const username = this.currentUser()?.username?.trim();
+			if (!username) {
+				this.memberRooms.set([]);
+				this.roomsLoadError.set('');
+				return;
+			}
+			this.fetchMemberRooms(username);
+		});
+	}
+
+	private fetchMemberRooms(username: string) {
+		this.roomsService.getRoomsForMember(username).subscribe({
+			next: (rooms) => {
+				this.memberRooms.set(rooms || []);
+				this.roomsLoadError.set('');
+			},
+			error: () => {
+				this.memberRooms.set([]);
+				this.roomsLoadError.set('Failed to load your rooms.');
+			}
+		});
 	}
 
 	protected newRoom() {
@@ -46,7 +77,7 @@ export class Rooms {
 				next: (res) => {
 					this.createdRoomCode = res.result;
 					this.creating = false;
-					this.showAddRoom = false;
+					this.activePopup = null;
 					this.roomNameControl.reset();
 					console.log('Created room code', res.result);
 				},
@@ -57,11 +88,21 @@ export class Rooms {
 			});
 	}
 
-	protected openAddRoom() {
-		this.showAddRoom = !this.showAddRoom;
+	protected openCreateRoom() {
+		this.activePopup = 'create';
 	}
 
-	onRoomCreated() {
-		this.showAddRoom = false;
+	protected openJoinRoom() {
+		this.activePopup = 'join';
+	}
+
+	protected closePopup() {
+		this.activePopup = null;
+	}
+
+	protected onOverlayClick(event: MouseEvent) {
+		if (event.target === event.currentTarget) {
+			this.closePopup();
+		}
 	}
 }

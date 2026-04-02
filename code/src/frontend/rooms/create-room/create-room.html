@@ -12,8 +12,7 @@
 					id="roomName"
 					type="text"
 					placeholder="e.g. Apartment 3B"
-					autocomplete="off"
-					[disabled]="isLoading">
+					autocomplete="off">
 
 				@if (roomCreationForm.get('roomName'); as roomNameControl) {
 					@if (roomNameControl.touched && roomNameControl.invalid) {
@@ -36,8 +35,7 @@
 					id="roomPictureUrl"
 					type="url"
 					placeholder="https://example.com/image.jpg"
-					autocomplete="off"
-					[disabled]="isLoading">
+					autocomplete="off">
 
 				@if (roomCreationForm.get('roomPictureUrl'); as pictureControl) {
 					@if (pictureControl.touched && pictureControl.invalid) {
@@ -60,7 +58,11 @@
 		</button>
 
 		<nav>
-			<a [routerLink]="['/myrooms']">View my rooms</a>
+			@if (showJoinExistingLink) {
+				<a href="#" (click)="$event.preventDefault(); joinExistingRequested.emit()">Join existing room</a>
+			} @else {
+				<a [routerLink]="['/myrooms']">View my rooms</a>
+			}
 		</nav>
 
 		<hr>

@@ -6,23 +6,22 @@
 
 		<div class="form-grid">
 			<div class="field-group field-group--full">
-				<label for="roomName">Room Name</label>
+				<label for="roomName">Room Code</label>
 				<input
 					formControlName="roomName"
 					id="roomName"
 					type="text"
-					placeholder="e.g. Apartment 3B"
-					autocomplete="off"
-					[disabled]="isLoading">
+					placeholder="e.g. HFAUJC"
+					autocomplete="off">
 
 				@if (roomCreationForm.get('roomName'); as roomNameControl) {
 					@if (roomNameControl.touched && roomNameControl.invalid) {
 						<aside>
 							@if (roomNameControl.hasError('required')) {
-								<span>Room name is required</span>
+								<span>Room code is required</span>
 							}
 							@if (roomNameControl.hasError('minlength')) {
-								<span>Room name must be at least 2 characters</span>
+								<span>Room code must be at least 2 characters</span>
 							}
 						</aside>
 					}
@@ -30,20 +29,20 @@
 			</div>
 		</div>
 
-
-		@if(createRoomError()!=""){
-			<div class="error-msg">
-				<span>{{ createRoomError() }}</span>
-			</div>
-		}
-
+		<div class="error-msg">
+			<span>{{ createRoomError() }}</span>
+		</div>
 
 		<button type="submit" [disabled]="isLoading">
-			{{ isLoading ? 'Requesting to join room...' : 'Join room' }}
+			{{ isLoading ? 'Requesting to join room…' : 'Join room' }}
 		</button>
 
 		<nav>
-			<a [routerLink]="['/myrooms']">View my rooms</a>
+			@if (showCreateRoomLink) {
+				<a href="#" (click)="$event.preventDefault(); createRoomRequested.emit()">Create new room</a>
+			} @else {
+				<a [routerLink]="['/myrooms']">View my rooms</a>
+			}
 		</nav>
 
 		<hr>

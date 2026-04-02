@@ -1,5 +1,4 @@
-
-// Include theming for Angular Material with `mat.theme()`.
+﻿// Include theming for Angular Material with `mat.theme()`.
 // This Sass mixin will define CSS variables that are used for styling Angular Material
 // components according to the Material 3 design spec.
 // Learn more about theming and how to use it for your application's
@@ -45,7 +44,7 @@ body {
 
 /* Global font family */
 * {
-	font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+	font-family: 'Inter', sans-serif;
 }
 
 /* Prevent layout shift during page transitions */
@@ -54,5 +53,3 @@ body {
 	padding: 0;
 	overflow-x: hidden;
 }
-
-

@@ -1,6 +1,6 @@
 import {Component, WritableSignal} from '@angular/core';
 import {AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, Validators} from '@angular/forms';
-import {RouterLink} from '@angular/router';
+import {ActivatedRoute, RouterLink} from '@angular/router';
 import {AuthService} from '../core/auth-service';
 import { SignUpCredentials } from '../../backend/model';
 import { DEFAULT_PROFILE_PICTURE, profileFieldValidators } from '../core/user-form-validation';
@@ -26,6 +26,7 @@ function passwordsMatchValidator(control: AbstractControl): ValidationErrors | n
 export class SignUp {
 // Form controls using FormGroup
 	private readonly sharedValidators = profileFieldValidators(true);
+	protected loginQueryParams: { returnUrl: string } | null = null;
 
 	signUpForm = new FormGroup({
 		username: new FormControl('', [Validators.required,
@@ -45,9 +46,15 @@ export class SignUp {
 
 	// Expose the service signal directly so template updates when service sets errors
 	public signUpError: WritableSignal<string>;
+	private returnUrl = '/homepage';
 
-	constructor(private authService: AuthService) {
+	constructor(private authService: AuthService, private route: ActivatedRoute) {
 		this.signUpError = this.authService.signUpError;
+		const requestedReturn = this.route.snapshot.queryParamMap.get('returnUrl');
+		if (requestedReturn && requestedReturn.startsWith('/')) {
+			this.returnUrl = requestedReturn;
+			this.loginQueryParams = { returnUrl: requestedReturn };
+		}
 	}
 
 	togglePasswordVisibility() {
@@ -72,7 +79,7 @@ export class SignUp {
 				dob: this.signUpForm.value.dob ?? '',
 				profilePicture: profilePicture || DEFAULT_PROFILE_PICTURE
 			};
-			this.authService.signUp(payload);
+			this.authService.signUp(payload, this.returnUrl);
 		} else {
 			this.signUpForm.markAllAsTouched();
 			console.log('Form is invalid');
