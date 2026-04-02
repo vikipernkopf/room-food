@@ -102,9 +102,6 @@
 }
 
 /* Navigation */
-.navbar-nav {
-	gap: 2.5rem;
-}
 
 .navbar-links .nav-link {
 	color: $color-green-4 !important;
@@ -121,16 +118,6 @@
 .navbar-links .nav-link:hover,
 .navbar-links .nav-link.active {
 	color: $color-green-3 !important;
-}
-
-/* Tagline */
-.navbar-text {
-	color: $color-green-5 !important;
-	font-size: 0.9rem;
-	font-weight: 600;
-	line-height: 1.2;
-	margin-left: 1.5rem;
-	white-space: nowrap;
 }
 
 /* Mobile Toggler */

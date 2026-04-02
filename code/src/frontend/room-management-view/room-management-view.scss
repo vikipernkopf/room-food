@@ -58,21 +58,6 @@
 	gap: 8px;
 }
 
-.room-name-field {
-	flex: 1;
-}
-
-/* Angular Material fill style overrides to match sign-up page */
-.room-name-field .mat-mdc-form-field-flex,
-.room-name-field .mdc-text-field--filled {
-	background-color: $color-lighter-gray !important;
-	border-radius: 10px !important;
-}
-
-.room-name-field .mdc-line-ripple {
-	display: none;
-}
-
 /* ===== ROOM IMAGE ===== */
 .room-image-wrapper {
 	position: relative;
@@ -89,22 +74,6 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-}
-
-.thumb-icon {
-	font-size: 52px;
-	width: 52px;
-	height: 52px;
-	color: $color-blue-gray;
-}
-
-.image-edit-btn {
-	position: absolute;
-	bottom: -10px;
-	right: -10px;
-	background: $color-white !important;
-	border: 1px solid $color-light-gray;
-	box-shadow: 0 2px 6px $color-overlay-10;
 }
 
 /* ===== INFO ROWS (Room code, Password) ===== */
@@ -133,41 +102,6 @@
 	border-radius: 6px;
 	letter-spacing: 2px;
 	font-family: 'Inter', sans-serif;
-}
-
-.password-value {
-	letter-spacing: 3px;
-	font-size: 16px;
-}
-
-.icon-btn {
-	color: $color-gray;
-	width: 32px;
-	height: 32px;
-	line-height: 32px;
-}
-
-.icon-btn mat-icon {
-	font-size: 18px;
-	width: 18px;
-	height: 18px;
-}
-
-/* ===== EDIT BUTTON (global) ===== */
-.edit-btn {
-	color: $color-gray;
-	width: 34px;
-	height: 34px;
-}
-
-.edit-btn mat-icon {
-	font-size: 18px;
-	width: 18px;
-	height: 18px;
-}
-
-.edit-btn:hover {
-	color: $color-orange-2;
 }
 
 /* ===== SECTION TITLE ===== */
@@ -214,14 +148,6 @@
 	gap: 10px;
 	flex: 1;
 	min-width: 0;
-}
-
-.member-icon {
-	font-size: 24px;
-	width: 24px;
-	height: 24px;
-	color: $color-gray;
-	flex-shrink: 0;
 }
 
 .member-username {
@@ -359,8 +285,3 @@
 		display: block;
 	}
 }
-
-
-
-
-
