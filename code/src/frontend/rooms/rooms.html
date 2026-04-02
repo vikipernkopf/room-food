@@ -1,6 +1,6 @@
 <div class="room-header">
 	<h1>Rooms</h1>
-	<button class="btn-join" [routerLink]="['/room/join']">Join Room</button>
+	<button class="btn-join" (click)="openJoinRoom()">Join Room</button>
 </div>
 <div class="room-containers">
 	<div class="btn-container">
@@ -34,6 +34,18 @@
 				<button class="btn-close" type="button" (click)="openAddRoom()">x</button>
 			</div>
 			<app-room-creation></app-room-creation>
+		</div>
+	</div>
+}
+
+@if(showJoinRoom) {
+	<div class="modal-overlay" (click)="openJoinRoom()">
+		<div class="modal-card" (click)="$event.stopPropagation()">
+			<div class="modal-header">
+				<h2>Join Room</h2>
+				<button class="btn-close" type="button" (click)="openJoinRoom()">x</button>
+			</div>
+			<app-join-room></app-join-room>
 		</div>
 	</div>
 }

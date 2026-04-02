@@ -19,10 +19,10 @@
 					@if (roomNameControl.touched && roomNameControl.invalid) {
 						<aside>
 							@if (roomNameControl.hasError('required')) {
-								<span>Room name is required</span>
+								<span>Room code is required</span>
 							}
 							@if (roomNameControl.hasError('minlength')) {
-								<span>Room name must be at least 2 characters</span>
+								<span>Room code must be at least 2 characters</span>
 							}
 						</aside>
 					}
@@ -30,13 +30,9 @@
 			</div>
 		</div>
 
-
-		@if(createRoomError()!=""){
-			<div class="error-msg">
-				<span>{{ createRoomError() }}</span>
-			</div>
-		}
-
+		<div class="error-msg">
+			<span>{{ createRoomError() }}</span>
+		</div>
 
 		<button type="submit" [disabled]="isLoading">
 			{{ isLoading ? 'Requesting to join room...' : 'Join room' }}

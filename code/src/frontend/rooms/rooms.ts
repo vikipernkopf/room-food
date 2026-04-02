@@ -3,7 +3,8 @@ import {RoomService} from '../core/room-service';
 import {AuthService} from '../core/auth-service';
 import {User} from '../../backend/model';
 import {FormControl, ReactiveFormsModule, Validators} from '@angular/forms';
-import {RoomCreation} from '../room-creation/room-creation';
+import {RoomCreation} from './create-room/create-room';
+import {JoinRoom} from './join-room/join-room';
 import {RouterLink} from '@angular/router';
 
 type MemberRoom = { code: string, role: string };
@@ -13,6 +14,7 @@ type MemberRoom = { code: string, role: string };
 	imports: [
 		ReactiveFormsModule,
 		RoomCreation,
+		JoinRoom,
 		RouterLink
 	],
   templateUrl: './rooms.html',
@@ -25,6 +27,7 @@ export class Rooms {
 	protected createdRoomCode?: string | null = null;
 	protected creating = false;
 	protected showAddRoom = false;
+	protected showJoinRoom = false;
 	protected readonly memberRooms = signal<MemberRoom[]>([]);
 	protected readonly roomsLoadError = signal('');
 
@@ -88,6 +91,10 @@ export class Rooms {
 
 	protected openAddRoom() {
 		this.showAddRoom = !this.showAddRoom;
+	}
+
+	protected openJoinRoom() {
+		this.showJoinRoom = !this.showJoinRoom;
 	}
 
 	onRoomCreated() {

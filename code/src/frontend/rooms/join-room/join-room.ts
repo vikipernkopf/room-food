@@ -1,8 +1,8 @@
 import { Component, WritableSignal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
-import { AuthService } from '../core/auth-service';
-import { RoomService } from '../core/room-service';
+import { AuthService } from '../../core/auth-service';
+import { RoomService } from '../../core/room-service';
 import { CommonModule } from '@angular/common';
 import {StatusCodes} from 'http-status-codes';
 

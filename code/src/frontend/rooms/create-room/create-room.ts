@@ -1,10 +1,10 @@
 import { Component, WritableSignal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
-import { AuthService } from '../core/auth-service';
-import { RoomService } from '../core/room-service';
+import { AuthService } from '../../core/auth-service';
+import { RoomService } from '../../core/room-service';
 import { CommonModule } from '@angular/common';
-import {User} from '../../backend/model';
+import {User} from '../../../backend/model';
 
 const DEFAULT_ROOM_PICTURE =
 	'https://i.imgur.com/tdi3NGa_d.webp?maxwidth=760&fidelity=grand';
@@ -17,8 +17,8 @@ const DEFAULT_ROOM_PICTURE =
 		RouterLink,
 		CommonModule
 	],
-  templateUrl: './room-creation.html',
-  styleUrl: './room-creation.scss',
+  templateUrl: './create-room.html',
+  styleUrl: './create-room.scss',
 })
 export class RoomCreation {
 	// Form controls using FormGroup

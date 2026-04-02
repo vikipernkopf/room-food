@@ -4,7 +4,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 import { provideLocationMocks } from '@angular/common/testing';
 
-import { RoomCreation } from './room-creation';
+import { RoomCreation } from './create-room';
 
 describe('RoomCreation', () => {
   let component: RoomCreation;

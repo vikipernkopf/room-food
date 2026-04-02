@@ -8,8 +8,8 @@ import { Profile } from '../../frontend/profile/profile';
 import {Rooms} from '../../frontend/rooms/rooms';
 import { RoomManagementView } from '../../frontend/room-management-view/room-management-view';
 import {ErrorPage} from '../../frontend/error-page/error-page';
-import {RoomCreation} from '../../frontend/room-creation/room-creation';
-import {JoinRoom} from '../../frontend/join-room/join-room';
+import {RoomCreation} from '../../frontend/rooms/create-room/create-room';
+import {JoinRoom} from '../../frontend/rooms/join-room/join-room';
 import {Calendar} from '../../frontend/room-view/calendar/calendar';
 
 
