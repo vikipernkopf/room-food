@@ -14,6 +14,12 @@ $color-bluish-gray: #a0aec0;
 	font-family: 'Inter', sans-serif;
 }
 
+:host {
+	display: block;
+	height: calc(100dvh - 68px);
+	overflow: hidden;
+}
+
 .error-msg {
 	display: flex;
 	align-items: center;
@@ -29,7 +35,8 @@ section {
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	min-height: 100vh;
+	height: 100%;
+	overflow: hidden;
 	background-color: $color-still-gray-but-not-as-gray;
 }
 
