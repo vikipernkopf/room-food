@@ -1,14 +1,16 @@
+﻿@use '../styles/theme' as *;
+
 /* ===== PAGE WRAPPER ===== */
 .page-wrapper {
 	height: 100vh;
 	width: 100vw;
-	background-color: #eaecf2;
+	background-color: $color-lighter-gray;
 	display: flex;
 	align-items: stretch;
 	justify-content: stretch;
 	padding: 0;
 	margin: 0;
-	font-family: 'Roboto', sans-serif;
+	font-family: 'Inter', sans-serif;
 	box-sizing: border-box;
 }
 
@@ -20,7 +22,7 @@
 	padding: 48px 56px;
 	border-radius: 0 !important;
 	box-shadow: none !important;
-	background: #ffffff !important;
+	background: $color-white !important;
 	width: 100%;
 	height: 100%;
 	box-sizing: border-box;
@@ -63,7 +65,7 @@
 /* Angular Material fill style overrides to match sign-up page */
 .room-name-field .mat-mdc-form-field-flex,
 .room-name-field .mdc-text-field--filled {
-	background-color: #f0f2f7 !important;
+	background-color: $color-lighter-gray !important;
 	border-radius: 10px !important;
 }
 
@@ -81,9 +83,9 @@
 .room-image-placeholder {
 	width: 100%;
 	height: 100%;
-	background-color: #f0f2f7;
+	background-color: $color-lighter-gray;
 	border-radius: 12px;
-	border: 2px solid #dde0ea;
+	border: 2px solid $color-light-gray;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -93,16 +95,16 @@
 	font-size: 52px;
 	width: 52px;
 	height: 52px;
-	color: #b0b7cc;
+	color: $color-blue-gray;
 }
 
 .image-edit-btn {
 	position: absolute;
 	bottom: -10px;
 	right: -10px;
-	background: #ffffff !important;
-	border: 1px solid #dde0ea;
-	box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+	background: $color-white !important;
+	border: 1px solid $color-light-gray;
+	box-shadow: 0 2px 6px $color-overlay-10;
 }
 
 /* ===== INFO ROWS (Room code, Password) ===== */
@@ -114,23 +116,23 @@
 
 .info-label {
 	font-size: 14px;
-	color: #5a5e6b;
+	color: $color-label-gray;
 	font-weight: 500;
 	white-space: nowrap;
 }
 
 .info-value {
 	font-size: 14px;
-	color: #1a1d27;
+	color: $color-text-main;
 	font-weight: 600;
 }
 
 .code-value {
-	background-color: #f0f2f7;
+	background-color: $color-lighter-gray;
 	padding: 3px 10px;
 	border-radius: 6px;
 	letter-spacing: 2px;
-	font-family: 'Courier New', monospace;
+	font-family: 'Inter', sans-serif;
 }
 
 .password-value {
@@ -139,7 +141,7 @@
 }
 
 .icon-btn {
-	color: #8a8fa3;
+	color: $color-gray;
 	width: 32px;
 	height: 32px;
 	line-height: 32px;
@@ -153,7 +155,7 @@
 
 /* ===== EDIT BUTTON (global) ===== */
 .edit-btn {
-	color: #8a8fa3;
+	color: $color-gray;
 	width: 34px;
 	height: 34px;
 }
@@ -165,14 +167,14 @@
 }
 
 .edit-btn:hover {
-	color: #f07c21;
+	color: $color-orange-2;
 }
 
 /* ===== SECTION TITLE ===== */
 .section-title {
 	font-size: 16px;
 	font-weight: 600;
-	color: #1a1d27;
+	color: $color-text-main;
 	margin: 0 0 8px 0;
 }
 
@@ -196,14 +198,14 @@
 	gap: 12px;
 	padding: 12px 14px;
 	border-radius: 10px;
-	border: 1.5px solid #dde0ea;
-	background-color: #f8f9fc;
+	border: 1.5px solid $color-light-gray;
+	background-color: $color-input-bg;
 	transition: all 0.2s ease;
 }
 
 .member-item:hover {
-	border-color: #c4c9db;
-	background-color: #f0f2f7;
+	border-color: $color-blue-gray;
+	background-color: $color-lighter-gray;
 }
 
 .member-info {
@@ -218,14 +220,14 @@
 	font-size: 24px;
 	width: 24px;
 	height: 24px;
-	color: #8a8fa3;
+	color: $color-gray;
 	flex-shrink: 0;
 }
 
 .member-username {
 	font-size: 14px;
 	font-weight: 600;
-	color: #1a1d27;
+	color: $color-text-main;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -233,8 +235,8 @@
 
 .member-role {
 	font-size: 12px;
-	color: #8a8fa3;
-	background-color: #e8eaf3;
+	color: $color-gray;
+	background-color: $color-lighter-gray;
 	padding: 2px 8px;
 	border-radius: 4px;
 	white-space: nowrap;
@@ -242,7 +244,7 @@
 }
 
 .action-btn {
-	color: #8a8fa3;
+	color: $color-gray;
 	width: 32px;
 	height: 32px;
 	flex-shrink: 0;
@@ -256,36 +258,36 @@
 }
 
 .action-btn:hover {
-	color: #f07c21;
-	background-color: rgba(240, 124, 33, 0.08);
+	color: $color-orange-2;
+	background-color: rgba($color-orange-2, 0.08);
 }
 
 .remove-btn {
-	color: #f44336;
+	color: $color-red;
 }
 
 .remove-btn:hover {
 	color: #da190b;
-	background-color: rgba(244, 67, 54, 0.08);
+	background-color: rgba($color-red, 0.08);
 }
 
 .accept-btn {
-	color: #4caf50;
+	color: $color-green-2;
 	font-size: 18px;
 }
 
 .accept-btn:hover {
-	background-color: rgba(76, 175, 80, 0.08);
-	color: #45a049;
+	background-color: rgba($color-green-2, 0.08);
+	color: $color-green-3;
 }
 
 .reject-btn {
-	color: #f44336;
+	color: $color-red;
 	font-size: 18px;
 }
 
 .reject-btn:hover {
-	background-color: rgba(244, 67, 54, 0.08);
+	background-color: rgba($color-red, 0.08);
 	color: #da190b;
 }
 
@@ -297,14 +299,14 @@
 	gap: 12px;
 	padding: 12px 14px;
 	border-radius: 10px;
-	border: 1.5px solid #dde0ea;
-	background-color: #f8f9fc;
+	border: 1.5px solid $color-light-gray;
+	background-color: $color-input-bg;
 	transition: all 0.2s ease;
 }
 
 .request-item:hover {
-	border-color: #c4c9db;
-	background-color: #f0f2f7;
+	border-color: $color-blue-gray;
+	background-color: $color-lighter-gray;
 }
 
 .action-buttons {
@@ -315,31 +317,31 @@
 }
 
 .accept-btn {
-	color: #4caf50;
+	color: $color-green-2;
 }
 
 .accept-btn:hover {
-	background-color: rgba(76, 175, 80, 0.08);
-	color: #45a049;
+	background-color: rgba($color-green-2, 0.08);
+	color: $color-green-3;
 }
 
 .reject-btn {
-	color: #f44336;
+	color: $color-red;
 }
 
 .reject-btn:hover {
-	background-color: rgba(244, 67, 54, 0.08);
+	background-color: rgba($color-red, 0.08);
 	color: #da190b;
 }
 
 .empty-message {
 	padding: 16px;
 	text-align: center;
-	color: #8a8fa3;
+	color: $color-gray;
 	font-size: 14px;
-	background-color: #f8f9fc;
+	background-color: $color-input-bg;
 	border-radius: 10px;
-	border: 1.5px solid #dde0ea;
+	border: 1.5px solid $color-light-gray;
 }
 
 /* ===== RESPONSIVE ===== */
@@ -357,3 +359,8 @@
 		display: block;
 	}
 }
+
+
+
+
+

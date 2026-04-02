@@ -1,16 +1,4 @@
-// Green Palette
-$color-green-1: #6FC276;
-$color-green-2: #4CAF50;
-$color-green-3: #2E7D32;
-$color-green-4: #105B37;
-$color-green-5: #0A3D23;
-
-// Orange Palette
-$color-orange-1: #C85A04;
-$color-orange-2: #E67E22;
-$color-orange-3: #FF9800;
-$color-orange-4: #FFB74D;
-$color-orange-5: #FFCC80;
+﻿@use '../styles/theme' as *;
 
 .room-header {
 	display: flex;
@@ -18,20 +6,20 @@ $color-orange-5: #FFCC80;
 	align-items: center;
 	padding: 10px;
 	margin-bottom: 20px;
-	border-bottom: 1px solid #eee;
+	border-bottom: 1px solid $color-lighter-gray;
 
 	h1 {
 		margin: 0;
 		font-size: 40px;
-		color: #333;
+		color: $color-text-main;
 	}
 
 	.btn-join {
 		font-size: 20px;
 		width: 13rem;
 		padding: 8px 16px;
-		background-color: #08733F;
-		color: white;
+		background-color: $color-green-4;
+		color: $color-white;
 		border: none;
 		border-radius: 3px;
 		font-weight: 600;
@@ -39,7 +27,7 @@ $color-orange-5: #FFCC80;
 		transition: background 0.2s;
 
 		&:hover {
-			background-color: #065a31;
+			background-color: $color-green-4;
 		}
 	}
 }
@@ -61,7 +49,6 @@ $color-orange-5: #FFCC80;
 	gap: 1rem;
 
 	.btn-add {
-		background-color: #fafaf9;
 		color: $color-orange-2;
 		font-size: 5rem;
 
@@ -71,11 +58,11 @@ $color-orange-5: #FFCC80;
 
 		border-radius: 1rem;
 		border: none;
-		box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+		box-shadow: 0 2px 6px $color-overlay-20;
 		cursor: pointer;
 
 		&:hover {
-			background-color: #f1f0ef;
+			background-color: $color-lighter-gray;
 		}
 	}
 }
@@ -83,8 +70,8 @@ $color-orange-5: #FFCC80;
 .room-tile {
 	width: 14rem;
 	min-height: 8rem;
-	background: #fafaf9;
-	border: 1px solid #eee;
+	background: $color-input-bg;
+	border: 1px solid $color-light-gray;
 	border-radius: 1rem;
 	padding: 0.8rem;
 	display: flex;
@@ -122,7 +109,7 @@ $color-orange-5: #FFCC80;
 	left: 0 !important;
 	width: 100vw !important;
 	height: 100vh !important;
-	background-color: rgba(0, 0, 0, 0.4) !important;
+	background-color: $color-overlay-40 !important;
 	display: flex !important;
 	justify-content: center;
 	align-items: center;
@@ -144,7 +131,7 @@ $color-orange-5: #FFCC80;
 	align-items: center;
 	margin-bottom: 0.9rem;
 	padding-bottom: 0.6rem;
-	border-bottom: 1px solid #ddd;
+	border-bottom: 1px solid $color-light-gray;
 
 	h2 {
 		margin: 0;
@@ -155,7 +142,7 @@ $color-orange-5: #FFCC80;
 
 .btn-close {
 	border: none;
-	background: transparent;
+	background: $color-transparent;
 	font-size: 1.3rem;
 	line-height: 1;
 	color: $color-orange-1;
@@ -164,6 +151,6 @@ $color-orange-5: #FFCC80;
 	border-radius: 0.3rem;
 
 	&:hover {
-		background: #fff3e8;
+		background: $color-orange-5;
 	}
 }

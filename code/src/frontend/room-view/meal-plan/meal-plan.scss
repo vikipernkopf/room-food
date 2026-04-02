@@ -1,23 +1,4 @@
-// Green Palette
-$color-green-1: #6FC276;
-$color-green-2: #4CAF50;
-$color-green-3: #2E7D32;
-$color-green-4: #105B37;
-$color-green-5: #0A3D23;
-
-// Orange Palette
-$color-orange-1: #C85A04;
-$color-orange-2: #E67E22;
-$color-orange-3: #FF9800;
-$color-orange-4: #FFB74D;
-$color-orange-5: #FFCC80;
-
-// Login Page Colors
-$color-bg: #F0F4F8;
-$color-white: #ffffff;
-$color-text: #4A5568;
-$color-text-light: #A0AEC0;
-$color-orange-btn: #F2791D;
+﻿@use '../../styles/theme' as *;
 
 * {
 	font-family: 'Inter', sans-serif;
@@ -27,8 +8,8 @@ $color-orange-btn: #F2791D;
 	background: $color-white;
 	padding: 1.5rem;
 	border-radius: 16px;
-	border: 1.5px solid $color-text-light;
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+	border: 1.5px solid $color-blue-gray;
+	box-shadow: 0 2px 8px $color-overlay-4;
 	transition: all 0.3s ease;
 	position: relative;
 	overflow: hidden;
@@ -49,7 +30,7 @@ $color-orange-btn: #F2791D;
 
 	&:hover {
 		transform: translateY(-4px);
-		box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+		box-shadow: 0 8px 20px $color-overlay-10;
 		border-color: $color-orange-2;
 	}
 
@@ -59,7 +40,7 @@ $color-orange-btn: #F2791D;
 
 
 	h3 {
-		color: $color-text;
+		color: $color-text-main;
 		font-size: 1.3rem;
 		font-weight: 700;
 		margin: 0 0 1rem 0;
@@ -70,14 +51,14 @@ $color-orange-btn: #F2791D;
 
 	p {
 		margin: 0.75rem 0;
-		color: $color-text;
+		color: $color-text-main;
 		font-size: 0.95rem;
 		line-height: 1.5;
 		display: flex;
 		align-items: center;
 
 		strong {
-			color: $color-text;
+			color: $color-text-main;
 			font-weight: 600;
 			min-width: 100px;
 			display: inline-block;
@@ -95,7 +76,7 @@ $color-orange-btn: #F2791D;
 		padding: 0.55rem 0.95rem;
 		border: 1px solid $color-orange-2;
 		border-radius: 10px;
-		background: transparent;
+		background: $color-transparent;
 		color: $color-orange-2;
 		font-weight: 600;
 		cursor: pointer;
@@ -111,7 +92,7 @@ $color-orange-btn: #F2791D;
 		padding: 0.55rem 0.95rem;
 		border: 1px solid $color-orange-1;
 		border-radius: 10px;
-		background: transparent;
+		background: $color-transparent;
 		color: $color-orange-1;
 		font-weight: 600;
 		cursor: pointer;
@@ -148,11 +129,10 @@ $color-orange-btn: #F2791D;
 p:not(.meal-plan p) {
 	text-align: center;
 	padding: 2rem;
-	color: $color-text;
+	color: $color-text-main;
 	font-size: 1rem;
 	background: $color-white;
 	border-radius: 12px;
-	border: 1.5px dashed $color-text-light;
+	border: 1.5px dashed $color-blue-gray;
 	margin: 2rem;
 }
-

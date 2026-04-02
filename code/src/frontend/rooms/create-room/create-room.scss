@@ -1,28 +1,4 @@
-// Green Palette
-$color-green-1: #6FC276;
-$color-green-2: #4CAF50;
-$color-green-3: #2E7D32;
-$color-green-4: #105B37;
-$color-green-5: #0A3D23;
-
-// Orange Palette
-$color-orange-1: #C85A04;
-$color-orange-2: #E67E22;
-$color-orange-3: #FF9800;
-$color-orange-4: #FFB74D;
-$color-orange-5: #FFCC80;
-
-$color-dark-orange: #c85a04;
-$color-primary-orange: #f2791d;
-$color-peach-glow: #ffd18c;
-$color-text-main: #2d3748;
-$color-label-gray: #4a5568;
-$color-input-bg: #f8fafc;
-$color-shade-gray: #e2e8f0;
-$color-gray: #718096;
-$color-still-gray-but-not-as-gray: #f1f5f9;
-$color-reddish: #e53e3e;
-$color-bluish-gray: #a0aec0;
+﻿@use '../../styles/theme' as *;
 
 * {
 	font-family: 'Inter', sans-serif;
@@ -33,7 +9,7 @@ $color-bluish-gray: #a0aec0;
 	align-items: center;
 	justify-content: center;
 	min-height: 1.25rem;
-	color: $color-reddish;
+	color: $color-red;
 	font-size: 0.85rem;
 	font-weight: 500;
 	margin-top: 0.4rem;
@@ -45,24 +21,24 @@ section {
 	align-items: flex-start;
 	min-height: calc(100vh - 4.5rem);
 	padding: 4.35rem 1rem 1.2rem;
-	background-color: $color-still-gray-but-not-as-gray;
+	background-color: $color-lighter-gray;
 	box-sizing: border-box;
 }
 
 :host-context(.modal-card) section {
 	min-height: 0;
 	padding: 0;
-	background-color: transparent;
+	background-color: $color-transparent;
 }
 
 .login-container {
-	background: white;
+	background: $color-white;
 	padding: 1.6rem;
 	border-radius: 24px;
 	border: 1px solid $color-input-bg;
 	width: 100%;
 	max-width: 860px;
-	box-shadow: 0 10px 25px rgba(0, 0, 0, 0.03);
+	box-shadow: 0 10px 25px $color-overlay-3;
 
 	:host-context(.modal-card) & {
 		max-width: 100%;
@@ -78,7 +54,7 @@ section {
 	header {
 		margin-bottom: 0.85rem;
 		h4 {
-			color: $color-primary-orange;
+			color: $color-orange-2;
 			font-size: 1.55rem;
 			margin: 0;
 			font-weight: 700;
@@ -90,8 +66,8 @@ section {
 		padding: 0.75rem 1rem;
 		border: none;
 		border-radius: 12px;
-		background-color: $color-primary-orange;
-		color: white;
+		background-color: $color-orange-2;
+		color: $color-white;
 		font-size: 1rem;
 		font-weight: 600;
 		cursor: pointer;
@@ -99,7 +75,7 @@ section {
 		margin-top: 1.2rem;
 
 		&:hover:not(:disabled) {
-			background-color: $color-dark-orange;
+			background-color: $color-orange-1;
 		}
 
 		&:disabled {
@@ -114,13 +90,13 @@ section {
 		margin-top: 1rem;
 
 		a {
-			color: $color-primary-orange;
+			color: $color-orange-2;
 			text-decoration: none;
 			font-size: 0.9rem;
 			transition: color 0.3s ease;
 
 			&:hover {
-				color: $color-dark-orange;
+				color: $color-orange-1;
 				text-decoration: underline;
 			}
 		}
@@ -129,7 +105,7 @@ section {
 	hr {
 		margin: 1.5rem 0 0 0;
 		border: none;
-		border-top: 1px solid $color-shade-gray;
+		border-top: 1px solid $color-light-gray;
 	}
 }
 
@@ -162,7 +138,7 @@ section {
 	input,
 	textarea {
 		padding: 0.65rem 0.85rem;
-		border: 1px solid $color-shade-gray;
+		border: 1px solid $color-light-gray;
 		border-radius: 10px;
 		background-color: $color-input-bg;
 		color: $color-text-main;
@@ -171,17 +147,17 @@ section {
 
 		&:focus {
 			outline: none;
-			border-color: $color-primary-orange;
-			background-color: white;
+			border-color: $color-orange-2;
+			background-color: $color-white;
 		}
 
 		&:disabled {
-			background-color: $color-shade-gray;
+			background-color: $color-light-gray;
 			cursor: not-allowed;
 		}
 
 		&::placeholder {
-			color: $color-bluish-gray;
+			color: $color-blue-gray;
 		}
 	}
 
@@ -192,7 +168,7 @@ section {
 
 	aside {
 		margin-top: 0.3rem;
-		color: $color-reddish;
+		color: $color-red;
 		font-size: 0.8rem;
 		font-weight: 500;
 
@@ -201,4 +177,3 @@ section {
 		}
 	}
 }
-
