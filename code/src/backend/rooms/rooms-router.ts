@@ -216,6 +216,7 @@ roomsRouter.post("/room", async (req, res): Promise<void> => {
 		unit.complete(false);
 		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json();
 		console.log("Failed to create room");
+		console.error(error);
 	}
 });
 

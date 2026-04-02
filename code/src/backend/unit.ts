@@ -94,6 +94,7 @@ class DB {
 		   	constraint pk_code primary key (code)
 	   ) strict`
     );
+	DB.migrateRoomTableToProfilePicture(connection);
     connection.exec(
       `create table if not exists User
             (
@@ -167,6 +168,15 @@ class DB {
     ); //!!!!!!!!!!! add a recipeId foreign key instead of name
 
   DB.migrateMealTableToIdIdentity(connection);
+  }
+
+  private static migrateRoomTableToProfilePicture(connection: BetterSqlite3.Database): void {
+    const columns = connection.prepare(`pragma table_info(Room)`).all() as Array<{ name: string }>;
+    const existingColumns = new Set(columns.map((column) => column.name));
+
+    if (!existingColumns.has('profile_picture')) {
+      connection.exec(`alter table Room add column profile_picture text;`);
+    }
   }
 
   private static migrateUserTableToProfileColumns(connection: BetterSqlite3.Database): void {
