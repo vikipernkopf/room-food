@@ -77,7 +77,7 @@ export class RoomCreation {
 					// Navigate to the room or rooms list
 					console.log(response);
 					// noinspection JSIgnoredPromiseFromCall
-					this.router.navigate([`/bla/calendar/${response.result}`]);
+					this.router.navigate([`/calendar/${response.result}`]);
 				},
 				error: (err) => {
 					this.setLoadingState(false);
