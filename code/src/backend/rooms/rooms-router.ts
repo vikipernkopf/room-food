@@ -5,6 +5,28 @@ import {RoomsService} from './rooms-service';
 
 export const roomsRouter = express.Router();
 
+roomsRouter.get('/rooms/member/:username', async (req, res): Promise<void> => {
+	const { username } = req.params;
+
+	if (!username) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Username is required' });
+		return;
+	}
+
+	const unit = new Unit(true);
+	try {
+		const roomsService = new RoomsService(unit);
+		const rooms = roomsService.getRoomsPerMember(username);
+
+		unit.complete();
+		res.status(StatusCodes.OK).json(rooms || []);
+	} catch (error) {
+		unit.complete();
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to fetch user rooms' });
+		console.error('Error fetching rooms for user:', username, error);
+	}
+});
+
 // More specific routes first
 roomsRouter.get("/room/:code/members", async (req, res): Promise<void> => {
 	const { code } = req.params;

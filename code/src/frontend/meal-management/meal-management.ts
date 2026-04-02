@@ -167,5 +167,30 @@ export class MealManagement implements OnChanges {
 			}
 		}
 	}
+
+	protected deleteMeal(): void {
+		this.clearErrors();
+
+		const editMealId = this.mealToEdit?.id;
+		if (!editMealId) {
+			this.mealService.saveError.set('Unable to delete meal: missing meal id');
+			return;
+		}
+
+		this.isSubmitting = true;
+		this.mealService.deleteMeal(editMealId).subscribe({
+			next: () => {
+				this.isSubmitting = false;
+				this.mealService.saveError.set('');
+				this.mealSaved.emit();
+				this.closePopup();
+			},
+			error: (err) => {
+				this.isSubmitting = false;
+				console.error('Error deleting meal:', err);
+				this.mealService.saveError.set('Unable to delete meal: ' + (err.error?.error || err.message || 'Unknown error'));
+			}
+		});
+	}
 }
 

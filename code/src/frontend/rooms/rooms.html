@@ -1,15 +1,40 @@
 <div class="room-header">
 	<h1>Rooms</h1>
-	<button class="btn-join">Join Room</button>
+	<button class="btn-join" [routerLink]="['/room/join']">Join Room</button>
 </div>
 <div class="room-containers">
-	<button class="btn-add" (click)="openAddRoom()"> +
-	</button>
+	<div class="btn-container">
+		<button class="btn-add room-tile" (click)="openAddRoom()"> +
+		</button>
+	</div>
+
+	<div class="room-container">
+		@for (room of memberRooms(); track room.code) {
+			<div class="room-tile">
+				<p class="room-code">{{ room.code }}</p>
+				<p class="room-role">{{ room.role }}</p>
+				<div class="room-actions">
+					<a [routerLink]="['/bla/calendar', room.code]">Open</a>
+					<a [routerLink]="['/room/manage', room.code]">Manage</a>
+				</div>
+			</div>
+		}
+	</div>
 </div>
 
+@if (roomsLoadError()) {
+	<p>{{ roomsLoadError() }}</p>
+}
+
 @if(showAddRoom) {
-	<div>
-		<app-room-creation></app-room-creation>
+	<div class="modal-overlay" (click)="openAddRoom()">
+		<div class="modal-card" (click)="$event.stopPropagation()">
+			<div class="modal-header">
+				<h2>Create Room</h2>
+				<button class="btn-close" type="button" (click)="openAddRoom()">x</button>
+			</div>
+			<app-room-creation></app-room-creation>
+		</div>
 	</div>
 }
 

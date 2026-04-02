@@ -44,9 +44,16 @@
 			</div>
 		</div>
 
-		<button mat-flat-button type="button" class="save-btn" (click)="saveMeal()" [disabled]="isSubmitting">
-			{{ isEditMode ? 'Update Meal' : 'Save Meal' }}
-		</button>
+		<div class="action-row">
+			<button mat-flat-button type="button" class="save-btn" (click)="saveMeal()" [disabled]="isSubmitting">
+				{{ isEditMode ? 'Update Meal' : 'Save Meal' }}
+			</button>
+			@if (isEditMode) {
+				<button mat-stroked-button type="button" class="delete-btn" (click)="deleteMeal()" [disabled]="isSubmitting">
+					Delete Meal
+				</button>
+			}
+		</div>
 		@if (showError) {
 			<div class="error-text">Please fill out all the fields</div>
 		}

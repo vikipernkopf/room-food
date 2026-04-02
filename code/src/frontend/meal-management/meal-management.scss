@@ -12,6 +12,10 @@
 	display: block;
 }
 
+.modal-title {
+	margin-bottom: 1rem !important;
+}
+
 .popup-bubble {
 	position: relative;
 	background-color: #fff2dd !important;
@@ -106,12 +110,32 @@
 		animation: errorShake 0.2s ease-in-out 0s 2;
 	}
 
+	.action-row {
+		display: flex;
+		gap: 0.7rem;
+		align-items: center;
+		margin-top: 0.8rem;
+	}
+
 	.save-btn {
 		background-color: #f48f05 !important;
 		color: white !important;
 		padding: 10px 25px !important;
 		border-radius: 4px;
 		align-self: flex-start;
+		margin-top: 0;
+
+		&:disabled {
+			opacity: 0.65;
+			cursor: not-allowed;
+		}
+	}
+
+	.delete-btn {
+		border-color: #c85a04 !important;
+		color: #c85a04 !important;
+		padding: 8px 20px !important;
+		border-radius: 4px;
 
 		&:disabled {
 			opacity: 0.65;

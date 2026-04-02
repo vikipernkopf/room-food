@@ -15,9 +15,7 @@ $color-orange-5: #FFCC80;
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	padding: 10px 0;
-	padding-left: 10px;
-	padding-right: 10px;
+	padding: 10px;
 	margin-bottom: 20px;
 	border-bottom: 1px solid #eee;
 
@@ -45,16 +43,26 @@ $color-orange-5: #FFCC80;
 	}
 }
 
+.room-container {
+	margin-top: 2rem;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	gap: 1rem;
+}
+
 .room-containers{
 	padding-left: 3rem;
 	padding-top: 1.3rem;
+	display: flex;
+	flex-wrap: wrap;
+	flex-direction: column;
+	gap: 1rem;
 
 	.btn-add {
 		background-color: #fafaf9;
 		color: $color-orange-2;
 		font-size: 5rem;
-		width: 20rem;
-		height: 13rem;
 
 		display: flex;
 		justify-content: center;
@@ -71,6 +79,42 @@ $color-orange-5: #FFCC80;
 	}
 }
 
+.room-tile {
+	width: 14rem;
+	min-height: 8rem;
+	background: #fafaf9;
+	border: 1px solid #eee;
+	border-radius: 1rem;
+	padding: 0.8rem;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.room-code {
+	margin: 0;
+	font-size: 1.1rem;
+	font-weight: 700;
+	color: $color-green-4;
+}
+
+.room-role {
+	margin: 0.3rem 0 0;
+	font-size: 0.9rem;
+	color: $color-orange-1;
+}
+
+.room-actions {
+	display: flex;
+	gap: 0.75rem;
+
+	a {
+		color: $color-green-3;
+		text-decoration: none;
+		font-weight: 600;
+	}
+}
+
 .modal-overlay {
 	position: fixed !important;
 	top: 0 !important;
@@ -78,7 +122,6 @@ $color-orange-5: #FFCC80;
 	width: 100vw !important;
 	height: 100vh !important;
 	background-color: rgba(0, 0, 0, 0.4) !important;
-	backdrop-filter: blur(4px);
 	display: flex !important;
 	justify-content: center;
 	align-items: center;
@@ -86,24 +129,40 @@ $color-orange-5: #FFCC80;
 }
 
 .modal-card {
-	height: 21rem;
-	width: 34rem;
-	background-color: #fff ;
-	border-radius: 1rem ;
-
-	.create-room{
-		display: flex;
-		justify-content: center;
-		font-size: 2.7rem;
-		border-bottom: 1px solid #ddd;
-		padding-bottom: 10px;
-		margin-bottom: 5px;
-	}
-
-
+	width: min(34rem, calc(100vw - 2rem));
+	max-height: calc(100vh - 2rem);
+	overflow: auto;
+	background-color: #fff;
+	border-radius: 1rem;
+	padding: 1rem 1rem 1.2rem;
 }
 
+.modal-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 0.9rem;
+	padding-bottom: 0.6rem;
+	border-bottom: 1px solid #ddd;
 
+	h2 {
+		margin: 0;
+		font-size: 1.5rem;
+		color: $color-green-4;
+	}
+}
 
+.btn-close {
+	border: none;
+	background: transparent;
+	font-size: 1.3rem;
+	line-height: 1;
+	color: $color-orange-1;
+	cursor: pointer;
+	padding: 0.2rem 0.4rem;
+	border-radius: 0.3rem;
 
-
+	&:hover {
+		background: #fff3e8;
+	}
+}
