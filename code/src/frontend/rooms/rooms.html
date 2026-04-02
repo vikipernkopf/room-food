@@ -4,7 +4,7 @@
 </div>
 <div class="room-containers">
 	<div class="btn-container">
-		<button class="btn-add room-tile" (click)="openAddRoom()"> +
+		<button class="btn-add room-tile" type="button" (click)="openCreateRoom(); $event.stopPropagation()"> +
 		</button>
 	</div>
 
@@ -26,26 +26,22 @@
 	<p>{{ roomsLoadError() }}</p>
 }
 
-@if(showAddRoom) {
-	<div class="modal-overlay" (click)="openAddRoom()">
+@if(activePopup) {
+	<div class="modal-overlay" (click)="onOverlayClick($event)">
 		<div class="modal-card" (click)="$event.stopPropagation()">
 			<div class="modal-header">
-				<h2>Create Room</h2>
-				<button class="btn-close" type="button" (click)="openAddRoom()">x</button>
+				<h2>{{ activePopup === 'create' ? 'Create Room' : 'Join Room' }}</h2>
+				<button class="btn-close" type="button" (click)="closePopup()">x</button>
 			</div>
-			<app-room-creation></app-room-creation>
-		</div>
-	</div>
-}
-
-@if(showJoinRoom) {
-	<div class="modal-overlay" (click)="openJoinRoom()">
-		<div class="modal-card" (click)="$event.stopPropagation()">
-			<div class="modal-header">
-				<h2>Join Room</h2>
-				<button class="btn-close" type="button" (click)="openJoinRoom()">x</button>
-			</div>
-			<app-join-room></app-join-room>
+			@if (activePopup === 'create') {
+				<app-room-creation
+					[showJoinExistingLink]="true"
+					(joinExistingRequested)="openJoinRoom()"></app-room-creation>
+			} @else {
+				<app-join-room
+					[showCreateRoomLink]="true"
+					(createRoomRequested)="openCreateRoom()"></app-join-room>
+			}
 		</div>
 	</div>
 }

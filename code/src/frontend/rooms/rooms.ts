@@ -21,13 +21,12 @@ type MemberRoom = { code: string, role: string };
   styleUrl: './rooms.scss',
 })
 export class Rooms {
+	protected activePopup: 'create' | 'join' | null = null;
 	protected readonly currentUser: WritableSignal<User | null>;
 
 	// holds the most recently created room code for display
 	protected createdRoomCode?: string | null = null;
 	protected creating = false;
-	protected showAddRoom = false;
-	protected showJoinRoom = false;
 	protected readonly memberRooms = signal<MemberRoom[]>([]);
 	protected readonly roomsLoadError = signal('');
 
@@ -78,7 +77,7 @@ export class Rooms {
 				next: (res) => {
 					this.createdRoomCode = res.result;
 					this.creating = false;
-					this.showAddRoom = false;
+					this.activePopup = null;
 					this.roomNameControl.reset();
 					console.log('Created room code', res.result);
 				},
@@ -89,15 +88,21 @@ export class Rooms {
 			});
 	}
 
-	protected openAddRoom() {
-		this.showAddRoom = !this.showAddRoom;
+	protected openCreateRoom() {
+		this.activePopup = 'create';
 	}
 
 	protected openJoinRoom() {
-		this.showJoinRoom = !this.showJoinRoom;
+		this.activePopup = 'join';
 	}
 
-	onRoomCreated() {
-		this.showAddRoom = false;
+	protected closePopup() {
+		this.activePopup = null;
+	}
+
+	protected onOverlayClick(event: MouseEvent) {
+		if (event.target === event.currentTarget) {
+			this.closePopup();
+		}
 	}
 }

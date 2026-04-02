@@ -12,8 +12,7 @@
 					id="roomName"
 					type="text"
 					placeholder="e.g. HFAUJC"
-					autocomplete="off"
-					[disabled]="isLoading">
+					autocomplete="off">
 
 				@if (roomCreationForm.get('roomName'); as roomNameControl) {
 					@if (roomNameControl.touched && roomNameControl.invalid) {
@@ -39,7 +38,11 @@
 		</button>
 
 		<nav>
-			<a [routerLink]="['/myrooms']">View my rooms</a>
+			@if (showCreateRoomLink) {
+				<a href="#" (click)="$event.preventDefault(); createRoomRequested.emit()">Create new room</a>
+			} @else {
+				<a [routerLink]="['/myrooms']">View my rooms</a>
+			}
 		</nav>
 
 		<hr>
