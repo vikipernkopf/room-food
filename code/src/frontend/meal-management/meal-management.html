@@ -1,48 +1,43 @@
-<div class="popup-bubble">
-	<button mat-icon-button class="close-x-btn" (click)="closePopup()">
-		<mat-icon>x</mat-icon>
-	</button>
-
-	<h1 class="modal-title">{{ isEditMode ? 'Edit Meal' : 'Plan a Meal' }}</h1>
-
-	<form>
-		<div class="container">
-			<mat-form-field class="dish" subscriptSizing="dynamic">
-				<mat-label>Enter a dish</mat-label>
-				<input matInput name="dish" [(ngModel)]="dish" (ngModelChange)="clearErrors()">
-			</mat-form-field>
+<section>
+	<form class="meal-management-container" autocomplete="on">
+		<div class="modal-header">
+			<h2>{{ isEditMode ? 'Edit Meal' : 'Plan a Meal' }}</h2>
+			<button class="btn-close" type="button" (click)="closePopup()">x</button>
 		</div>
 
-		<div class="container">
-			<mat-form-field subscriptSizing="dynamic">
-				<mat-label>Select meal type</mat-label>
-				<mat-select [(ngModel)]="selectedValue" name="food" (ngModelChange)="clearErrors()">
-					@for (type of mealTypes; track type) {
-						<mat-option [value]="type.value">{{type.viewValue}}</mat-option>
-					}
-				</mat-select>
-			</mat-form-field>
+	<div class="form-grid">
+		<div class="field-group field-group--full">
+			<label class="field-label" for="dish">Dish</label>
+			<input id="dish" matInput name="dish" placeholder="e.g. Pasta Bolognese" [(ngModel)]="dish" (ngModelChange)="clearErrors()">
 		</div>
 
-		<div class="date-time-row">
-			<div class="container">
-				<mat-form-field subscriptSizing="dynamic">
-					<mat-label>Select date</mat-label>
-					<input matInput [matDatepicker]="datepicker" [(ngModel)]="selectedDate" name="date" (ngModelChange)="clearErrors()">
-					<mat-datepicker-toggle matIconSuffix [for]="datepicker"></mat-datepicker-toggle>
-					<mat-datepicker #datepicker></mat-datepicker>
-				</mat-form-field>
-			</div>
+		<div class="field-group field-group--full">
+			<label class="field-label" for="mealType">Meal type</label>
+			<mat-select id="mealType" panelClass="meal-type-panel" placeholder="Select meal type" [disableOptionCentering]="true" [(ngModel)]="selectedValue" name="food" (ngModelChange)="clearErrors()">
+				@for (type of mealTypes; track type) {
+					<mat-option [value]="type.value">{{type.viewValue}}</mat-option>
+				}
+			</mat-select>
+		</div>
 
-			<div class="container">
-				<mat-form-field subscriptSizing="dynamic">
-					<mat-label>Select time</mat-label>
-					<input matInput [matTimepicker]="minutesPicker" [(ngModel)]="selectedTime" name="time" (ngModelChange)="clearErrors()">
-					<mat-timepicker-toggle matIconSuffix [for]="minutesPicker"></mat-timepicker-toggle>
-					<mat-timepicker interval="15min" #minutesPicker></mat-timepicker>
-				</mat-form-field>
+		<div class="field-group">
+			<label class="field-label" for="mealDate">Date</label>
+			<div class="input-with-icon">
+				<input id="mealDate" matInput placeholder="Select date" [matDatepicker]="datepicker" [(ngModel)]="selectedDate" name="date" (ngModelChange)="clearErrors()">
+				<mat-datepicker-toggle matIconSuffix [for]="datepicker"></mat-datepicker-toggle>
+				<mat-datepicker #datepicker></mat-datepicker>
 			</div>
 		</div>
+
+		<div class="field-group">
+			<label class="field-label" for="mealTime">Time</label>
+			<div class="input-with-icon">
+				<input id="mealTime" matInput placeholder="Select time" [matTimepicker]="minutesPicker" [(ngModel)]="selectedTime" name="time" (ngModelChange)="clearErrors()">
+				<mat-timepicker-toggle matIconSuffix [for]="minutesPicker"></mat-timepicker-toggle>
+				<mat-timepicker interval="15min" #minutesPicker></mat-timepicker>
+			</div>
+		</div>
+	</div>
 
 		<div class="action-row">
 			<button mat-flat-button type="button" class="save-btn" (click)="saveMeal()" [disabled]="isSubmitting">
@@ -54,11 +49,14 @@
 				</button>
 			}
 		</div>
+
 		@if (showError) {
 			<div class="error-text">Please fill out all the fields</div>
 		}
 		@if (backendError) {
 			<div class="error-text">{{ backendError }}</div>
 		}
+
+		<hr>
 	</form>
-</div>
+</section>

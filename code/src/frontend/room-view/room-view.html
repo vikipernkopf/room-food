@@ -2,17 +2,21 @@
 	<button class="fancy" (click)="openAddMealPopup()">
 		Add Meal
 	</button>
-
-	@if (isPopupVisible()) {
-		<app-add-meal
-			class="popup-right"
-			[mealToEdit]="mealToEdit()"
-			[roomCode]="roomCode()"
-			(close)="closeMealPopup()"
-			(mealSaved)="handleMealSaved()"
-		></app-add-meal>
-	}
 </div>
+
+@if (isPopupVisible()) {
+	<div class="modal-overlay">
+		<div class="modal-card">
+			<app-add-meal
+				class="popup-right"
+				[mealToEdit]="mealToEdit()"
+				[roomCode]="roomCode()"
+				(close)="closeMealPopup()"
+				(mealSaved)="handleMealSaved()"
+			></app-add-meal>
+		</div>
+	</div>
+}
 
 @if (meals() && meals().length > 0) {
 	<div class="meals-container">
@@ -22,7 +26,7 @@
 	</div>
 } @else {
 	<div class="empty-state">
-		<h3>No Meals Yet</h3>
+		<h3>No meals yet</h3>
 		<p>Click "Add Meal" to start planning your meals!</p>
 	</div>
 }

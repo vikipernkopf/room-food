@@ -1,9 +1,5 @@
 <section>
-	<form class="login-container" [formGroup]="roomCreationForm" (ngSubmit)="onFormSubmit()" autocomplete="on">
-		<header>
-			<h4>Create a Room</h4>
-		</header>
-
+	<form class="create-room-container" [formGroup]="roomCreationForm" (ngSubmit)="onFormSubmit()" autocomplete="off">
 		<div class="form-grid">
 			<div class="field-group field-group--full">
 				<label for="roomName">Room Name</label>
