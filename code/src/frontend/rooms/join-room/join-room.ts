@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, Output, WritableSignal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink, Router } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth-service';
 import { RoomService } from '../../core/room-service';
 import { CommonModule } from '@angular/common';
@@ -22,7 +22,7 @@ export class JoinRoom {
 	@Output() createRoomRequested = new EventEmitter<void>();
 
 	// Form controls using FormGroup
-	roomCreationForm = new FormGroup({
+	roomJoinForm = new FormGroup({
 		roomName: new FormControl('', [Validators.required, Validators.minLength(2)])
 	});
 
@@ -31,8 +31,7 @@ export class JoinRoom {
 
 	constructor(
 		private authService: AuthService,
-		private roomService: RoomService,
-		private router: Router
+		private roomService: RoomService
 	) {
 		this.createRoomError = this.roomService.saveError;
 		this.createRoomError.set("");
@@ -42,14 +41,14 @@ export class JoinRoom {
 	private setLoadingState(isLoading: boolean) {
 		this.isLoading = isLoading;
 		if (isLoading) {
-			this.roomCreationForm.disable();
+			this.roomJoinForm.disable();
 			return;
 		}
-		this.roomCreationForm.enable();
+		this.roomJoinForm.enable();
 	}
 
 	onFormSubmit() {
-		if (this.roomCreationForm.valid) {
+		if (this.roomJoinForm.valid) {
 			const currentUser = this.authService.currentUser();
 
 			if (!currentUser) {
@@ -58,7 +57,7 @@ export class JoinRoom {
 			}
 
 			this.setLoadingState(true);
-			const roomName = this.roomCreationForm.value.roomName ?? '';
+			const roomName = this.roomJoinForm.value.roomName ?? '';
 
 			this.roomService.requestToJoinRoom(currentUser.username, roomName).subscribe({
 				next: (response) => {
@@ -76,7 +75,7 @@ export class JoinRoom {
 				}
 			});
 		} else {
-			this.roomCreationForm.markAllAsTouched();
+			this.roomJoinForm.markAllAsTouched();
 			console.log('Form is invalid');
 		}
 	}

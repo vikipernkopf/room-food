@@ -19,9 +19,9 @@ import {MatTimepickerModule} from '@angular/material/timepicker';
 import {MatIconModule} from '@angular/material/icon';
 import {MatButtonModule} from '@angular/material/button';
 import {provideNativeDateAdapter} from '@angular/material/core';
-import { AuthService } from '../core/auth-service';
-import {Meal, User} from '../../backend/model';
-import {MealService} from '../core/meal-service';
+import { AuthService } from '../../core/auth-service';
+import {Meal, User} from '../../../backend/model';
+import {MealService} from '../../core/meal-service';
 
 interface MealType {
 	value: string;

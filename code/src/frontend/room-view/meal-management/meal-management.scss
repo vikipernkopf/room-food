@@ -1,0 +1,421 @@
+﻿@use "../../styles/theme" as *;
+
+* {
+	font-family: "Inter", sans-serif;
+}
+
+section {
+	display: flex;
+	justify-content: center;
+	align-items: flex-start;
+	min-height: calc(100vh - 4.5rem);
+	padding: 4.35rem 1rem 1.2rem;
+	background-color: $color-lighter-gray;
+	box-sizing: border-box;
+}
+
+:host-context(.modal-card) section,
+:host-context(.modal-overlay) section {
+	min-height: 0;
+	padding: 0;
+	background-color: $color-transparent;
+}
+
+.meal-management-container {
+	background: $color-white;
+	padding: 1rem 1rem 1.2rem;
+	border-radius: 1rem;
+	border: 1px solid $color-input-bg;
+	width: 100%;
+	max-width: 860px;
+	box-shadow: 0 10px 25px $color-overlay-3;
+
+	.save-btn {
+		width: 100%;
+		padding: 0.75rem 1rem;
+		border: none;
+		border-radius: 12px;
+		background-color: $color-orange-2;
+		color: $color-white;
+		font-size: 1rem;
+		font-weight: 600;
+		cursor: pointer;
+		transition: background-color 0.3s ease;
+		margin-top: 1.2rem;
+
+		&:hover:not(:disabled) {
+			background-color: $color-orange-1;
+		}
+
+		&:disabled {
+			opacity: 0.6;
+			cursor: not-allowed;
+		}
+	}
+
+	hr {
+		margin: 1rem 0 0 0;
+		border: none;
+		border-top: 1px solid $color-light-gray;
+	}
+}
+
+.form-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 1.2rem;
+	margin-bottom: 1.2rem;
+
+	@media (max-width: 640px) {
+		grid-template-columns: 1fr;
+	}
+}
+
+.field-group {
+	display: flex;
+	flex-direction: column;
+	position: relative;
+
+	&--full {
+		grid-column: 1 / -1;
+	}
+
+	label {
+		color: $color-label-gray;
+		font-size: 0.9rem;
+		font-weight: 600;
+		margin-bottom: 0.4rem;
+	}
+
+	input,
+	::ng-deep mat-select {
+		padding: 0.65rem 0.85rem;
+		border: 1px solid $color-light-gray;
+		border-radius: 10px;
+		background-color: $color-input-bg;
+		color: $color-text-main;
+		font-size: 0.95rem;
+		transition: border-color 0.3s ease, background-color 0.3s ease;
+
+		&:focus {
+			outline: none;
+			border-color: $color-orange-2;
+			background-color: $color-white;
+		}
+
+		&:disabled {
+			background-color: $color-light-gray;
+			cursor: not-allowed;
+		}
+
+		&::placeholder {
+			color: $color-blue-gray;
+		}
+	}
+
+	.input-with-icon {
+		position: relative;
+		display: flex;
+		align-items: center;
+
+		input {
+			padding-right: 2.5rem;
+			width: 100%;
+		}
+
+		::ng-deep mat-datepicker-toggle,
+		::ng-deep mat-timepicker-toggle {
+			position: absolute;
+			right: 0.5rem;
+			top: 50%;
+			transform: translateY(-50%);
+			pointer-events: all;
+
+			button {
+				background: none;
+				border: none;
+				padding: 0;
+				width: 2rem;
+				height: 2rem;
+				cursor: pointer;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				border-radius: 50%;
+
+				.mat-icon {
+					color: $color-orange-2;
+					font-size: 1.2rem;
+					width: 1.2rem;
+					height: 1.2rem;
+				}
+
+				&:hover {
+					background-color: $color-orange-2-overlay-5;
+					border-radius: 50%;
+				}
+			}
+		}
+	}
+
+	::ng-deep mat-select {
+		position: relative;
+		padding: 0.65rem 0.625rem 0.65rem 0.85rem;
+		display: block;
+		width: 100%;
+		height: auto;
+		min-height: 0;
+		box-sizing: border-box;
+
+		&:focus {
+			outline: none;
+			border-color: $color-orange-2;
+			background-color: $color-white;
+		}
+
+		&:disabled {
+			background-color: $color-light-gray;
+			cursor: not-allowed;
+		}
+
+		.mat-mdc-select-trigger {
+			padding: 0;
+			color: $color-text-main;
+			font-size: 0.95rem;
+			line-height: 1.2;
+			display: flex;
+			align-items: center;
+		}
+
+		.mat-mdc-select-value,
+		.mat-mdc-select-value-text,
+		.mat-mdc-select-min-line {
+			color: $color-text-main;
+		}
+
+		.mat-mdc-select-arrow {
+			color: $color-text-main;
+			margin-right: 0;
+		}
+
+		.mat-mdc-select-arrow-wrapper {
+			position: absolute;
+			right: 0;
+			top: 50%;
+			transform: translateY(-50%);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 1.5rem;
+			height: 1.5rem;
+			border-radius: 50%;
+			transition: background-color 0.2s ease;
+		}
+
+		&:hover .mat-mdc-select-arrow-wrapper {
+			background-color: $color-orange-2-overlay-5;
+		}
+	}
+}
+
+.btn-close {
+	border: none;
+	background: $color-transparent;
+	font-size: 1.3rem;
+	line-height: 1;
+	color: $color-orange-2;
+	cursor: pointer;
+	padding: 0;
+	width: 1.9rem;
+	height: 1.9rem;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	opacity: 100% !important;
+	border-radius: 100%;
+
+	&:hover {
+		background: $color-orange-2-overlay-12 !important;
+	}
+}
+
+.modal-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 0.9rem;
+	padding-bottom: 0.6rem;
+	border-bottom: 1px solid $color-light-gray;
+
+	h2 {
+		margin: 0;
+		font-size: 1.5rem;
+		color: $color-green-4;
+	}
+}
+
+.action-row {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	margin-top: 1.2rem;
+
+	.save-btn {
+		flex: 1 1 100%;
+	}
+
+	.delete-btn {
+		padding: 0;
+		border: none;
+		background: transparent;
+		color: $color-red;
+		font-size: 0.9rem;
+		font-weight: 500;
+		cursor: pointer;
+		text-decoration: none;
+		transition: color 0.3s ease;
+		margin-top: 0.4rem;
+
+		&:hover:not(:disabled) {
+			color: $color-red;
+			text-decoration: none;
+		}
+
+		&:focus-visible {
+			outline: 2px solid $color-red-overlay-25;
+			outline-offset: 2px;
+			border-radius: 4px;
+		}
+
+		&:disabled {
+			opacity: 0.6;
+			cursor: not-allowed;
+		}
+	}
+}
+
+.error-text {
+	color: $color-red;
+	font-size: 0.9rem;
+	font-weight: 500;
+	margin-top: 0.8rem;
+	text-align: center;
+}
+
+::ng-deep .cdk-overlay-container {
+	.mat-mdc-select-panel,
+	.mat-datepicker-content,
+	.mat-timepicker-content,
+	.mat-timepicker-panel {
+		--mat-sys-primary: #{$color-orange-2};
+		--mat-sys-on-primary: #{$color-white};
+		--mat-sys-primary-container: #{$color-orange-2-overlay-20};
+		--mat-sys-on-primary-container: #{$color-text-main};
+		--mdc-theme-primary: #{$color-orange-2};
+		background-color: $color-white;
+		opacity: 1;
+		overflow: hidden;
+	}
+
+	.mat-mdc-select-panel,
+	.mat-mdc-select-panel-above {
+		border-radius: 12px !important;
+		overflow: hidden !important;
+	}
+
+	.meal-type-panel {
+		margin-top: 0.8rem !important;
+		margin-left: -0.9rem !important;
+	}
+
+	.mat-mdc-select-panel .mdc-list {
+		border-radius: inherit;
+		overflow: hidden;
+		padding-top: 0;
+		padding-bottom: 0;
+	}
+
+	.mat-mdc-select-panel-above {
+		margin-bottom: 0 !important;
+	}
+
+	.mat-datepicker-content,
+	.mat-timepicker-content,
+	.mat-datepicker-content .mat-calendar,
+	.mat-timepicker-content .mat-timepicker-container {
+		background-color: $color-white !important;
+	}
+
+	.mat-datepicker-content {
+		box-shadow: 0 10px 25px $color-overlay-15;
+	}
+
+	.mat-timepicker-content,
+	.mat-timepicker-panel,
+	.mat-timepicker-content .mat-mdc-dialog-surface,
+	.mat-timepicker-content .mdc-dialog__surface,
+	.mat-timepicker-content .mat-timepicker-container {
+		background-color: $color-white !important;
+		border-radius: 14px;
+	}
+
+	.mat-timepicker-content .mat-timepicker-dial__item--active,
+	.mat-timepicker-content .mat-timepicker-option.mdc-list-item--selected,
+	.mat-timepicker-content .mat-timepicker-period-button.mat-mdc-button-base.mat-primary,
+	.mat-timepicker-content [aria-selected="true"],
+	.mat-timepicker-content [aria-pressed="true"] {
+		background-color: $color-orange-2-overlay-20 !important;
+		color: $color-text-main !important;
+		border-radius: 999px;
+	}
+
+	.mat-timepicker-content .mat-timepicker-dial__item:hover,
+	.mat-timepicker-content .mat-timepicker-option:hover,
+	.mat-timepicker-content .mat-timepicker-period-button:hover {
+		background-color: $color-orange-2-overlay-12 !important;
+	}
+
+	.mat-mdc-option {
+		background-color: $color-white;
+	}
+
+	.mat-mdc-select-panel .mat-mdc-option .mdc-list-item__end,
+	.mat-mdc-select-panel .mat-mdc-option .mdc-list-item__end .mat-icon,
+	.mat-mdc-select-panel .mat-mdc-option .mdc-list-item__end svg,
+	.mat-mdc-select-panel .mat-mdc-option .mat-pseudo-checkbox,
+	.mat-mdc-select-panel .mat-mdc-option .mat-pseudo-checkbox::after,
+	.mat-timepicker-content .mat-timepicker-option .mdc-list-item__end,
+	.mat-timepicker-content .mat-timepicker-option .mdc-list-item__end .mat-icon,
+	.mat-timepicker-content .mat-timepicker-option .mdc-list-item__end svg,
+	.mat-timepicker-content .mat-timepicker-option .mat-pseudo-checkbox,
+	.mat-timepicker-content .mat-timepicker-option .mat-pseudo-checkbox::after {
+		color: currentColor !important;
+		fill: currentColor !important;
+		border-color: currentColor !important;
+	}
+
+	.mat-mdc-option.mdc-list-item--selected:not(.mdc-list-item--disabled),
+	.mat-mdc-option[aria-selected="true"]:not(.mdc-list-item--disabled) {
+		background-color: $color-orange-2-overlay-20 !important;
+		color: $color-text-main !important;
+	}
+
+	.mat-mdc-option.mat-mdc-option-active:not(.mdc-list-item--disabled),
+	.mat-mdc-option:hover:not(.mdc-list-item--disabled) {
+		background-color: $color-orange-2-overlay-12 !important;
+	}
+
+	.mat-calendar-body-selected {
+		background-color: $color-orange-2 !important;
+		color: $color-white !important;
+	}
+
+	.mat-calendar-body-cell:not(.mat-calendar-body-disabled):hover .mat-calendar-body-cell-content:not(.mat-calendar-body-selected),
+	.mat-calendar-body-cell.cdk-focused .mat-calendar-body-cell-content:not(.mat-calendar-body-selected),
+	.mat-calendar-body-cell.cdk-keyboard-focused .mat-calendar-body-cell-content:not(.mat-calendar-body-selected),
+	.mat-calendar-body-active .mat-calendar-body-cell-content:not(.mat-calendar-body-selected) {
+		background-color: $color-orange-2-overlay-12 !important;
+		color: $color-text-main;
+	}
+}
+
