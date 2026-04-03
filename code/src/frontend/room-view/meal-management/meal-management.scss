@@ -1,18 +1,7 @@
-﻿@use '../../styles/theme' as *;
+﻿@use "../../styles/theme" as *;
 
 * {
-	font-family: 'Inter', sans-serif;
-}
-
-.error-msg {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	min-height: 1.25rem;
-	color: $color-red;
-	font-size: 0.85rem;
-	font-weight: 500;
-	margin-top: 0.4rem;
+	font-family: "Inter", sans-serif;
 }
 
 section {
@@ -64,45 +53,6 @@ section {
 		}
 	}
 
-	:host-context(.modal-card) & {
-		max-width: 100%;
-		padding: 0;
-		border: none;
-		box-shadow: none;
-	}
-
-	:host-context(.modal-card) header {
-		display: none;
-	}
-
-	header {
-		margin-bottom: 0.85rem;
-		h4 {
-			color: $color-orange-2;
-			font-size: 1.55rem;
-			margin: 0;
-			font-weight: 700;
-		}
-	}
-
-	nav {
-		display: flex;
-		justify-content: center;
-		margin-top: 1rem;
-
-		a {
-			color: $color-orange-2;
-			text-decoration: none;
-			font-size: 0.9rem;
-			transition: color 0.3s ease;
-
-			&:hover {
-				color: $color-orange-1;
-				text-decoration: underline;
-			}
-		}
-	}
-
 	hr {
 		margin: 1rem 0 0 0;
 		border: none;
@@ -138,7 +88,7 @@ section {
 	}
 
 	input,
-	textarea {
+	::ng-deep mat-select {
 		padding: 0.65rem 0.85rem;
 		border: 1px solid $color-light-gray;
 		border-radius: 10px;
@@ -163,23 +113,6 @@ section {
 		}
 	}
 
-	textarea {
-		resize: vertical;
-		font-family: 'Inter', sans-serif;
-	}
-
-	aside {
-		margin-top: 0.3rem;
-		color: $color-red;
-		font-size: 0.8rem;
-		font-weight: 500;
-
-		span {
-			display: block;
-		}
-	}
-
-	// Styling for inputs with icons
 	.input-with-icon {
 		position: relative;
 		display: flex;
@@ -228,17 +161,11 @@ section {
 	::ng-deep mat-select {
 		position: relative;
 		padding: 0.65rem 0.625rem 0.65rem 0.85rem;
-		box-sizing: border-box;
-		border: 1px solid $color-light-gray;
-		border-radius: 10px;
-		background-color: $color-input-bg;
-		color: $color-text-main;
-		font-size: 0.95rem;
-		transition: border-color 0.3s ease, background-color 0.3s ease;
 		display: block;
 		width: 100%;
 		height: auto;
 		min-height: 0;
+		box-sizing: border-box;
 
 		&:focus {
 			outline: none;
@@ -269,8 +196,6 @@ section {
 		.mat-mdc-select-arrow {
 			color: $color-text-main;
 			margin-right: 0;
-			display: block;
-			line-height: 1;
 		}
 
 		.mat-mdc-select-arrow-wrapper {
@@ -380,20 +305,15 @@ section {
 ::ng-deep .cdk-overlay-container {
 	.mat-mdc-select-panel,
 	.mat-datepicker-content,
-	.mat-timepicker-content {
+	.mat-timepicker-content,
+	.mat-timepicker-panel {
 		--mat-sys-primary: #{$color-orange-2};
 		--mat-sys-on-primary: #{$color-white};
 		--mat-sys-primary-container: #{$color-orange-2-overlay-20};
 		--mat-sys-on-primary-container: #{$color-text-main};
 		--mdc-theme-primary: #{$color-orange-2};
 		background-color: $color-white;
-	}
-
-	.mat-mdc-select-panel,
-	.mat-datepicker-content,
-	.mat-timepicker-content,
-	.mat-timepicker-panel {
-		border-radius: 12px;
+		opacity: 1;
 		overflow: hidden;
 	}
 
@@ -403,13 +323,8 @@ section {
 		overflow: hidden !important;
 	}
 
-	.mat-mdc-select-panel {
-		background-color: $color-white;
-		opacity: 1;
-	}
-
 	.meal-type-panel {
-		margin-top: 0.75rem !important;
+		margin-top: 0.8rem !important;
 		margin-left: -0.9rem !important;
 	}
 
@@ -428,8 +343,7 @@ section {
 	.mat-timepicker-content,
 	.mat-datepicker-content .mat-calendar,
 	.mat-timepicker-content .mat-timepicker-container {
-		background-color: $color-white;
-		opacity: 1;
+		background-color: $color-white !important;
 	}
 
 	.mat-datepicker-content {
@@ -442,15 +356,14 @@ section {
 	.mat-timepicker-content .mdc-dialog__surface,
 	.mat-timepicker-content .mat-timepicker-container {
 		background-color: $color-white !important;
-		opacity: 1;
 		border-radius: 14px;
 	}
 
 	.mat-timepicker-content .mat-timepicker-dial__item--active,
 	.mat-timepicker-content .mat-timepicker-option.mdc-list-item--selected,
 	.mat-timepicker-content .mat-timepicker-period-button.mat-mdc-button-base.mat-primary,
-	.mat-timepicker-content [aria-selected='true'],
-	.mat-timepicker-content [aria-pressed='true'] {
+	.mat-timepicker-content [aria-selected="true"],
+	.mat-timepicker-content [aria-pressed="true"] {
 		background-color: $color-orange-2-overlay-20 !important;
 		color: $color-text-main !important;
 		border-radius: 999px;
@@ -482,7 +395,7 @@ section {
 	}
 
 	.mat-mdc-option.mdc-list-item--selected:not(.mdc-list-item--disabled),
-	.mat-mdc-option[aria-selected='true']:not(.mdc-list-item--disabled) {
+	.mat-mdc-option[aria-selected="true"]:not(.mdc-list-item--disabled) {
 		background-color: $color-orange-2-overlay-20 !important;
 		color: $color-text-main !important;
 	}
@@ -505,3 +418,4 @@ section {
 		color: $color-text-main;
 	}
 }
+
