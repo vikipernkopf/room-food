@@ -84,7 +84,7 @@ section {
 			outline: none;
 			border-color: $color-orange-2;
 			background-color: $color-white;
-			box-shadow: 0 0 0 4px rgba($color-orange-5, 0.5);
+			box-shadow: 0 0 0 4px $color-orange-5-overlay-50;
 		}
 	}
 
@@ -150,7 +150,7 @@ section {
 			outline: none;
 			border-color: $color-orange-2;
 			background-color: $color-white;
-			box-shadow: 0 0 0 4px rgba($color-orange-5, 0.5);
+			box-shadow: 0 0 0 4px $color-orange-5-overlay-50;
 		}
 	}
 
@@ -166,7 +166,7 @@ section {
 		cursor: pointer;
 		transition: background-color 0.2s ease, transform 0.1s ease;
 		margin-top: 0.35rem;
-		box-shadow: 0 4px 12px rgba($color-orange-2, 0.2);
+		box-shadow: 0 4px 12px $color-orange-2-overlay-20;
 
 		&:hover:not(:disabled) { background-color: $color-orange-1; }
 		&:active:not(:disabled) { transform: scale(0.98); }

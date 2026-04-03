@@ -11,6 +11,13 @@ $color-orange-2: #E67E22;
 $color-orange-3: #FF9800;
 $color-orange-4: #FFB74D;
 $color-orange-5: #FFCC80;
+$color-orange-2-overlay-5: rgba($color-orange-2, 0.05);
+$color-orange-2-overlay-8: rgba($color-orange-2, 0.08);
+$color-orange-2-overlay-12: rgba($color-orange-2, 0.12);
+$color-orange-2-overlay-20: rgba($color-orange-2, 0.2);
+$color-orange-3-overlay-30: rgba($color-orange-3, 0.3);
+$color-orange-3-overlay-40: rgba($color-orange-3, 0.4);
+$color-orange-5-overlay-50: rgba($color-orange-5, 0.5);
 
 // Neutral palette
 $color-text-main: #2d3748;
@@ -20,7 +27,11 @@ $color-light-gray: #e2e8f0;
 $color-lighter-gray: #f1f5f9;
 $color-input-bg: #f8fafc;
 $color-red: #e53e3e;
+$color-red-dark: #da190b;
+$color-red-overlay-8: rgba($color-red, 0.08);
+$color-red-overlay-25: rgba($color-red, 0.25);
 $color-blue-gray: #a0aec0;
+$color-green-2-overlay-8: rgba($color-green-2, 0.08);
 
 // Special colors currently needed by existing components
 $color-white: #ffffff;

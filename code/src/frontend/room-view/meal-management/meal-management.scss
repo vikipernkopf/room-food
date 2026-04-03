@@ -1,4 +1,4 @@
-﻿@use '../styles/theme' as *;
+﻿@use '../../styles/theme' as *;
 
 * {
 	font-family: 'Inter', sans-serif;
@@ -218,7 +218,7 @@ section {
 				}
 
 				&:hover {
-					background-color: rgba($color-orange-2, 0.05);
+					background-color: $color-orange-2-overlay-5;
 					border-radius: 50%;
 				}
 			}
@@ -288,7 +288,7 @@ section {
 		}
 
 		&:hover .mat-mdc-select-arrow-wrapper {
-			background-color: rgba($color-orange-2, 0.05);
+			background-color: $color-orange-2-overlay-5;
 		}
 	}
 }
@@ -298,13 +298,19 @@ section {
 	background: $color-transparent;
 	font-size: 1.3rem;
 	line-height: 1;
-	color: $color-orange-1;
+	color: $color-orange-2;
 	cursor: pointer;
-	padding: 0.2rem 0.4rem;
-	border-radius: 0.3rem;
+	padding: 0;
+	width: 1.9rem;
+	height: 1.9rem;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	opacity: 100% !important;
+	border-radius: 100%;
 
 	&:hover {
-		background: $color-orange-5;
+		background: $color-orange-2-overlay-12 !important;
 	}
 }
 
@@ -351,7 +357,7 @@ section {
 		}
 
 		&:focus-visible {
-			outline: 2px solid rgba($color-red, 0.25);
+			outline: 2px solid $color-red-overlay-25;
 			outline-offset: 2px;
 			border-radius: 4px;
 		}
@@ -377,7 +383,7 @@ section {
 	.mat-timepicker-content {
 		--mat-sys-primary: #{$color-orange-2};
 		--mat-sys-on-primary: #{$color-white};
-		--mat-sys-primary-container: #{rgba($color-orange-2, 0.2)};
+		--mat-sys-primary-container: #{$color-orange-2-overlay-20};
 		--mat-sys-on-primary-container: #{$color-text-main};
 		--mdc-theme-primary: #{$color-orange-2};
 		background-color: $color-white;
@@ -445,7 +451,7 @@ section {
 	.mat-timepicker-content .mat-timepicker-period-button.mat-mdc-button-base.mat-primary,
 	.mat-timepicker-content [aria-selected='true'],
 	.mat-timepicker-content [aria-pressed='true'] {
-		background-color: rgba($color-orange-2, 0.2) !important;
+		background-color: $color-orange-2-overlay-20 !important;
 		color: $color-text-main !important;
 		border-radius: 999px;
 	}
@@ -453,7 +459,7 @@ section {
 	.mat-timepicker-content .mat-timepicker-dial__item:hover,
 	.mat-timepicker-content .mat-timepicker-option:hover,
 	.mat-timepicker-content .mat-timepicker-period-button:hover {
-		background-color: rgba($color-orange-2, 0.12) !important;
+		background-color: $color-orange-2-overlay-12 !important;
 	}
 
 	.mat-mdc-option {
@@ -477,13 +483,13 @@ section {
 
 	.mat-mdc-option.mdc-list-item--selected:not(.mdc-list-item--disabled),
 	.mat-mdc-option[aria-selected='true']:not(.mdc-list-item--disabled) {
-		background-color: rgba($color-orange-2, 0.2) !important;
+		background-color: $color-orange-2-overlay-20 !important;
 		color: $color-text-main !important;
 	}
 
 	.mat-mdc-option.mat-mdc-option-active:not(.mdc-list-item--disabled),
 	.mat-mdc-option:hover:not(.mdc-list-item--disabled) {
-		background-color: rgba($color-orange-2, 0.12) !important;
+		background-color: $color-orange-2-overlay-12 !important;
 	}
 
 	.mat-calendar-body-selected {
@@ -495,7 +501,7 @@ section {
 	.mat-calendar-body-cell.cdk-focused .mat-calendar-body-cell-content:not(.mat-calendar-body-selected),
 	.mat-calendar-body-cell.cdk-keyboard-focused .mat-calendar-body-cell-content:not(.mat-calendar-body-selected),
 	.mat-calendar-body-active .mat-calendar-body-cell-content:not(.mat-calendar-body-selected) {
-		background-color: rgba($color-orange-2, 0.12) !important;
+		background-color: $color-orange-2-overlay-12 !important;
 		color: $color-text-main;
 	}
 }

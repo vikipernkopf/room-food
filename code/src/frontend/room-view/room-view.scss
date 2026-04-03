@@ -45,7 +45,7 @@ button.fancy {
 	color: $color-white;
 	cursor: pointer;
 	transition: all 0.3s ease;
-	box-shadow: 0 4px 15px rgba($color-orange-3, 0.3);
+	box-shadow: 0 4px 15px $color-orange-3-overlay-30;
 	position: relative;
 	overflow: hidden;
 
@@ -58,13 +58,13 @@ button.fancy {
 
 	&:hover {
 		transform: translateY(-2px);
-		box-shadow: 0 6px 20px rgba($color-orange-3, 0.4);
+		box-shadow: 0 6px 20px $color-orange-3-overlay-40;
 		background: $color-orange-2;
 	}
 
 	&:active {
 		transform: translateY(0);
-		box-shadow: 0 2px 10px rgba($color-orange-3, 0.3);
+		box-shadow: 0 2px 10px $color-orange-3-overlay-30;
 	}
 }
 

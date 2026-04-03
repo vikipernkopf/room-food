@@ -70,7 +70,7 @@
 .room-tile {
 	width: 14rem;
 	min-height: 8rem;
-	background: $color-input-bg;
+	background: $color-white;
 	border: 1px solid $color-light-gray;
 	border-radius: 1rem;
 	padding: 0.8rem;
@@ -145,13 +145,19 @@
 	background: $color-transparent;
 	font-size: 1.3rem;
 	line-height: 1;
-	color: $color-orange-1;
+	color: $color-orange-2;
 	cursor: pointer;
-	padding: 0.2rem 0.4rem;
-	border-radius: 0.3rem;
+	padding: 0;
+	width: 1.9rem;
+	height: 1.9rem;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	opacity: 100% !important;
+	border-radius: 100%;
 
 	&:hover {
-		background: $color-orange-5;
+		background: $color-orange-2-overlay-12 !important;
 	}
 }
 

@@ -1,5 +1,5 @@
 <section>
-	<form class="login-container" [formGroup]="roomCreationForm" (ngSubmit)="onFormSubmit()" autocomplete="on">
+	<form class="join-room-container" [formGroup]="roomJoinForm" (ngSubmit)="onFormSubmit()" autocomplete="on">
 		<header>
 			<h4>Join a room</h4>
 		</header>
@@ -14,7 +14,7 @@
 					placeholder="e.g. HFAUJC"
 					autocomplete="off">
 
-				@if (roomCreationForm.get('roomName'); as roomNameControl) {
+				@if (roomJoinForm.get('roomName'); as roomNameControl) {
 					@if (roomNameControl.touched && roomNameControl.invalid) {
 						<aside>
 							@if (roomNameControl.hasError('required')) {

@@ -2,7 +2,7 @@
 
 import {Component, effect, OnInit, signal, WritableSignal} from '@angular/core';
 import {DatePipe} from '@angular/common';
-import {MealManagement} from '../../meal-management/meal-management';
+import {MealManagement} from '../meal-management/meal-management';
 import {MealService} from '../../core/meal-service';
 import {Meal} from '../../../backend/model';
 import {AuthService} from '../../core/auth-service';
