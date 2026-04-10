@@ -1,12 +1,12 @@
 export type User = {
-  username:string,
-  email?: string,
-  firstName?: string,
-  lastName?: string,
-  bio?: string,
-  dob?: string,
-  profilePicture?: string,
-  password?:string
+	username: string,
+	email?: string,
+	firstName?: string,
+	lastName?: string,
+	bio?: string,
+	dob?: string,
+	profilePicture?: string,
+	password?: string
 };
 
 export type LoginCredentials = {
@@ -50,16 +50,18 @@ export type Room = {
 };
 
 export type Recipe = {
-	id:number,
-	name:string,
-	mealType:string,
-	author:string
+	id: number,
+	name: string,
+	description?: string,
+	image?: string,
+	mealTypes: string[],
+	author: number  // User ID
 }
 
 export type Meal = {
-	id?:number,
-	time:Date,
-	name:string,
-	room:string,
-	responsible:string
+	id?: number,
+	time: Date,
+	name: string,
+	room: string,
+	responsible: string
 }
