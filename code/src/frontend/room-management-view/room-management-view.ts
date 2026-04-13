@@ -1,10 +1,10 @@
 import { Component, OnDestroy, signal, WritableSignal, effect } from '@angular/core';
-import {ActivatedRoute, Router} from '@angular/router';
-import {MatDivider} from '@angular/material/divider';
-import {MatCard} from '@angular/material/card';
-import {MatLabel} from '@angular/material/input';
-import {MatIconButton} from '@angular/material/button';
-import {RoomService} from '../core/room-service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { MatDivider } from '@angular/material/divider';
+import { MatCard } from '@angular/material/card';
+import { MatLabel } from '@angular/material/input';
+import { MatIconButton } from '@angular/material/button';
+import { RoomService } from '../core/room-service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 
@@ -18,7 +18,7 @@ interface Request {
 }
 
 @Component({
-  selector: 'app-room-management-view',
+	selector: 'app-room-management-view',
 	standalone: true,
 	imports: [
 		CommonModule,
@@ -27,70 +27,68 @@ interface Request {
 		MatIconButton,
 		MatLabel
 	],
-  templateUrl: './room-management-view.html',
-  styleUrl: './room-management-view.scss',
+	templateUrl: './room-management-view.html',
+	styleUrl: './room-management-view.scss'
 })
 export class RoomManagementView implements OnDestroy {
-	protected readonly roomCode: WritableSignal<string> = signal("");
-	protected readonly roomName: WritableSignal<string> = signal ("");
+	protected readonly roomCode: WritableSignal<string> = signal('');
+	protected readonly roomName: WritableSignal<string> = signal('');
 	protected readonly members: WritableSignal<Member[]> = signal([]);
 	protected readonly requests: WritableSignal<Request[]> = signal([]);
 	private hasRedirected = false;
-	private lastProcessedCode: string = "";
+	private lastProcessedCode: string = '';
 
 	constructor(private route: ActivatedRoute,
-				private router: Router,
-				private roomService: RoomService) {
-	  // Subscribe to route param 'code' and unsubscribe on destroy
-	  this.route.paramMap
-		  .pipe(takeUntilDestroyed())
-		  .subscribe((paramMap) => {
-			  const code = paramMap.get('code') ?? "";
-			  console.log('Route param received, setting roomCode to:', code);
-			  this.roomCode.set(code);
-			  this.roomService.getRoomName(code).subscribe({
-				  next: (response) => {
-					  console.log(`Room name found for room ${this.roomCode()}: ${response.name}`);
-					  this.roomName.set(response.name);
-				  },
-				  error: (error) => {
-					  console.error('Error getting name:', error);
-				  }
-			  })
-		  });
+		private router: Router,
+		private roomService: RoomService) {
+		// Subscribe to route param 'code' and unsubscribe on destroy
+		this.route.paramMap
+		.pipe(takeUntilDestroyed())
+		.subscribe(paramMap => {
+			const code = paramMap.get('code') ?? '';
+			console.log('Route param received, setting roomCode to:', code);
+			this.roomCode.set(code);
+			this.roomService.getRoomName(code).subscribe({
+				next: response => {
+					console.log(`Room name found for room ${this.roomCode()}: ${response.roomName}`);
+					this.roomName.set(response.roomName);
+				},
+				error: error => console.error('Error getting name:', error)
+			});
+		});
 
-	  // Effect to handle room code changes
-	  effect(() => {
-		  const code = this.roomCode();
-		  console.log('Room code effect triggered with code:', code);
+		// Effect to handle room code changes
+		effect(() => {
+			const code = this.roomCode();
+			console.log('Room code effect triggered with code:', code);
 
-		  // Only process if the code has changed
-		  if (code === this.lastProcessedCode) {
-			  console.log('Code unchanged, skipping effect');
-			  return;
-		  }
+			// Only process if the code has changed
+			if (code === this.lastProcessedCode) {
+				console.log('Code unchanged, skipping effect');
+				return;
+			}
 
-		  this.lastProcessedCode = code;
+			this.lastProcessedCode = code;
 
-		  // If code is empty, redirect to error immediately
-		  if (!code || code.length === 0) {
-			  if (!this.hasRedirected) {
-				  console.log('Room code is empty, redirecting to error');
-				  this.hasRedirected = true;
-				  this.router.navigate(['/error']);
-			  }
-			  return;
-		  }
+			// If code is empty, redirect to error immediately
+			if (!code || code.length === 0) {
+				if (!this.hasRedirected) {
+					console.log('Room code is empty, redirecting to error');
+					this.hasRedirected = true;
+					this.router.navigate(['/error']);
+				}
+				return;
+			}
 
-		  // Code is not empty, validate it exists in the database
-		  console.log('Validating room code:', code);
-		  this.validateRoom(code);
-	  });
+			// Code is not empty, validate it exists in the database
+			console.log('Validating room code:', code);
+			this.validateRoom(code);
+		});
 	}
 
 	private validateRoom(roomCode: string) {
 		this.roomService.checkRoomExists(roomCode).subscribe({
-			next: (response) => {
+			next: response => {
 				console.log('Room validation response:', response);
 				if (response.exists) {
 					console.log('Room exists, loading members and requests');
@@ -104,7 +102,7 @@ export class RoomManagementView implements OnDestroy {
 					}
 				}
 			},
-			error: (error) => {
+			error: error => {
 				console.error('Error validating room:', error);
 				// If validation fails, redirect to error
 				if (!this.hasRedirected) {
@@ -122,11 +120,11 @@ export class RoomManagementView implements OnDestroy {
 
 	private fetchMembers(roomCode: string) {
 		this.roomService.getMembersPerRoom(roomCode).subscribe({
-			next: (members) => {
+			next: members => {
 				console.log('Successfully fetched members:', members);
 				this.members.set(members || []);
 			},
-			error: (error) => {
+			error: error => {
 				console.error('Error fetching members:', error);
 				this.members.set([]);
 			}
@@ -135,11 +133,11 @@ export class RoomManagementView implements OnDestroy {
 
 	private fetchRequests(roomCode: string) {
 		this.roomService.getRequestsPerRoom(roomCode).subscribe({
-			next: (requests) => {
+			next: requests => {
 				console.log('Successfully fetched requests:', requests);
 				this.requests.set(requests || []);
 			},
-			error: (error) => {
+			error: error => {
 				console.error('Error fetching requests:', error);
 				this.requests.set([]);
 			}
@@ -151,14 +149,14 @@ export class RoomManagementView implements OnDestroy {
 		console.log('Accepting request for user:', username, 'in room:', code);
 
 		this.roomService.acceptRequest(code, username).subscribe({
-			next: (response) => {
+			next: response => {
 				console.log('Request accepted successfully:', response);
 				// Remove from requests list and refresh
 				this.requests.update(reqs => reqs.filter(req => req.username !== username));
 				// Refresh members list
 				this.fetchMembers(code);
 			},
-			error: (error) => {
+			error: error => {
 				console.error('Error accepting request:', error);
 				alert('Failed to accept request');
 			}
@@ -170,12 +168,12 @@ export class RoomManagementView implements OnDestroy {
 		console.log('Rejecting request for user:', username, 'in room:', code);
 
 		this.roomService.rejectRequest(code, username).subscribe({
-			next: (response) => {
+			next: response => {
 				console.log('Request rejected successfully:', response);
 				// Remove from requests list
 				this.requests.update(reqs => reqs.filter(req => req.username !== username));
 			},
-			error: (error) => {
+			error: error => {
 				console.error('Error rejecting request:', error);
 				alert('Failed to reject request');
 			}
@@ -189,10 +187,6 @@ export class RoomManagementView implements OnDestroy {
 		// For now, show an alert that this feature needs to be implemented
 		// You would need a backend method to remove members
 		alert('Remove member functionality coming soon');
-	}
-
-	printCode() {
-		console.log(this.roomCode());
 	}
 
 	ngOnDestroy() {

@@ -58,6 +58,14 @@ export type Recipe = {
 	author: number  // User ID
 }
 
+export type RecipeCreatePayload = {
+	authorUsername: string,
+	name: string,
+	description?: string,
+	image?: string,
+	mealTypes: string[]
+}
+
 export type Meal = {
 	id?: number,
 	time: Date,

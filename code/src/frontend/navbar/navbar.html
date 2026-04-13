@@ -6,34 +6,27 @@
 		</a>
 
 		@if (isCollapsed()) {
-			<button
-				class="navbar-toggler"
-				type="button"
-				[attr.aria-expanded]="isMenuOpen()"
-				aria-controls="navContent"
-				aria-label="Toggle navigation"
-				(click)="toggleMenu()"
-			>
+			<button class="navbar-toggler" type="button" [attr.aria-expanded]="isMenuOpen()" aria-controls="navContent"
+				aria-label="Toggle navigation" (click)="toggleMenu()">
 				<span class="navbar-toggler-icon"></span>
 			</button>
 		}
 
-		<div
-			id="navContent"
-			class="navbar-menu"
-			[class.is-collapsed]="isCollapsed()"
-			[class.is-open]="!isCollapsed() || isMenuOpen()"
-		>
+		<div id="navContent" class="navbar-menu" [class.is-collapsed]="isCollapsed()"
+			[class.is-open]="!isCollapsed() || isMenuOpen()">
 			<ul class="navbar-links">
 				<li class="nav-item">
-					<a class="nav-link" routerLink="/homepage" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" (click)="handleMenuItemClick()">Home</a>
+					<a class="nav-link" routerLink="/homepage" routerLinkActive="active"
+						[routerLinkActiveOptions]="{exact: true}" (click)="handleMenuItemClick()">Home</a>
 				</li>
 				@if (!isLoggedIn()) {
 					<li class="nav-item">
-						<a class="nav-link" routerLink="/login" routerLinkActive="active" (click)="handleMenuItemClick()">Log in</a>
+						<a class="nav-link" routerLink="/login" routerLinkActive="active"
+							(click)="handleMenuItemClick()">Log in</a>
 					</li>
 					<li class="nav-item">
-						<a class="nav-link" routerLink="/signup" routerLinkActive="active" (click)="handleMenuItemClick()">Sign up</a>
+						<a class="nav-link" routerLink="/signup" routerLinkActive="active"
+							(click)="handleMenuItemClick()">Sign up</a>
 					</li>
 				} @else {
 					<li class="nav-item">
@@ -41,10 +34,16 @@
 					</li>
 				}
 				<li class="nav-item">
-					<a class="nav-link" [routerLink]="profileLink()" [queryParams]="profileQueryParams()" routerLinkActive="active" (click)="handleMenuItemClick()">Profile</a>
+					<a class="nav-link" [routerLink]="profileLink()" [queryParams]="profileQueryParams()"
+						routerLinkActive="active" (click)="handleMenuItemClick()">Profile</a>
 				</li>
 				<li class="nav-item">
-					<a class="nav-link" [routerLink]="myRoomsLink()" [queryParams]="myRoomsQueryParams()" routerLinkActive="active" (click)="handleMenuItemClick()">My Rooms</a>
+					<a class="nav-link" [routerLink]="myRoomsLink()" [queryParams]="myRoomsQueryParams()"
+						routerLinkActive="active" (click)="handleMenuItemClick()">My Rooms</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link" [routerLink]="myRecipesLink()" [queryParams]="myRecipesQueryParams()"
+						routerLinkActive="active" (click)="handleMenuItemClick()">My Recipes</a>
 				</li>
 			</ul>
 		</div>
@@ -60,7 +59,8 @@
 			<div class="navbar-menu is-open">
 				<ul class="navbar-links">
 					<li class="nav-item">
-						<a class="nav-link" routerLink="/homepage" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a>
+						<a class="nav-link" routerLink="/homepage" routerLinkActive="active"
+							[routerLinkActiveOptions]="{exact: true}">Home</a>
 					</li>
 					@if (!isLoggedIn()) {
 						<li class="nav-item">
@@ -75,10 +75,16 @@
 						</li>
 					}
 					<li class="nav-item">
-						<a class="nav-link" [routerLink]="profileLink()" [queryParams]="profileQueryParams()" routerLinkActive="active">Profile</a>
+						<a class="nav-link" [routerLink]="profileLink()" [queryParams]="profileQueryParams()"
+							routerLinkActive="active">Profile</a>
 					</li>
 					<li class="nav-item">
-						<a class="nav-link" [routerLink]="myRoomsLink()" [queryParams]="myRoomsQueryParams()" routerLinkActive="active">My Rooms</a>
+						<a class="nav-link" [routerLink]="myRoomsLink()" [queryParams]="myRoomsQueryParams()"
+							routerLinkActive="active">My Rooms</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" [routerLink]="myRecipesLink()" [queryParams]="myRecipesQueryParams()"
+							routerLinkActive="active">My Recipes</a>
 					</li>
 				</ul>
 			</div>

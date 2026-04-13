@@ -1,4 +1,4 @@
-﻿@use '../styles/theme' as *;
+﻿@use "../styles/theme" as *;
 
 .room-header {
 	display: flex;
@@ -40,7 +40,7 @@
 	gap: 1rem;
 }
 
-.room-containers{
+.room-containers {
 	padding-left: 3rem;
 	padding-top: 1.3rem;
 	display: flex;
@@ -77,13 +77,23 @@
 	display: flex;
 	flex-direction: column;
 	justify-content: space-between;
+	gap: 0.5rem;
 }
 
-.room-code {
+.room-image {
+	width: 100%;
+	height: 8rem;
+	object-fit: cover;
+	border-radius: 0.75rem;
+	border: 1px solid $color-light-gray;
+}
+
+.room-name {
 	margin: 0;
 	font-size: 1.1rem;
 	font-weight: 700;
 	color: $color-green-4;
+	word-break: break-word;
 }
 
 .room-role {
