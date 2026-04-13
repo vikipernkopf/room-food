@@ -25,6 +25,13 @@ describe('Recipes', () => {
 		authServiceMock = { currentUser: signal<User | null>(null) };
 		let recipeServiceMock: {
 			getRecipesByAuthorUsername: (username: string) => Observable<Recipe[]>;
+			getRawRecipes: () => Observable<Array<{
+				id: number;
+				name: string;
+				description: string | null;
+				image: string | null;
+				author: number;
+			}>>;
 			createRecipe: () => Observable<{
 				id: number
 			}>;
@@ -40,6 +47,7 @@ describe('Recipes', () => {
 				requestedUsername = username;
 				return of(recipesResponse);
 			},
+			getRawRecipes: () => of([]),
 			createRecipe: () => of({ id: 1 }),
 			updateRecipe: (_recipeId: number, payload: unknown) => {
 				updatedRecipePayload = payload;

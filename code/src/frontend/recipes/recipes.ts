@@ -1,8 +1,9 @@
 import { Component, effect, inject, signal, WritableSignal } from '@angular/core';
+import { JsonPipe } from '@angular/common';
 import { FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatSelectModule } from '@angular/material/select';
 import { AuthService } from '../core/auth-service';
-import { RecipeService } from '../core/recipe-service';
+import { RawRecipeRow, RecipeService } from '../core/recipe-service';
 import { Recipe, User } from '../../backend/model';
 import { DEFAULT_RECIPE_IMAGE } from '../core/user-form-validation';
 
@@ -13,7 +14,7 @@ type RecipeMealType = {
 
 @Component({
 	selector: 'app-recipes',
-	imports: [ReactiveFormsModule, FormsModule, MatSelectModule],
+	imports: [ReactiveFormsModule, FormsModule, MatSelectModule, JsonPipe],
 	templateUrl: './recipes.html',
 	styleUrl: './recipes.scss'
 })
@@ -24,7 +25,9 @@ export class Recipes {
 	protected readonly currentUser: WritableSignal<User | null>;
 	protected readonly defaultRecipeImage = DEFAULT_RECIPE_IMAGE;
 	protected readonly recipes = signal<Recipe[]>([]);
+	protected readonly rawRecipeRows = signal<RawRecipeRow[]>([]);
 	protected readonly recipesLoadError = signal('');
+	protected readonly rawRecipesLoadError = signal('');
 	protected readonly recipeSaveError = signal('');
 	protected creating = false;
 	protected readonly recipeToEdit = signal<Recipe | null>(null);
@@ -59,12 +62,15 @@ export class Recipes {
 
 			if (!username) {
 				this.recipes.set([]);
+				this.rawRecipeRows.set([]);
 				this.recipesLoadError.set('');
+				this.rawRecipesLoadError.set('');
 				this.closePopup();
 				return;
 			}
 
 			this.fetchRecipes(username);
+			this.fetchRawRecipes();
 		});
 	}
 
@@ -150,6 +156,7 @@ export class Recipes {
 				this.creating = false;
 				this.closePopup();
 				this.fetchRecipes(username);
+				this.fetchRawRecipes();
 			},
 			error: error => {
 				this.creating = false;
@@ -173,6 +180,7 @@ export class Recipes {
 				this.recipes.update(currentRecipes =>
 					currentRecipes.filter(currentRecipe => currentRecipe.id !== recipe.id)
 				);
+				this.fetchRawRecipes();
 				if (this.recipeToEdit()?.id === recipe.id) {
 					this.closePopup();
 				}
@@ -194,6 +202,19 @@ export class Recipes {
 			error: () => {
 				this.recipes.set([]);
 				this.recipesLoadError.set('Failed to load your recipes.');
+			}
+		});
+	}
+
+	private fetchRawRecipes(): void {
+		this.recipeService.getRawRecipes().subscribe({
+			next: rows => {
+				this.rawRecipeRows.set(rows || []);
+				this.rawRecipesLoadError.set('');
+			},
+			error: () => {
+				this.rawRecipeRows.set([]);
+				this.rawRecipesLoadError.set('Failed to load raw recipe rows.');
 			}
 		});
 	}

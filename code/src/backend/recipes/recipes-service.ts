@@ -48,6 +48,30 @@ export class RecipesService extends ServiceBase {
 		}));
 	}
 
+	public getAllRecipesRaw(): Array<{
+		id: number;
+		name: string;
+		description: string | null;
+		image: string | null;
+		author: number;
+	}> {
+		return this.unit.prepare<{
+			id: number;
+			name: string;
+			description: string | null;
+			image: string | null;
+			author: number;
+		}>(`
+			select id,
+			       name,
+			       description,
+			       image,
+			       author
+			from Recipe
+			order by id desc
+		`).all();
+	}
+
 	public addRecipe(recipe: RecipeCreatePayload): number | 'author_not_found' | 'error' {
 		const authorId = this.users.getUserIdByUsername(recipe.authorUsername);
 		if (authorId === undefined) {

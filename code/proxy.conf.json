@@ -1,7 +1,7 @@
 {
 	"/api": {
-		"target": "http://localhost:3001",
-		"secure": false,
+		"target": "https://roomfood-backend.black2.cf",
+		"secure": true,
 		"changeOrigin": true,
 		"pathRewrite": {}
 	}

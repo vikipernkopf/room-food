@@ -6,6 +6,22 @@ import { RecipeCreatePayload, RecipeUpdatePayload } from '../model';
 
 export const recipesRouter = express.Router();
 
+recipesRouter.get('/recipes/raw', async (_req, res): Promise<void> => {
+	const unit = new Unit(true);
+
+	try {
+		const recipesService = new RecipesService(unit);
+		const rows = recipesService.getAllRecipesRaw();
+
+		unit.complete();
+		res.status(StatusCodes.OK).json(rows);
+	} catch (error) {
+		unit.complete();
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to fetch raw recipe rows' });
+		console.error('Error fetching raw recipe rows:', error);
+	}
+});
+
 recipesRouter.get('/recipes/author/:username', async (req, res): Promise<void> => {
 	const { username } = req.params;
 
