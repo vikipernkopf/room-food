@@ -387,6 +387,15 @@ class DB {
 			const recipeMealTypeExists = connection.prepare(
 				`select name from sqlite_master where type = 'table' and name = 'RecipeMealType'`
 			).get();
+			const recipeMealTypeFkRows = connection.prepare(
+				`pragma foreign_key_list(RecipeMealType)`
+			).all() as Array<{
+				table: string
+			}>;
+			const recipeMealTypeFkTargetsRecipe = recipeMealTypeFkRows.some(
+				fk => fk.table.toLowerCase() === 'recipe'
+			);
+			const recipeMealTypeNeedsFkRepair = !!recipeMealTypeExists && !recipeMealTypeFkTargetsRecipe;
 
 			if (!recipeMealTypeExists && !recipeNeedsMigration) {
 				// Table should have been created in ensureTablesCreated, this is just a safety check
@@ -400,6 +409,35 @@ class DB {
 					constraint fk_recipe_id foreign key (recipe_id) references Recipe (id) ON DELETE CASCADE
 				) strict
 			`);
+			}
+
+			if (recipeMealTypeNeedsFkRepair) {
+				console.log('Repairing RecipeMealType FK target to reference Recipe table...');
+				connection.exec(`
+				alter table RecipeMealType
+					rename to RecipeMealType_legacy;
+
+				create table RecipeMealType
+				(
+					recipe_id integer not null,
+					meal_type text    not null,
+
+					constraint pk_recipe_meal_type primary key (recipe_id, meal_type),
+					constraint fk_recipe_id foreign key (recipe_id) references Recipe (id) ON DELETE CASCADE
+				) strict;
+
+				insert into RecipeMealType(recipe_id, meal_type)
+				select legacy.recipe_id, legacy.meal_type
+				from RecipeMealType_legacy legacy
+				where exists(
+					select 1 as existing_recipe
+					from Recipe r
+					where r.id = legacy.recipe_id
+				);
+
+				drop table RecipeMealType_legacy;
+			`);
+				console.log('✓ RecipeMealType FK repair completed');
 			}
 
 			// Ensure MealRecipe table exists
