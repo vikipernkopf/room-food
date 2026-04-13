@@ -1,5 +1,4 @@
 import { Component, effect, inject, signal, WritableSignal } from '@angular/core';
-import { JsonPipe } from '@angular/common';
 import { FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatSelectModule } from '@angular/material/select';
 import { AuthService } from '../core/auth-service';
@@ -14,7 +13,7 @@ type RecipeMealType = {
 
 @Component({
 	selector: 'app-recipes',
-	imports: [ReactiveFormsModule, FormsModule, MatSelectModule, JsonPipe],
+	imports: [ReactiveFormsModule, FormsModule, MatSelectModule],
 	templateUrl: './recipes.html',
 	styleUrl: './recipes.scss'
 })
