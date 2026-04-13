@@ -66,6 +66,13 @@ export type RecipeCreatePayload = {
 	mealTypes: string[]
 }
 
+export type RecipeUpdatePayload = {
+	name: string,
+	description?: string,
+	image?: string,
+	mealTypes: string[]
+}
+
 export type Meal = {
 	id?: number,
 	time: Date,

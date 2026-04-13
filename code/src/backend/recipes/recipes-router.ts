@@ -2,7 +2,7 @@ import express from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { Unit } from '../unit';
 import { RecipesService } from './recipes-service';
-import { RecipeCreatePayload } from '../model';
+import { RecipeCreatePayload, RecipeUpdatePayload } from '../model';
 
 export const recipesRouter = express.Router();
 
@@ -68,5 +68,89 @@ recipesRouter.post('/recipes', async (req, res): Promise<void> => {
 		unit.complete(false);
 		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to create recipe' });
 		console.error('Error creating recipe:', error);
+	}
+});
+
+recipesRouter.put('/recipes/:id', async (req, res): Promise<void> => {
+	const recipeId = Number(req.params.id);
+	const payload = req.body as Partial<RecipeUpdatePayload>;
+
+	if (!Number.isInteger(recipeId) || recipeId <= 0) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid recipe id' });
+		return;
+	}
+
+	if (!payload?.name) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Recipe name is required' });
+		return;
+	}
+
+	const unit = new Unit(false);
+
+	try {
+		const recipesService = new RecipesService(unit);
+		const result = recipesService.updateRecipe(recipeId, {
+			name: payload.name,
+			description: payload.description,
+			image: payload.image,
+			mealTypes: payload.mealTypes ?? []
+		});
+
+		if (result === 'not_found') {
+			unit.complete(false);
+			res.status(StatusCodes.NOT_FOUND).json({ error: 'Recipe not found' });
+			return;
+		}
+
+		if (result === 'error') {
+			unit.complete(false);
+			res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to update recipe' });
+			return;
+		}
+
+		unit.complete(true);
+		res.status(StatusCodes.OK).json({ id: recipeId });
+	} catch (error) {
+		unit.complete(false);
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to update recipe' });
+		console.error('Error updating recipe:', error);
+	}
+});
+
+recipesRouter.delete('/recipes/:id', async (req, res): Promise<void> => {
+	const recipeId = Number(req.params.id);
+
+	if (!Number.isInteger(recipeId) || recipeId <= 0) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid recipe id' });
+		return;
+	}
+
+	const unit = new Unit(false);
+
+	try {
+		const recipesService = new RecipesService(unit);
+		const result = recipesService.deleteRecipe(recipeId);
+
+		if (result === 'not_found') {
+			unit.complete(false);
+			res.status(StatusCodes.NOT_FOUND).json({ error: 'Recipe not found' });
+			return;
+		}
+
+		if (result === 'error') {
+			unit.complete(false);
+			res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to delete recipe' });
+			return;
+		}
+
+		unit.complete(true);
+		res.status(StatusCodes.OK).json({
+			id: recipeId,
+			deleted: true
+		});
+	} catch (error) {
+		unit.complete(false);
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to delete recipe' });
+		console.error('Error deleting recipe:', error);
 	}
 });

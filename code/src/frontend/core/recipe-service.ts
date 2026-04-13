@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { Recipe, RecipeCreatePayload } from '../../backend/model';
+import { Recipe, RecipeCreatePayload, RecipeUpdatePayload } from '../../backend/model';
 
 function getApiBase(): string {
 	// Runtime override: window.__API_URL can be injected into the page (e.g. by a script
@@ -34,5 +34,24 @@ export class RecipeService {
 			id: number
 		}>(apiUrl, payload);
 	}
-}
 
+	public updateRecipe(recipeId: number, payload: RecipeUpdatePayload): Observable<{
+		id: number
+	}> {
+		const apiUrl = `${this.apiBase}/recipes/${recipeId}`;
+		return this.http.put<{
+			id: number
+		}>(apiUrl, payload);
+	}
+
+	public deleteRecipe(recipeId: number): Observable<{
+		id: number,
+		deleted: boolean
+	}> {
+		const apiUrl = `${this.apiBase}/recipes/${recipeId}`;
+		return this.http.delete<{
+			id: number,
+			deleted: boolean
+		}>(apiUrl);
+	}
+}

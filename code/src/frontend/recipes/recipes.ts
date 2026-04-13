@@ -2,7 +2,7 @@ import { Component, effect, signal, WritableSignal } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../core/auth-service';
 import { RecipeService } from '../core/recipe-service';
-import { Recipe, RecipeCreatePayload, User } from '../../backend/model';
+import { Recipe, User } from '../../backend/model';
 import { DEFAULT_RECIPE_IMAGE } from '../core/user-form-validation';
 
 type RecipeMealType = {
@@ -17,13 +17,14 @@ type RecipeMealType = {
 	styleUrl: './recipes.scss'
 })
 export class Recipes {
-	protected activePopup: 'create' | null = null;
+	protected activePopup: 'create' | 'edit' | null = null;
 	protected readonly currentUser: WritableSignal<User | null>;
 	protected readonly defaultRecipeImage = DEFAULT_RECIPE_IMAGE;
 	protected readonly recipes = signal<Recipe[]>([]);
 	protected readonly recipesLoadError = signal('');
 	protected readonly recipeSaveError = signal('');
 	protected creating = false;
+	protected readonly recipeToEdit = signal<Recipe | null>(null);
 	protected readonly recipeNameControl = new FormControl('', [Validators.required, Validators.minLength(3)]);
 	protected readonly recipeDescriptionControl = new FormControl('');
 	protected readonly recipeImageControl = new FormControl('');
@@ -66,12 +67,36 @@ export class Recipes {
 
 	protected openCreateRecipe(): void {
 		this.activePopup = 'create';
-		this.clearCreateForm();
+		this.recipeToEdit.set(null);
+		this.resetRecipeForm();
+	}
+
+	protected openEditRecipe(recipe: Recipe): void {
+		this.recipeToEdit.set(recipe);
+		this.activePopup = 'edit';
+		this.prefillRecipeForm(recipe);
+	}
+
+	protected get modalTitle(): string {
+		return this.isEditMode ? 'Edit Recipe' : 'Create Recipe';
+	}
+
+	protected get submitButtonLabel(): string {
+		if (this.creating) {
+			return this.isEditMode ? 'Saving...' : 'Creating...';
+		}
+
+		return this.isEditMode ? 'Save Recipe' : 'Create Recipe';
+	}
+
+	protected get isEditMode(): boolean {
+		return this.recipeToEdit() !== null;
 	}
 
 	protected closePopup(): void {
 		this.activePopup = null;
-		this.clearCreateForm();
+		this.recipeToEdit.set(null);
+		this.resetRecipeForm();
 	}
 
 	protected onOverlayClick(event: MouseEvent): void {
@@ -93,7 +118,7 @@ export class Recipes {
 		);
 	}
 
-	protected createRecipe(): void {
+	protected saveRecipe(): void {
 		this.recipeSaveError.set('');
 
 		const username = this.currentUser()?.username;
@@ -109,16 +134,28 @@ export class Recipes {
 			return;
 		}
 
-		const payload: RecipeCreatePayload = {
-			authorUsername: username,
-			name,
-			description: this.recipeDescriptionControl.value?.trim() || undefined,
-			image: this.recipeImageControl.value?.trim() || this.defaultRecipeImage,
-			mealTypes: this.selectedMealTypes()
-		};
+		const description = this.recipeDescriptionControl.value?.trim() || undefined;
+		const image = this.recipeImageControl.value?.trim() || this.defaultRecipeImage;
+		const mealTypes = this.selectedMealTypes();
+		const editRecipeId = this.recipeToEdit()?.id;
 
 		this.creating = true;
-		this.recipeService.createRecipe(payload).subscribe({
+		const request = editRecipeId
+			? this.recipeService.updateRecipe(editRecipeId, {
+				name,
+				description,
+				image,
+				mealTypes
+			})
+			: this.recipeService.createRecipe({
+				authorUsername: username,
+				name,
+				description,
+				image,
+				mealTypes
+			});
+
+		request.subscribe({
 			next: () => {
 				this.creating = false;
 				this.closePopup();
@@ -127,7 +164,33 @@ export class Recipes {
 			error: error => {
 				this.creating = false;
 				this.recipeSaveError.set(
-					'Failed to create recipe: ' + (error.error?.error || error.message || 'Unknown error'));
+					'Failed to save recipe: ' + (error.error?.error || error.message || 'Unknown error'));
+			}
+		});
+	}
+
+	protected deleteRecipe(recipe: Recipe): void {
+		if (!recipe.id) {
+			this.recipeSaveError.set('Unable to delete recipe: missing recipe id');
+			return;
+		}
+
+		this.recipeSaveError.set('');
+		this.creating = true;
+		this.recipeService.deleteRecipe(recipe.id).subscribe({
+			next: () => {
+				this.creating = false;
+				this.recipes.update(currentRecipes =>
+					currentRecipes.filter(currentRecipe => currentRecipe.id !== recipe.id)
+				);
+				if (this.recipeToEdit()?.id === recipe.id) {
+					this.closePopup();
+				}
+			},
+			error: error => {
+				this.creating = false;
+				this.recipeSaveError.set(
+					'Failed to delete recipe: ' + (error.error?.error || error.message || 'Unknown error'));
 			}
 		});
 	}
@@ -145,16 +208,28 @@ export class Recipes {
 		});
 	}
 
+	protected getRecipeCardDescription(recipe: Recipe): string {
+		return recipe.description || 'No description provided.';
+	}
+
 	protected getRecipeImage(recipe: Recipe): string {
 		return recipe.image || this.defaultRecipeImage;
 	}
 
-	private clearCreateForm(): void {
+	private resetRecipeForm(): void {
 		this.creating = false;
 		this.recipeSaveError.set('');
 		this.recipeNameControl.reset('');
 		this.recipeDescriptionControl.reset('');
 		this.recipeImageControl.reset('');
 		this.selectedMealTypes.set([]);
+	}
+
+	private prefillRecipeForm(recipe: Recipe): void {
+		this.resetRecipeForm();
+		this.recipeNameControl.setValue(recipe.name);
+		this.recipeDescriptionControl.setValue(recipe.description ?? '');
+		this.recipeImageControl.setValue(recipe.image ?? this.defaultRecipeImage);
+		this.selectedMealTypes.set(recipe.mealTypes ?? []);
 	}
 }
