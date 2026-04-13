@@ -52,7 +52,7 @@
 @if (recipesLoadError()) {
 	<p class="recipes-error">{{ recipesLoadError() }}</p>
 }
-@if (currentUser()?.username) {
+<!--@if (currentUser()?.username) {
 	<section class="recipe-debug-section">
 		<h2>Recipe table debug (select * from Recipe)</h2>
 		@if (rawRecipesLoadError()) {
@@ -61,7 +61,7 @@
 			<pre>{{ rawRecipeRows() | json }}</pre>
 		}
 	</section>
-}
+}-->
 @if (activePopup) {
 	<div class="modal-overlay" (click)="onOverlayClick($event)">
 		<div class="modal-card" (click)="$event.stopPropagation()">
