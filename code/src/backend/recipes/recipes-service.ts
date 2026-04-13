@@ -115,7 +115,7 @@ export class RecipesService extends ServiceBase {
 			new Set((recipe.mealTypes ?? []).map(mealType => mealType.trim()).filter(Boolean))
 		);
 
-		const [updateSuccess] = this.executeStmt(
+		try {
 			this.unit.prepare(
 				`update Recipe
 				 set name = :name,
@@ -128,18 +128,10 @@ export class RecipesService extends ServiceBase {
 					image: recipe.image?.trim() || null,
 					id: recipeId
 				}
-			)
-		);
+			).run();
 
-		if (!updateSuccess) {
-			return 'error';
-		}
-
-		const [clearSuccess] = this.executeStmt(
-			this.unit.prepare(`delete from RecipeMealType where recipe_id = :id`, { id: recipeId })
-		);
-
-		if (!clearSuccess) {
+			this.unit.prepare(`delete from RecipeMealType where recipe_id = :id`, { id: recipeId }).run();
+		} catch {
 			return 'error';
 		}
 

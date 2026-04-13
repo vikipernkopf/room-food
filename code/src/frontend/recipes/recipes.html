@@ -1,3 +1,4 @@
+<!--suppress IncorrectFormatting -->
 <div class="recipe-header">
 	<h1>My Recipes</h1>
 </div>
@@ -29,11 +30,11 @@
 						<p class="recipe-meal-types-empty">No meal types selected.</p>
 					}
 					<div class="recipe-actions">
-						<button type="button" class="btn-edit"
+						<button type="button" class="btn-edit-tile"
 							(click)="$event.stopPropagation(); openEditRecipe(recipe)">
 							Edit
 						</button>
-						<button type="button" class="btn-delete"
+						<button type="button" class="btn-delete-tile"
 							(click)="$event.stopPropagation(); deleteRecipe(recipe)">
 							Delete
 						</button>
@@ -58,9 +59,6 @@
 				<h2>{{ modalTitle }}</h2>
 				<button class="btn-close" type="button" (click)="closePopup()">x</button>
 			</div>
-			@if (recipeSaveError()) {
-				<p class="recipes-error modal-error">{{ recipeSaveError() }}</p>
-			}
 			<form class="recipe-form" (ngSubmit)="saveRecipe()">
 				<label class="form-group">
 					<span>Recipe name</span>
@@ -77,15 +75,12 @@
 				</label>
 				<div class="form-group meal-type-group">
 					<span>Meal types</span>
-					<div class="meal-type-grid">
+					<mat-select class="meal-type-select" panelClass="meal-type-panel"
+						[disableOptionCentering]="true" [formControl]="recipeMealTypesControl" multiple>
 						@for (mealType of mealTypeOptions; track mealType.value) {
-							<label class="meal-type-option">
-								<input type="checkbox" [checked]="isMealTypeSelected(mealType.value)"
-									(change)="toggleMealType(mealType.value)">
-								<span>{{ mealType.viewValue }}</span>
-							</label>
+							<mat-option [value]="mealType.value">{{ mealType.viewValue }}</mat-option>
 						}
-					</div>
+					</mat-select>
 				</div>
 				<div class="form-actions">
 					<button class="btn-submit" type="submit" [disabled]="creating">{{ submitButtonLabel }}</button>
@@ -96,6 +91,10 @@
 						</button>
 					}
 				</div>
+				@if (recipeSaveError()) {
+					<p class="recipes-error modal-error">{{ recipeSaveError() }}</p>
+				}
+				<hr>
 			</form>
 		</div>
 	</div>

@@ -1,5 +1,6 @@
-import { Component, effect, signal, WritableSignal } from '@angular/core';
+import { Component, effect, inject, signal, WritableSignal } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MatSelectModule } from '@angular/material/select';
 import { AuthService } from '../core/auth-service';
 import { RecipeService } from '../core/recipe-service';
 import { Recipe, User } from '../../backend/model';
@@ -12,12 +13,14 @@ type RecipeMealType = {
 
 @Component({
 	selector: 'app-recipes',
-	imports: [ReactiveFormsModule, FormsModule],
+	imports: [ReactiveFormsModule, FormsModule, MatSelectModule],
 	templateUrl: './recipes.html',
 	styleUrl: './recipes.scss'
 })
 export class Recipes {
 	protected activePopup: 'create' | 'edit' | null = null;
+	private readonly recipeService = inject(RecipeService);
+	private readonly authService = inject(AuthService);
 	protected readonly currentUser: WritableSignal<User | null>;
 	protected readonly defaultRecipeImage = DEFAULT_RECIPE_IMAGE;
 	protected readonly recipes = signal<Recipe[]>([]);
@@ -28,7 +31,7 @@ export class Recipes {
 	protected readonly recipeNameControl = new FormControl('', [Validators.required, Validators.minLength(3)]);
 	protected readonly recipeDescriptionControl = new FormControl('');
 	protected readonly recipeImageControl = new FormControl('');
-	protected readonly selectedMealTypes = signal<string[]>([]);
+	protected readonly recipeMealTypesControl = new FormControl<string[]>([], { nonNullable: true });
 	protected readonly mealTypeOptions: RecipeMealType[] = [
 		{
 			value: 'breakfast',
@@ -48,7 +51,7 @@ export class Recipes {
 		}
 	];
 
-	constructor(private readonly recipeService: RecipeService, private readonly authService: AuthService) {
+	constructor() {
 		this.currentUser = this.authService.currentUser;
 
 		effect(() => {
@@ -105,19 +108,6 @@ export class Recipes {
 		}
 	}
 
-	protected isMealTypeSelected(mealType: string): boolean {
-		return this.selectedMealTypes().includes(mealType);
-	}
-
-	protected toggleMealType(mealType: string): void {
-		this.recipeSaveError.set('');
-		this.selectedMealTypes.update(types =>
-			types.includes(mealType)
-				? types.filter(type => type !== mealType)
-				: [...types, mealType]
-		);
-	}
-
 	protected saveRecipe(): void {
 		this.recipeSaveError.set('');
 
@@ -136,7 +126,7 @@ export class Recipes {
 
 		const description = this.recipeDescriptionControl.value?.trim() || undefined;
 		const image = this.recipeImageControl.value?.trim() || this.defaultRecipeImage;
-		const mealTypes = this.selectedMealTypes();
+		const mealTypes = this.recipeMealTypesControl.value;
 		const editRecipeId = this.recipeToEdit()?.id;
 
 		this.creating = true;
@@ -222,7 +212,7 @@ export class Recipes {
 		this.recipeNameControl.reset('');
 		this.recipeDescriptionControl.reset('');
 		this.recipeImageControl.reset('');
-		this.selectedMealTypes.set([]);
+		this.recipeMealTypesControl.setValue([]);
 	}
 
 	private prefillRecipeForm(recipe: Recipe): void {
@@ -230,6 +220,6 @@ export class Recipes {
 		this.recipeNameControl.setValue(recipe.name);
 		this.recipeDescriptionControl.setValue(recipe.description ?? '');
 		this.recipeImageControl.setValue(recipe.image ?? this.defaultRecipeImage);
-		this.selectedMealTypes.set(recipe.mealTypes ?? []);
+		this.recipeMealTypesControl.setValue(recipe.mealTypes ?? []);
 	}
 }
