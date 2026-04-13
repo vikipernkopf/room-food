@@ -4,6 +4,14 @@ import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { Recipe, RecipeCreatePayload, RecipeUpdatePayload } from '../../backend/model';
 
+export type RawRecipeRow = {
+	id: number;
+	name: string;
+	description: string | null;
+	image: string | null;
+	author: number;
+};
+
 function getApiBase(): string {
 	// Runtime override: window.__API_URL can be injected into the page (e.g. by a script
 	// in index.html) so the deployed static site can point to any backend without rebuild.
@@ -24,6 +32,11 @@ export class RecipeService {
 	public getRecipesByAuthorUsername(username: string): Observable<Recipe[]> {
 		const apiUrl = `${this.apiBase}/recipes/author/${username}`;
 		return this.http.get<Recipe[]>(apiUrl);
+	}
+
+	public getRawRecipes(): Observable<RawRecipeRow[]> {
+		const apiUrl = `${this.apiBase}/recipes/raw`;
+		return this.http.get<RawRecipeRow[]>(apiUrl);
 	}
 
 	public createRecipe(payload: RecipeCreatePayload): Observable<{
