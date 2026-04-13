@@ -1,4 +1,6 @@
-import BetterSqlite3 from 'better-sqlite3';
+//noinspection SqlResolve,SqlInsertValues
+
+import BetterSqlite3 = require('better-sqlite3');
 import { mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -52,19 +54,23 @@ async function main(): Promise<void> {
 		(
 			id       integer PRIMARY KEY
 				DEFAULT (abs(random()) % 90000000 + 10000000),
-			name     text    not null,
-			author   integer not null,
-			constraint uq_recipe unique (id, author),
-			constraint fk_author foreign key (author) REFERENCES User (id) ON DELETE CASCADE
+			name           text not null,
+			mealType       text,
+			authorUsername text not null,
+			constraint uq_recipe unique (id, authorUsername)
 		) strict;
 	`);
 
 		legacyDb.prepare(`insert into User(username, password) values ('chef1', 'pw')`).run();
 		legacyDb.prepare(`insert into Room(code, name) values ('ABCD', 'Test Room')`).run();
 		legacyDb.prepare(
-			`insert into Meal(id, time, name, responsible, roomCode) values (1, '2026-04-10T19:00:00Z', 'Dinner', 'chef1', 'ABCD')`)
+			`insert into Meal(id, time, name, responsible, roomCode)
+			 values (1, '2026-04-10T19:00:00Z', 'Dinner', 'chef1', 'ABCD')`)
 		.run();
-		legacyDb.prepare(`insert into Recipe(id, name, author) values (12345678, 'Legacy Pasta', 1)`).run();
+		legacyDb.prepare(
+			`insert into Recipe(id, name, mealType, authorUsername)
+			 values (12345678, 'Legacy Pasta', 'dinner', 'chef1')`
+		).run();
 		legacyDb.close();
 
 		process.chdir(tempDir);
@@ -110,6 +116,14 @@ async function main(): Promise<void> {
 		assert(!!recipeRow, 'Legacy recipe row was not preserved');
 		assert(recipeRow?.description === null, 'Legacy recipe description should migrate as null');
 		assert(recipeRow?.image === null, 'Legacy recipe image should migrate as null');
+		assert(recipeRow?.author === 1, 'Legacy recipe authorUsername was not mapped to User.id');
+
+		const migratedRecipeMealType = migratedDb.prepare(
+			`select meal_type as mealType from RecipeMealType where recipe_id = 12345678`
+		).get() as {
+			mealType: string
+		} | undefined;
+		assert(migratedRecipeMealType?.mealType === 'dinner', 'Legacy recipe mealType was not migrated');
 
 		migratedDb.close();
 
@@ -131,6 +145,3 @@ main().catch((error: unknown) => {
 	console.error(error);
 	process.exit(1);
 });
-
-
-

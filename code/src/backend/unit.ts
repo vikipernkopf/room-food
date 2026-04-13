@@ -287,12 +287,14 @@ class DB {
 			const recipeHasMealTypeColumn = recipeColumnNames.has('mealtype');
 			const recipeHasDescriptionColumn = recipeColumnNames.has('description');
 			const recipeHasImageColumn = recipeColumnNames.has('image');
+			const recipeHasAuthorColumn = recipeColumnNames.has('author');
 			const recipeHasLegacyIdDefault = recipeSql.includes('default (abs(random())');
 			const recipeHasLegacyUqRecipe = recipeSql.includes('uq_recipe');
 			const recipeNeedsMigration =
 				recipeHasMealTypeColumn ||
 				!recipeHasDescriptionColumn ||
 				!recipeHasImageColumn ||
+				!recipeHasAuthorColumn ||
 				recipeHasLegacyIdDefault ||
 				recipeHasLegacyUqRecipe;
 
@@ -347,16 +349,27 @@ class DB {
 
 				const legacyDescriptionExpr = legacyRecipeColumnNames.has('description') ? 'description' : 'null';
 				const legacyImageExpr = legacyRecipeColumnNames.has('image') ? 'image' : 'null';
+				const legacyAuthorExpr = DB.getLegacyRecipeAuthorExpr(legacyRecipeColumnNames, 'legacy');
 
-				connection.exec(`
-				insert into Recipe(id, name, description, image, author)
-				select id,
-				       name,
-				       ${legacyDescriptionExpr} as description,
-				       ${legacyImageExpr} as image,
-				       author
-				from Recipe_legacy;
-			`);
+				if (legacyAuthorExpr === null) {
+					console.warn(
+						'Recipe migration: no legacy author column found; existing legacy recipes were skipped.'
+					);
+				} else {
+					connection.exec(`
+					insert into Recipe(id, name, description, image, author)
+					select id, name, description, image, resolved_author
+					from (
+						select legacy.id                                            as id,
+						       legacy.name                                          as name,
+						       ${legacyDescriptionExpr}                              as description,
+						       ${legacyImageExpr}                                    as image,
+						       ${legacyAuthorExpr}                                   as resolved_author
+						from Recipe_legacy legacy
+					)
+					where resolved_author is not null;
+				`);
+				}
 
 				if (legacyRecipeColumnNames.has('mealtype')) {
 					connection.exec(`
@@ -411,6 +424,29 @@ class DB {
 		} finally {
 			connection.pragma('foreign_keys = ON');
 		}
+	}
+
+	private static getLegacyRecipeAuthorExpr(
+		legacyRecipeColumnNames: Set<string>, sourceAlias: string): string | null {
+		if (legacyRecipeColumnNames.has('author')) {
+			return `${sourceAlias}.author`;
+		}
+
+		const directIdColumns = ['author_id', 'authorid', 'user_id', 'userid'];
+		const directIdColumn = directIdColumns.find(column => legacyRecipeColumnNames.has(column));
+		if (directIdColumn !== undefined) {
+			return `${sourceAlias}.${directIdColumn}`;
+		}
+
+		const usernameColumns = ['author_username', 'authorusername', 'username', 'author_name', 'authorname'];
+		const usernameColumn = usernameColumns.find(column => legacyRecipeColumnNames.has(column));
+		if (usernameColumn !== undefined) {
+			return `(select u.id from User u
+				where lower(u.username) = lower(${sourceAlias}.${usernameColumn})
+				limit 1)`;
+		}
+
+		return null;
 	}
 }
 
