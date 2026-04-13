@@ -82,23 +82,33 @@ export class RecipesService extends ServiceBase {
 			new Set((recipe.mealTypes ?? []).map(mealType => mealType.trim()).filter(Boolean))
 		);
 
-		let success: boolean;
 		let id: number;
-
-		[success, id] = this.executeStmt(
-			this.unit.prepare(
+		try {
+			const insertedRecipe = this.unit.prepare<{
+				id: number;
+			}, {
+				name: string;
+				description: string | null;
+				image: string | null;
+				author: number;
+			}>(
 				`insert into Recipe(name, description, image, author)
-				 values (:name, :description, :image, :author)`,
+				 values (:name, :description, :image, :author)
+				 returning id`,
 				{
 					name: recipe.name.trim(),
 					description: recipe.description?.trim() || null,
 					image: recipe.image?.trim() || null,
 					author: authorId
 				}
-			)
-		);
+			).get();
 
-		if (!success) {
+			if (insertedRecipe === undefined) {
+				return 'error';
+			}
+
+			id = insertedRecipe.id;
+		} catch {
 			return 'error';
 		}
 
