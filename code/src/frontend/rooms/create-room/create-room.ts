@@ -4,25 +4,25 @@ import { RouterLink, Router } from '@angular/router';
 import { AuthService } from '../../core/auth-service';
 import { RoomService } from '../../core/room-service';
 import { CommonModule } from '@angular/common';
-import {User} from '../../../backend/model';
-
-const DEFAULT_ROOM_PICTURE =
-	'https://i.imgur.com/tdi3NGa_d.webp?maxwidth=760&fidelity=grand';
+import { User } from '../../../backend/model';
+import { DEFAULT_ROOM_PICTURE } from '../../core/user-form-validation';
 
 @Component({
-  selector: 'app-room-creation',
+	selector: 'app-room-creation',
 	standalone: true,
 	imports: [
 		ReactiveFormsModule,
 		RouterLink,
 		CommonModule
 	],
-  templateUrl: './create-room.html',
-  styleUrl: './create-room.scss',
+	templateUrl: './create-room.html',
+	styleUrl: './create-room.scss',
 })
 export class RoomCreation {
-	@Input() showJoinExistingLink = false;
-	@Output() joinExistingRequested = new EventEmitter<void>();
+	@Input()
+	showJoinExistingLink = false;
+	@Output()
+	joinExistingRequested = new EventEmitter<void>();
 
 	// Form controls using FormGroup
 	roomCreationForm = new FormGroup({
@@ -32,8 +32,7 @@ export class RoomCreation {
 
 	public createRoomError: WritableSignal<string>;
 	public isLoading = false;
-	protected currentUser: WritableSignal<User|null>;
-
+	protected currentUser: WritableSignal<User | null>;
 
 	constructor(
 		private authService: AuthService,
@@ -70,7 +69,7 @@ export class RoomCreation {
 			console.log(user);
 
 			this.roomService.createRoom(user.username, roomName, pfp).subscribe({
-				next: (response) => {
+				next: response => {
 					console.log('Room created successfully:', response);
 					this.setLoadingState(false);
 					this.roomService.saveError.set('');
@@ -79,7 +78,7 @@ export class RoomCreation {
 					// noinspection JSIgnoredPromiseFromCall
 					this.router.navigate([`/calendar/${response.result}`]);
 				},
-				error: (err) => {
+				error: err => {
 					this.setLoadingState(false);
 					console.error('Error creating room:', err);
 					this.roomService.saveError.set('Failed to create room. Please try again.');

@@ -1,8 +1,9 @@
 import express from 'express';
 import { loginSignUpRouter } from './login-sign-up/login-sign-up-router';
-import {roomViewRouter} from './room-view/room-view-router';
-import {mealManagementRouter} from './meal-management/meal-management-router';
+import { roomViewRouter } from './room-view/room-view-router';
+import { mealManagementRouter } from './meal-management/meal-management-router';
 import { roomsRouter } from './rooms/rooms-router';
+import { recipesRouter } from './recipes/recipes-router';
 
 declare global {
 	// noinspection ES6ConvertVarToLetConst,JSUnusedGlobalSymbols
@@ -17,9 +18,10 @@ export function createApiRouter() {
 	// Also mount the same router at the API root so callers can POST to /api/signup and /api/login
 	// (the frontend expects /api/signup and /api/login).
 	router.use('/', loginSignUpRouter);
-	router.use('/', mealManagementRouter)
+	router.use('/', mealManagementRouter);
 	router.use('/', roomViewRouter);
 	router.use('/', roomsRouter);
+	router.use('/', recipesRouter);
 
 	return router;
 }
@@ -40,7 +42,10 @@ export function createApiApp() {
 }
 
 export function startServer() {
-	if (globalThis.__roomFoodServerStarted) return;
+	if (globalThis.__roomFoodServerStarted) {
+		return;
+	}
+
 	globalThis.__roomFoodServerStarted = true;
 
 	const port = Number(process.env['PORT'] ?? '3001');
@@ -51,7 +56,9 @@ export function startServer() {
 		console.log(`API server listening on http://localhost:${port}`)
 	);
 
-	server.on('error', (err: NodeJS.ErrnoException & { code?: string }) => {
+	server.on('error', (err: NodeJS.ErrnoException & {
+		code?: string
+	}) => {
 		if (err && err.code === 'EADDRINUSE') {
 			console.error(`Port ${port} in use, exiting.`);
 			process.exit(1);

@@ -1,164 +1,177 @@
 import {
-  AfterViewInit,
-  Component,
-  ElementRef,
-  Inject,
-  OnDestroy,
-  PLATFORM_ID,
-  ViewChild,
-  computed,
-  effect,
-  signal,
+	AfterViewInit,
+	Component,
+	ElementRef,
+	Inject,
+	OnDestroy,
+	PLATFORM_ID,
+	ViewChild,
+	computed,
+	effect,
+	signal,
 } from '@angular/core';
-import {isPlatformBrowser, NgOptimizedImage} from '@angular/common';
-import {RouterLink, RouterLinkActive} from '@angular/router';
+import { isPlatformBrowser, NgOptimizedImage } from '@angular/common';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../core/auth-service';
+
 @Component({
-  selector: 'app-navbar',
+	selector: 'app-navbar',
 	imports: [
 		NgOptimizedImage,
 		RouterLink,
 		RouterLinkActive
 	],
-  templateUrl: './navbar.html',
-  styleUrl: './navbar.scss',
+	templateUrl: './navbar.html',
+	styleUrl: './navbar.scss',
 })
 export class Navbar implements AfterViewInit, OnDestroy {
-  // Collapse slightly early to avoid edge-case visual crowding from sub-pixel/font differences.
-  private static readonly COLLAPSE_GUARD_PX = 10;
+	// Collapse slightly early to avoid edge-case visual crowding from sub-pixel/font differences.
+	private static readonly COLLAPSE_GUARD_PX = 10;
 
-  @ViewChild('navbarShell') private navbarShell?: ElementRef<HTMLElement>;
-  @ViewChild('navbarMeasure') private navbarMeasure?: ElementRef<HTMLElement>;
+	@ViewChild('navbarShell')
+	private navbarShell?: ElementRef<HTMLElement>;
+	@ViewChild('navbarMeasure')
+	private navbarMeasure?: ElementRef<HTMLElement>;
 
-  protected readonly profileLink;
-  protected readonly profileQueryParams;
-  protected readonly myRoomsLink;
-  protected readonly myRoomsQueryParams;
-  protected readonly isLoggedIn;
-  protected readonly isCollapsed = signal(false);
-  protected readonly isMenuOpen = signal(false);
+	protected readonly profileLink;
+	protected readonly profileQueryParams;
+	protected readonly myRoomsLink;
+	protected readonly myRoomsQueryParams;
+	protected readonly myRecipesLink;
+	protected readonly myRecipesQueryParams;
+	protected readonly isLoggedIn;
+	protected readonly isCollapsed = signal(false);
+	protected readonly isMenuOpen = signal(false);
 
-  private readonly handleWindowResize = () => this.queueLayoutRecalculation();
-  private readonly isBrowser: boolean;
-  private resizeObserver: ResizeObserver | null = null;
-  private layoutFrame: number | null = null;
+	private readonly handleWindowResize = () => this.queueLayoutRecalculation();
+	private readonly isBrowser: boolean;
+	private resizeObserver: ResizeObserver | null = null;
+	private layoutFrame: number | null = null;
 
-  constructor(
-  private readonly authService: AuthService,
-  @Inject(PLATFORM_ID) platformId: object
-  ) {
-  this.isBrowser = isPlatformBrowser(platformId);
+	constructor(
+		private readonly authService: AuthService,
+		@Inject(PLATFORM_ID) platformId: object
+	) {
+		this.isBrowser = isPlatformBrowser(platformId);
 
-	this.profileLink = computed(() => {
-	  const username = this.authService.currentUser()?.username;
-	  return username ? ['/profile', username] : ['/login'];
-	});
+		this.profileLink = computed(() => {
+			const username = this.authService.currentUser()?.username;
+			return username ? ['/profile', username] : ['/login'];
+		});
 
-	this.profileQueryParams = computed(() => {
-	  const username = this.authService.currentUser()?.username;
-	  return username ? null : { returnUrl: '/profile' };
-	});
+		this.profileQueryParams = computed(() => {
+			const username = this.authService.currentUser()?.username;
+			return username ? null : { returnUrl: '/profile' };
+		});
 
-	this.myRoomsLink = computed(() => {
-	  const user = this.authService.currentUser();
-	  return user ? ['/myrooms'] : ['/login'];
-	});
+		this.myRoomsLink = computed(() => {
+			const user = this.authService.currentUser();
+			return user ? ['/myrooms'] : ['/login'];
+		});
 
-	this.myRoomsQueryParams = computed(() => {
-	  const user = this.authService.currentUser();
-	  return user ? null : { returnUrl: '/myrooms' };
-	});
+		this.myRoomsQueryParams = computed(() => {
+			const user = this.authService.currentUser();
+			return user ? null : { returnUrl: '/myrooms' };
+		});
 
-	this.isLoggedIn = computed(() => {
-	  return this.authService.currentUser() !== null;
-	});
+		this.myRecipesLink = computed(() => {
+			const user = this.authService.currentUser();
+			return user ? ['/recipes'] : ['/login'];
+		});
 
-	effect(() => {
-	  this.authService.currentUser();
-	  this.queueLayoutRecalculation();
-	});
-  }
+		this.myRecipesQueryParams = computed(() => {
+			const user = this.authService.currentUser();
+			return user ? null : { returnUrl: '/recipes' };
+		});
 
-  ngAfterViewInit(): void {
-	if (!this.isBrowser) {
-	  return;
+		this.isLoggedIn = computed(() => this.authService.currentUser() !== null);
+
+		effect(() => {
+			this.authService.currentUser();
+			this.queueLayoutRecalculation();
+		});
 	}
 
-	window.addEventListener('resize', this.handleWindowResize);
-	if (typeof ResizeObserver !== 'undefined' && this.navbarShell) {
-	  this.resizeObserver = new ResizeObserver(() => this.queueLayoutRecalculation());
-	  this.resizeObserver.observe(this.navbarShell.nativeElement);
-	}
-	this.queueLayoutRecalculation();
-  }
+	ngAfterViewInit(): void {
+		if (!this.isBrowser) {
+			return;
+		}
 
-  ngOnDestroy(): void {
-	if (!this.isBrowser) {
-	  return;
-	}
-
-	window.removeEventListener('resize', this.handleWindowResize);
-	this.resizeObserver?.disconnect();
-	if (this.layoutFrame !== null) {
-	  cancelAnimationFrame(this.layoutFrame);
-	}
-  }
-
-  logout(): void {
-	  this.isMenuOpen.set(false);
-	  this.authService.logout();
-  }
-
-  protected toggleMenu(): void {
-	if (!this.isCollapsed()) {
-	  return;
+		window.addEventListener('resize', this.handleWindowResize);
+		if (typeof ResizeObserver !== 'undefined' && this.navbarShell) {
+			this.resizeObserver = new ResizeObserver(() => this.queueLayoutRecalculation());
+			this.resizeObserver.observe(this.navbarShell.nativeElement);
+		}
+		this.queueLayoutRecalculation();
 	}
 
-	this.isMenuOpen.update((value) => !value);
-  }
+	ngOnDestroy(): void {
+		if (!this.isBrowser) {
+			return;
+		}
 
-  protected handleMenuItemClick(): void {
-	if (this.isCollapsed()) {
-	  this.isMenuOpen.set(false);
-	}
-  }
-
-  private queueLayoutRecalculation(): void {
-	if (!this.isBrowser) {
-	  return;
+		window.removeEventListener('resize', this.handleWindowResize);
+		this.resizeObserver?.disconnect();
+		if (this.layoutFrame !== null) {
+			cancelAnimationFrame(this.layoutFrame);
+		}
 	}
 
-	if (this.layoutFrame !== null) {
-	  return;
+	logout(): void {
+		this.isMenuOpen.set(false);
+		this.authService.logout();
 	}
 
-	this.layoutFrame = window.requestAnimationFrame(() => {
-	  this.layoutFrame = null;
-	  this.recalculateLayout();
-	});
-  }
+	protected toggleMenu(): void {
+		if (!this.isCollapsed()) {
+			return;
+		}
 
-  private recalculateLayout(): void {
-	const shell = this.navbarShell?.nativeElement;
-	const measure = this.navbarMeasure?.nativeElement;
-
-	if (!shell || !measure) {
-	  return;
+		this.isMenuOpen.update(value => !value);
 	}
 
-	const availableWidth = Math.floor(shell.clientWidth);
-	const requiredWidth = Math.ceil(measure.getBoundingClientRect().width);
-
-	if (availableWidth <= 0 || requiredWidth <= 0) {
-	  return;
+	protected handleMenuItemClick(): void {
+		if (this.isCollapsed()) {
+			this.isMenuOpen.set(false);
+		}
 	}
 
-	const shouldCollapse = requiredWidth + Navbar.COLLAPSE_GUARD_PX > availableWidth;
-	this.isCollapsed.set(shouldCollapse);
+	private queueLayoutRecalculation(): void {
+		if (!this.isBrowser) {
+			return;
+		}
 
-	if (!shouldCollapse) {
-	  this.isMenuOpen.set(false);
+		if (this.layoutFrame !== null) {
+			return;
+		}
+
+		this.layoutFrame = window.requestAnimationFrame(() => {
+			this.layoutFrame = null;
+			this.recalculateLayout();
+		});
 	}
-  }
+
+	private recalculateLayout(): void {
+		const shell = this.navbarShell?.nativeElement;
+		const measure = this.navbarMeasure?.nativeElement;
+
+		if (!shell || !measure) {
+			return;
+		}
+
+		const availableWidth = Math.floor(shell.clientWidth);
+		const requiredWidth = Math.ceil(measure.getBoundingClientRect().width);
+
+		if (availableWidth <= 0 || requiredWidth <= 0) {
+			return;
+		}
+
+		const shouldCollapse = requiredWidth + Navbar.COLLAPSE_GUARD_PX > availableWidth;
+		this.isCollapsed.set(shouldCollapse);
+
+		if (!shouldCollapse) {
+			this.isMenuOpen.set(false);
+		}
+	}
 
 }
