@@ -1,8 +1,8 @@
-import { Component, WritableSignal } from '@angular/core';
+import { Component, EventEmitter, Input, Output, WritableSignal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink, Router } from '@angular/router';
-import { AuthService } from '../core/auth-service';
-import { RoomService } from '../core/room-service';
+import { RouterLink } from '@angular/router';
+import { AuthService } from '../../core/auth-service';
+import { RoomService } from '../../core/room-service';
 import { CommonModule } from '@angular/common';
 import {StatusCodes} from 'http-status-codes';
 
@@ -18,8 +18,11 @@ import {StatusCodes} from 'http-status-codes';
 	styleUrl: './join-room.scss',
 })
 export class JoinRoom {
+	@Input() showCreateRoomLink = false;
+	@Output() createRoomRequested = new EventEmitter<void>();
+
 	// Form controls using FormGroup
-	roomCreationForm = new FormGroup({
+	roomJoinForm = new FormGroup({
 		roomName: new FormControl('', [Validators.required, Validators.minLength(2)])
 	});
 
@@ -28,15 +31,24 @@ export class JoinRoom {
 
 	constructor(
 		private authService: AuthService,
-		private roomService: RoomService,
-		private router: Router
+		private roomService: RoomService
 	) {
 		this.createRoomError = this.roomService.saveError;
 		this.createRoomError.set("");
+		this.setLoadingState(false);
+	}
+
+	private setLoadingState(isLoading: boolean) {
+		this.isLoading = isLoading;
+		if (isLoading) {
+			this.roomJoinForm.disable();
+			return;
+		}
+		this.roomJoinForm.enable();
 	}
 
 	onFormSubmit() {
-		if (this.roomCreationForm.valid) {
+		if (this.roomJoinForm.valid) {
 			const currentUser = this.authService.currentUser();
 
 			if (!currentUser) {
@@ -44,19 +56,17 @@ export class JoinRoom {
 				return;
 			}
 
-			this.isLoading = true;
-			const roomName = this.roomCreationForm.value.roomName ?? '';
+			this.setLoadingState(true);
+			const roomName = this.roomJoinForm.value.roomName ?? '';
 
 			this.roomService.requestToJoinRoom(currentUser.username, roomName).subscribe({
 				next: (response) => {
 					console.log(`Requested ${currentUser.username} to join ${roomName}`, response);
-					this.isLoading = false;
+					this.setLoadingState(false);
 					this.roomService.saveError.set('');
-					// Navigate to the room or rooms list
-					//this.router.navigate(['/myrooms']);
 				},
 				error: (err) => {
-					this.isLoading = false;
+					this.setLoadingState(false);
 					console.error('Error joining room:', err);
 					this.roomService.saveError.set('Error joining room. Please try again.');
 					if(err.status==StatusCodes.CONFLICT){
@@ -65,7 +75,7 @@ export class JoinRoom {
 				}
 			});
 		} else {
-			this.roomCreationForm.markAllAsTouched();
+			this.roomJoinForm.markAllAsTouched();
 			console.log('Form is invalid');
 		}
 	}

@@ -1,0 +1,51 @@
+<section>
+	<form class="join-room-container" [formGroup]="roomJoinForm" (ngSubmit)="onFormSubmit()" autocomplete="on">
+		<header>
+			<h4>Join a room</h4>
+		</header>
+
+		<div class="form-grid">
+			<div class="field-group field-group--full">
+				<label for="roomName">Room Code</label>
+				<input
+					formControlName="roomName"
+					id="roomName"
+					type="text"
+					placeholder="e.g. HFAUJC"
+					autocomplete="off">
+
+				@if (roomJoinForm.get('roomName'); as roomNameControl) {
+					@if (roomNameControl.touched && roomNameControl.invalid) {
+						<aside>
+							@if (roomNameControl.hasError('required')) {
+								<span>Room code is required</span>
+							}
+							@if (roomNameControl.hasError('minlength')) {
+								<span>Room code must be at least 2 characters</span>
+							}
+						</aside>
+					}
+				}
+			</div>
+		</div>
+
+		<div class="error-msg">
+			<span>{{ createRoomError() }}</span>
+		</div>
+
+		<button type="submit" [disabled]="isLoading">
+			{{ isLoading ? 'Requesting to join room…' : 'Join room' }}
+		</button>
+
+		<nav>
+			@if (showCreateRoomLink) {
+				<a href="#" (click)="$event.preventDefault(); createRoomRequested.emit()">Create new room</a>
+			} @else {
+				<a [routerLink]="['/myrooms']">View my rooms</a>
+			}
+		</nav>
+
+		<hr>
+	</form>
+</section>
+

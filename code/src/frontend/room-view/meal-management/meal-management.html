@@ -1,0 +1,87 @@
+<section>
+	<form class="meal-management-container" autocomplete="on">
+		<div class="modal-header">
+			<h2>{{ isEditMode ? 'Edit Meal' : 'Plan a Meal' }}</h2>
+			<button class="btn-close" type="button" (click)="closePopup()">x</button>
+		</div>
+		<div class="form-grid">
+			<div class="field-group field-group--full">
+				<label class="field-label" for="dish">Dish</label>
+				<input id="dish" matInput name="dish" placeholder="e.g. Pasta Bolognese" [(ngModel)]="dish"
+					(ngModelChange)="clearErrors()">
+			</div>
+			<div class="field-group field-group--full">
+				<label class="field-label" for="mealRecipes">Recipes</label>
+				<mat-select id="mealRecipes" panelClass="meal-type-panel recipe-panel" placeholder="Select recipes"
+					[disableOptionCentering]="true" [(ngModel)]="selectedRecipeIds" name="recipeIds" multiple
+					(ngModelChange)="onRecipeSelectionChange($event)">
+					<mat-select-trigger>
+						{{ getSelectedRecipeLabel() || 'Select recipes' }}
+					</mat-select-trigger>
+					<mat-option class="recipe-search-option" disabled>
+						<input matInput type="text" placeholder="Search recipes (e.g. Pasta)"
+							[(ngModel)]="recipeSearchTerm" [ngModelOptions]="{standalone: true}"
+							(ngModelChange)="onRecipeSearchChange($event)" (click)="$event.stopPropagation()"
+							(mousedown)="$event.stopPropagation()"
+							(keydown)="onRecipeSearchKeydown($event)">
+					</mat-option>
+					@for (recipe of filteredRecipes; track recipe.id) {
+						<mat-option [value]="recipe.id">{{ recipe.name }}</mat-option>
+					}
+					@if (!filteredRecipes.length) {
+						<mat-option class="recipe-empty-option" disabled>No matching recipes found</mat-option>
+					}
+				</mat-select>
+				@if (recipesLoadError) {
+					<div class="error-text field-error">{{ recipesLoadError }}</div>
+				}
+			</div>
+			<div class="field-group field-group--full">
+				<label class="field-label" for="mealType">Meal type</label>
+				<mat-select id="mealType" panelClass="meal-type-panel" placeholder="Select meal type"
+					[disableOptionCentering]="true" [(ngModel)]="selectedValue" name="food"
+					(ngModelChange)="clearErrors()">
+					@for (type of mealTypes; track type) {
+						<mat-option [value]="type.value">{{ type.viewValue }}</mat-option>
+					}
+				</mat-select>
+			</div>
+			<div class="field-group">
+				<label class="field-label" for="mealDate">Date</label>
+				<div class="input-with-icon">
+					<input id="mealDate" matInput placeholder="Select date" [matDatepicker]="datepicker"
+						[(ngModel)]="selectedDate" name="date" (ngModelChange)="clearErrors()">
+					<mat-datepicker-toggle matIconSuffix [for]="datepicker"></mat-datepicker-toggle>
+					<mat-datepicker #datepicker panelClass="meal-datepicker-panel"></mat-datepicker>
+				</div>
+			</div>
+			<div class="field-group">
+				<label class="field-label" for="mealTime">Time</label>
+				<div class="input-with-icon">
+					<input id="mealTime" matInput placeholder="Select time" [matTimepicker]="minutesPicker"
+						[(ngModel)]="selectedTime" name="time" (ngModelChange)="clearErrors()">
+					<mat-timepicker-toggle matIconSuffix [for]="minutesPicker"></mat-timepicker-toggle>
+					<mat-timepicker interval="15min" #minutesPicker></mat-timepicker>
+				</div>
+			</div>
+		</div>
+		<div class="action-row">
+			<button mat-flat-button type="button" class="save-btn" (click)="saveMeal()" [disabled]="isSubmitting">
+				{{ isEditMode ? 'Update Meal' : 'Save Meal' }}
+			</button>
+			@if (isEditMode) {
+				<button mat-stroked-button type="button" class="delete-btn" (click)="deleteMeal()"
+					[disabled]="isSubmitting">
+					Delete Meal
+				</button>
+			}
+		</div>
+		@if (showError) {
+			<div class="error-text">Please fill out all the fields</div>
+		}
+		@if (backendError) {
+			<div class="error-text">{{ backendError }}</div>
+		}
+		<hr>
+	</form>
+</section>

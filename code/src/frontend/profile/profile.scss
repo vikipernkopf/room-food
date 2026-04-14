@@ -1,16 +1,9 @@
-$color-green-3: #2E7D32;
-$color-green-4: #105B37;
-$color-orange-1: #C85A04;
-$color-orange-3: #FF9800;
-$color-bg: #F0F4F8;
-$color-white: #ffffff;
-$color-text: #4A5568;
-$color-text-light: #A0AEC0;
-$color-reddish: #E53E3EFF;
+﻿@use '../styles/theme' as *;
+
 
 .profile-page {
   min-height: calc(100vh - 64px);
-  background: $color-bg;
+  background: $color-slate-2;
   padding: 2rem 1rem 2rem;
   box-sizing: border-box;
   display: flex;
@@ -21,11 +14,11 @@ $color-reddish: #E53E3EFF;
   width: 100%;
   max-width: 860px;
   background: $color-white;
-  border: 1px solid #e2e8f0;
+  border: 1px solid $color-light-gray;
   border-radius: 18px;
   padding: 1.5rem;
   margin: 1rem;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 8px 24px $color-overlay-5;
 }
 
 .profile-card--compact {
@@ -55,14 +48,14 @@ $color-reddish: #E53E3EFF;
 
   .username {
     margin: 0.25rem 0 0;
-    color: $color-text-light;
+    color: $color-blue-gray;
     font-weight: 600;
   }
 }
 
 .bio {
   margin: 1rem 0 1.4rem;
-  color: $color-text;
+  color: $color-text-main;
   line-height: 1.45;
   white-space: pre-line;
 }
@@ -84,19 +77,19 @@ h3 {
 
   label {
     margin-bottom: 0.3rem;
-    color: $color-text;
+    color: $color-text-main;
     font-weight: 600;
     font-size: 0.92rem;
   }
 
   input,
   textarea {
-    border: 1.5px solid #e2e8f0;
-    background: #f8fafc;
+    border: 1.5px solid $color-light-gray;
+    background: $color-input-bg;
     border-radius: 10px;
     padding: 0.62rem 0.78rem;
     font-size: 0.95rem;
-    color: $color-text;
+    color: $color-text-main;
   }
 
   textarea {
@@ -106,7 +99,7 @@ h3 {
 
   aside {
     margin-top: 0.2rem;
-    color: #e53e3e;
+    color: $color-red;
     font-size: 0.82rem;
   }
 }
@@ -136,18 +129,18 @@ button {
 	align-items: center;
 	gap: 1rem;
 	.delete {
-		background: $color-reddish
+		background: $color-red
 	}
 }
 
 .status {
   margin: 0.55rem 0 0;
-  color: $color-text;
+  color: $color-text-main;
   font-size: 0.9rem;
 }
 
 .status.error {
-  color: #e53e3e;
+  color: $color-red;
 }
 
 .status.success {
@@ -177,10 +170,15 @@ button {
 .error-msg {
 	display: flex;
 	min-height: 1.25rem;
-	color: $color-reddish;
+	color: $color-red;
 	font-size: 0.85rem;
 	font-weight: 500;
 	margin-top: 0.5rem;
 }
+
+
+
+
+
 
 

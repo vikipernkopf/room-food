@@ -1,23 +1,4 @@
-// Green Palette
-$color-green-1: #6FC276;
-$color-green-2: #4CAF50;
-$color-green-3: #2E7D32;
-$color-green-4: #105B37;
-$color-green-5: #0A3D23;
-
-// Orange Palette
-$color-orange-1: #C85A04;
-$color-orange-2: #E67E22;
-$color-orange-3: #FF9800;
-$color-orange-4: #FFB74D;
-$color-orange-5: #FFCC80;
-
-// Login Page Colors
-$color-bg: #F0F4F8;
-$color-white: #ffffff;
-$color-text: #4A5568;
-$color-text-light: #A0AEC0;
-$color-orange-btn: #F2791D;
+﻿@use '../styles/theme' as *;
 
 * {
 	font-family: 'Inter', sans-serif;
@@ -26,7 +7,7 @@ $color-orange-btn: #F2791D;
 :host {
 	display: block;
 	min-height: 100vh;
-	background-color: $color-bg;
+	background-color: $color-slate-2;
 	padding-bottom: 2rem;
 }
 
@@ -36,7 +17,7 @@ $color-orange-btn: #F2791D;
 	justify-content: center;
 	padding: 2rem 1rem;
 	background: $color-white;
-	border-bottom: 2px solid $color-text-light;
+	border-bottom: 2px solid $color-blue-gray;
 	margin-bottom: 2rem;
 
 	.popup-right {
@@ -46,7 +27,7 @@ $color-orange-btn: #F2791D;
 		top: 100%;
 		margin-top: 1rem;
 		z-index: 100;
-		box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+		box-shadow: 0 10px 40px $color-overlay-15;
 		border-radius: 20px;
 		background: $color-white;
 	}
@@ -64,7 +45,7 @@ button.fancy {
 	color: $color-white;
 	cursor: pointer;
 	transition: all 0.3s ease;
-	box-shadow: 0 4px 15px rgba($color-orange-3, 0.3);
+	box-shadow: 0 4px 15px $color-orange-3-overlay-30;
 	position: relative;
 	overflow: hidden;
 
@@ -77,13 +58,13 @@ button.fancy {
 
 	&:hover {
 		transform: translateY(-2px);
-		box-shadow: 0 6px 20px rgba($color-orange-3, 0.4);
+		box-shadow: 0 6px 20px $color-orange-3-overlay-40;
 		background: $color-orange-2;
 	}
 
 	&:active {
 		transform: translateY(0);
-		box-shadow: 0 2px 10px rgba($color-orange-3, 0.3);
+		box-shadow: 0 2px 10px $color-orange-3-overlay-30;
 	}
 }
 
@@ -99,17 +80,38 @@ button.fancy {
 .empty-state {
 	text-align: center;
 	padding: 4rem 2rem;
-	color: $color-text;
+	color: $color-text-main;
 
 	h3 {
 		font-size: 1.5rem;
 		margin-bottom: 0.5rem;
-		color: $color-text;
+		color: $color-text-main;
 	}
 
 	p {
 		font-size: 1rem;
-		color: $color-text;
+		color: $color-text-main;
 	}
 }
 
+.modal-overlay {
+	position: fixed !important;
+	top: 0 !important;
+	left: 0 !important;
+	width: 100vw !important;
+	height: 100vh !important;
+	background-color: $color-overlay-40 !important;
+	display: flex !important;
+	justify-content: center;
+	align-items: center;
+	z-index: 9999 !important;
+}
+
+.modal-card {
+	width: min(34rem, calc(100vw - 2rem));
+	max-height: calc(100vh - 2rem);
+	overflow: auto;
+	background-color: #fff;
+	border-radius: 1rem;
+	padding: 1rem 1rem 1.2rem;
+}

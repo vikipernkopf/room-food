@@ -1,38 +1,25 @@
-$color-green-1: #6FC276;
-$color-green-2: #4CAF50;
-$color-green-3: #2E7D32;
-$color-green-4: #105B37;
-$color-green-5: #0A3D23;
-
-// Orange Palette
-$color-orange-1: #C85A04;
-$color-orange-2: #E67E22;
-$color-orange-3: #FF9800;
-$color-orange-4: #FFB74D;
-$color-orange-5: #FFCC80;
+﻿@use "../styles/theme" as *;
 
 .room-header {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	padding: 10px 0;
-	padding-left: 10px;
-	padding-right: 10px;
+	padding: 10px;
 	margin-bottom: 20px;
-	border-bottom: 1px solid #eee;
+	border-bottom: 1px solid $color-light-gray;
 
 	h1 {
 		margin: 0;
 		font-size: 40px;
-		color: #333;
+		color: $color-text-main;
 	}
 
 	.btn-join {
 		font-size: 20px;
 		width: 13rem;
 		padding: 8px 16px;
-		background-color: #08733F;
-		color: white;
+		background-color: $color-green-4;
+		color: $color-white;
 		border: none;
 		border-radius: 3px;
 		font-weight: 600;
@@ -40,34 +27,83 @@ $color-orange-5: #FFCC80;
 		transition: background 0.2s;
 
 		&:hover {
-			background-color: #065a31;
+			background-color: $color-green-3;
 		}
 	}
 }
 
-.room-containers{
-	padding-left: 3rem;
-	padding-top: 1.3rem;
+.room-container {
+	margin-top: 2rem;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 1rem;
+	padding: 1.3rem 2rem 2rem;
+	flex-direction: row;
+}
 
-	.btn-add {
-		background-color: #fafaf9;
-		color: $color-orange-2;
-		font-size: 5rem;
-		width: 20rem;
-		height: 13rem;
+.btn-add {
+	color: $color-orange-2;
+	font-size: 5rem;
+	display: flex;
+	justify-content: center !important;
+	align-items: center !important;
+}
 
-		display: flex;
-		justify-content: center;
-		align-items: center;
+.room-tile {
+	min-height: 15rem;
+	cursor: pointer;
+	transition: box-shadow 0.2s, transform 0.2s;
+	width: 13rem;
+	background: $color-white;
+	border: 1px solid $color-light-gray;
+	border-radius: 1rem;
+	padding: 0.8rem;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	gap: 0.5rem;
 
-		border-radius: 1rem;
-		border: none;
-		box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-		cursor: pointer;
+	&:hover {
+		box-shadow: 0 8px 18px $color-overlay-10;
+		transform: translateY(-1px);
+	}
 
-		&:hover {
-			background-color: #f1f0ef;
-		}
+	&:focus-visible {
+		outline: 2px solid $color-orange-2;
+		outline-offset: 2px;
+	}
+}
+
+.room-image {
+	width: 100%;
+	height: 8rem;
+	object-fit: cover;
+	border-radius: 0.75rem;
+	border: 1px solid $color-light-gray;
+}
+
+.room-name {
+	margin: 0;
+	font-size: 1.1rem;
+	font-weight: 700;
+	color: $color-green-4;
+	word-break: break-word;
+}
+
+.room-role {
+	margin: 0.3rem 0 0;
+	font-size: 0.9rem;
+	color: $color-orange-1;
+}
+
+.room-actions {
+	display: flex;
+	gap: 0.75rem;
+
+	a {
+		color: $color-green-3;
+		text-decoration: none;
+		font-weight: 600;
 	}
 }
 
@@ -77,8 +113,7 @@ $color-orange-5: #FFCC80;
 	left: 0 !important;
 	width: 100vw !important;
 	height: 100vh !important;
-	background-color: rgba(0, 0, 0, 0.4) !important;
-	backdrop-filter: blur(4px);
+	background-color: $color-overlay-40 !important;
 	display: flex !important;
 	justify-content: center;
 	align-items: center;
@@ -86,24 +121,50 @@ $color-orange-5: #FFCC80;
 }
 
 .modal-card {
-	height: 21rem;
-	width: 34rem;
-	background-color: #fff ;
-	border-radius: 1rem ;
-
-	.create-room{
-		display: flex;
-		justify-content: center;
-		font-size: 2.7rem;
-		border-bottom: 1px solid #ddd;
-		padding-bottom: 10px;
-		margin-bottom: 5px;
-	}
-
-
+	width: min(34rem, calc(100vw - 2rem));
+	max-height: calc(100vh - 2rem);
+	overflow: auto;
+	background-color: #fff;
+	border-radius: 1rem;
+	padding: 1rem 1rem 1.2rem;
 }
 
+.modal-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 0.9rem;
+	padding-bottom: 0.6rem;
+	border-bottom: 1px solid $color-light-gray;
 
+	h2 {
+		margin: 0;
+		font-size: 1.5rem;
+		color: $color-green-4;
+	}
+}
 
+.btn-close {
+	border: none;
+	background: $color-transparent;
+	font-size: 1.3rem;
+	line-height: 1;
+	color: $color-orange-2;
+	cursor: pointer;
+	padding: 0;
+	width: 1.9rem;
+	height: 1.9rem;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	opacity: 100% !important;
+	border-radius: 100%;
 
+	&:hover {
+		background: $color-orange-2-overlay-12 !important;
+	}
+}
 
+.not-logged-in-message {
+	color: $color-red;
+}
