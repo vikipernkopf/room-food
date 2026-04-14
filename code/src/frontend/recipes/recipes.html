@@ -4,17 +4,16 @@
 </div>
 <div class="recipe-containers">
 	@if (!currentUser()?.username) {
-		<div class="not-logged-in-message recipe-tile">
+		<div class="not-logged-in-message recipe-card">
 			<p>You must be logged in to view recipes.</p>
 		</div>
 	} @else {
-		<div class="btn-container">
-			<button class="btn-add recipe-tile" type="button" (click)="openCreateRecipe(); $event.stopPropagation()">+
-			</button>
-		</div>
 		<div class="recipe-container">
+			<button class="btn-add recipe-card" type="button" (click)="openCreateRecipe();$event.stopPropagation()">
+				+
+			</button>
 			@for (recipe of recipes(); track recipe.id) {
-				<div class="recipe-tile recipe-card" role="button" tabindex="0" (click)="openEditRecipe(recipe)"
+				<div class="recipe-card" role="button" tabindex="0" (click)="openEditRecipe(recipe)"
 					(keydown.enter)="openEditRecipe(recipe)"
 					(keydown.space)="$event.preventDefault(); openEditRecipe(recipe)">
 					<img class="recipe-image" [src]="getRecipeImage(recipe)" [alt]="recipe.name">
@@ -63,49 +62,14 @@
 	</section>
 }-->
 @if (activePopup) {
-	<div class="modal-overlay" (click)="onOverlayClick($event)">
-		<div class="modal-card" (click)="$event.stopPropagation()">
-			<div class="modal-header">
-				<h2>{{ modalTitle }}</h2>
-				<button class="btn-close" type="button" (click)="closePopup()">x</button>
-			</div>
-			<form class="recipe-form" (ngSubmit)="saveRecipe()">
-				<label class="form-group">
-					<span>Recipe name</span>
-					<input type="text" [formControl]="recipeNameControl" placeholder="Grandma's pasta">
-				</label>
-				<label class="form-group">
-					<span>Description</span>
-					<textarea [formControl]="recipeDescriptionControl" rows="4"
-						placeholder="Describe the recipe"></textarea>
-				</label>
-				<label class="form-group">
-					<span>Image URL</span>
-					<input type="url" [formControl]="recipeImageControl" placeholder="https://example.com/image.jpg">
-				</label>
-				<div class="form-group meal-type-group">
-					<span>Meal types</span>
-					<mat-select class="meal-type-select" panelClass="meal-type-panel"
-						[disableOptionCentering]="true" [formControl]="recipeMealTypesControl" multiple>
-						@for (mealType of mealTypeOptions; track mealType.value) {
-							<mat-option [value]="mealType.value">{{ mealType.viewValue }}</mat-option>
-						}
-					</mat-select>
-				</div>
-				<div class="form-actions">
-					<button class="btn-submit" type="submit" [disabled]="creating">{{ submitButtonLabel }}</button>
-					@if (isEditMode) {
-						<button class="btn-delete" type="button" (click)="deleteRecipe(recipeToEdit()!)"
-							[disabled]="creating">
-							Delete Recipe
-						</button>
-					}
-				</div>
-				@if (recipeSaveError()) {
-					<p class="recipes-error modal-error">{{ recipeSaveError() }}</p>
-				}
-				<hr>
-			</form>
-		</div>
-	</div>
+	<app-recipe-management
+		[recipe]="recipeToEdit()"
+		[creating]="creating"
+		[defaultRecipeImage]="defaultRecipeImage"
+		[saveError]="recipeSaveError()"
+		[mealTypeOptions]="mealTypeOptions"
+		(closed)="closePopup()"
+		(saved)="saveRecipe($event)"
+		(deleteRequested)="deleteRecipe($event)">
+	</app-recipe-management>
 }

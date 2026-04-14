@@ -2,6 +2,7 @@
 
 import {
 	ChangeDetectionStrategy,
+	ChangeDetectorRef,
 	Component,
 	EventEmitter,
 	Input,
@@ -10,18 +11,19 @@ import {
 	SimpleChanges,
 	WritableSignal
 } from '@angular/core';
-import {MatInputModule} from '@angular/material/input';
-import {MatSelectModule} from '@angular/material/select';
-import {MatFormFieldModule} from '@angular/material/form-field';
-import {FormsModule} from '@angular/forms';
-import {MatDatepicker, MatDatepickerModule} from '@angular/material/datepicker';
-import {MatTimepickerModule} from '@angular/material/timepicker';
-import {MatIconModule} from '@angular/material/icon';
-import {MatButtonModule} from '@angular/material/button';
-import {provideNativeDateAdapter} from '@angular/material/core';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { FormsModule } from '@angular/forms';
+import { MatDatepicker, MatDatepickerModule } from '@angular/material/datepicker';
+import { MatTimepickerModule } from '@angular/material/timepicker';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { provideNativeDateAdapter } from '@angular/material/core';
 import { AuthService } from '../../core/auth-service';
-import {Meal, User} from '../../../backend/model';
-import {MealService} from '../../core/meal-service';
+import { Meal, Recipe, User } from '../../../backend/model';
+import { MealService } from '../../core/meal-service';
+import { RecipeService } from '../../core/recipe-service';
 
 interface MealType {
 	value: string;
@@ -39,20 +41,26 @@ interface MealType {
 		MatInputModule,
 		MatDatepickerModule, MatDatepicker,
 		MatTimepickerModule,
-		MatIconModule, MatButtonModule,
+		MatIconModule, MatButtonModule
 	],
 	templateUrl: './meal-management.html',
 	styleUrl: './meal-management.scss',
-	changeDetection: ChangeDetectionStrategy.OnPush,
+	changeDetection: ChangeDetectionStrategy.OnPush
 })
 
 export class MealManagement implements OnChanges {
-	@Output() close = new EventEmitter<void>();
-	@Output() mealSaved = new EventEmitter<void>();
-	@Input() mealToEdit: Meal | null = null;
-	@Input() roomCode: string = "";
-	@Input() initialDate: Date | null = null;
-	@Input() initialTime: Date | null = null;
+	@Output()
+	close = new EventEmitter<void>();
+	@Output()
+	mealSaved = new EventEmitter<void>();
+	@Input()
+	mealToEdit: Meal | null = null;
+	@Input()
+	roomCode: string = '';
+	@Input()
+	initialDate: Date | null = null;
+	@Input()
+	initialTime: Date | null = null;
 
 	closePopup() {
 		this.close.emit();
@@ -64,24 +72,50 @@ export class MealManagement implements OnChanges {
 	selectedTime: Date | null = null;
 	showError: boolean = false;
 	isSubmitting: boolean = false;
+	selectedRecipeIds: number[] = [];
+	recipeSearchTerm: string = '';
+	availableRecipes: Recipe[] = [];
+	filteredRecipes: Recipe[] = [];
+	recipesLoadError: string = '';
 
 	mealTypes: MealType[] = [
-		{value: 'breakfast-0', viewValue: 'Breakfast'},
-		{value: 'lunch-1', viewValue: 'Lunch'},
-		{value: 'dinner-2', viewValue: 'Dinner'},
-		{value: 'snack-3', viewValue: 'Snack'},
+		{
+			value: 'breakfast-0',
+			viewValue: 'Breakfast'
+		},
+		{
+			value: 'lunch-1',
+			viewValue: 'Lunch'
+		},
+		{
+			value: 'dinner-2',
+			viewValue: 'Dinner'
+		},
+		{
+			value: 'snack-3',
+			viewValue: 'Snack'
+		}
 	];
 
 	protected readonly currentUser: WritableSignal<User | null>;
+	private readonly cdr: ChangeDetectorRef | null;
 
-	constructor(private authService: AuthService, private mealService: MealService) {
+	constructor(
+		private authService: AuthService,
+		private mealService: MealService,
+		private recipeService: RecipeService,
+		cdr?: ChangeDetectorRef
+	) {
 		this.currentUser = this.authService.currentUser;
+		this.cdr = cdr ?? null;
 	}
 
 	ngOnChanges(changes: SimpleChanges): void {
 		if (changes['mealToEdit']) {
 			this.prefillFormFromInput();
 		}
+
+		this.loadRecipesForCurrentUser();
 	}
 
 	protected get backendError(): string {
@@ -107,6 +141,10 @@ export class MealManagement implements OnChanges {
 			this.selectedValue = 'breakfast-0';
 			this.selectedDate = null;
 			this.selectedTime = null;
+			this.selectedRecipeIds = [];
+			this.recipeSearchTerm = '';
+			this.applyRecipeFilter();
+			this.requestViewUpdate();
 			return;
 		}
 
@@ -114,6 +152,130 @@ export class MealManagement implements OnChanges {
 		this.dish = this.mealToEdit.name;
 		this.selectedDate = mealTime;
 		this.selectedTime = mealTime;
+		this.selectedRecipeIds = this.normalizeRecipeIds(this.mealToEdit.recipeIds);
+		this.recipeSearchTerm = '';
+		this.applyRecipeFilter();
+		this.requestViewUpdate();
+	}
+
+	public onRecipeSearchChange(searchTerm: string): void {
+		this.recipeSearchTerm = searchTerm;
+		this.applyRecipeFilter();
+		this.requestViewUpdate();
+	}
+
+	public onRecipeSelectionChange(recipeIds: number[]): void {
+		this.selectedRecipeIds = this.normalizeRecipeIds(recipeIds);
+		this.applyRecipeFilter();
+		this.clearErrors();
+		this.requestViewUpdate();
+	}
+
+	public onRecipeSearchKeydown(event: KeyboardEvent): void {
+		event.stopPropagation();
+	}
+
+	public getSelectedRecipeLabel(): string {
+		if (this.selectedRecipeIds.length === 0) {
+			return '';
+		}
+
+		const selectedRecipeNames = this.selectedRecipeIds
+		.map(recipeId => this.availableRecipes.find(recipe => recipe.id === recipeId)?.name)
+		.filter((recipeName): recipeName is string => !!recipeName);
+
+		if (selectedRecipeNames.length === 0) {
+			return 'Recipes selected';
+		}
+
+		if (selectedRecipeNames.length <= 2) {
+			return selectedRecipeNames.join(', ');
+		}
+
+		return `${selectedRecipeNames.length} recipes selected`;
+	}
+
+	private applyRecipeFilter(): void {
+		const normalizedSearchTerm = this.recipeSearchTerm.trim().toLowerCase();
+		const selectedRecipeIdSet = new Set(this.selectedRecipeIds);
+
+		if (!normalizedSearchTerm) {
+			const selectedRecipes = this.availableRecipes
+				.filter(recipe => selectedRecipeIdSet.has(recipe.id));
+			const unselectedRecipes = this.availableRecipes
+				.filter(recipe => !selectedRecipeIdSet.has(recipe.id));
+
+			this.filteredRecipes = [...selectedRecipes, ...unselectedRecipes];
+			return;
+		}
+
+		const startsWithMatches: Recipe[] = [];
+		const containsMatches: Recipe[] = [];
+
+		for (const recipe of this.availableRecipes) {
+			const normalizedRecipeName = recipe.name.toLowerCase();
+			if (!normalizedRecipeName.includes(normalizedSearchTerm)) {
+				continue;
+			}
+
+			if (normalizedRecipeName.startsWith(normalizedSearchTerm)) {
+				startsWithMatches.push(recipe);
+			} else {
+				containsMatches.push(recipe);
+			}
+		}
+
+		this.filteredRecipes = [...startsWithMatches, ...containsMatches];
+	}
+
+	private loadRecipesForCurrentUser(): void {
+		const username = this.currentUser()?.username?.trim();
+
+		if (!username) {
+			this.availableRecipes = [];
+			this.filteredRecipes = [];
+			this.recipesLoadError = '';
+			this.requestViewUpdate();
+			return;
+		}
+
+		this.recipeService.getRecipesByAuthorUsername(username).subscribe({
+			next: recipes => {
+				this.availableRecipes = recipes || [];
+				this.recipesLoadError = '';
+				this.applyRecipeFilter();
+
+				if (this.selectedRecipeIds.length > 0) {
+					const validRecipeIds = new Set(this.availableRecipes.map(recipe => recipe.id));
+					this.selectedRecipeIds = this.selectedRecipeIds
+						.filter(recipeId => validRecipeIds.has(recipeId));
+				}
+				this.requestViewUpdate();
+			},
+			error: () => {
+				this.availableRecipes = [];
+				this.filteredRecipes = [];
+				this.selectedRecipeIds = [];
+				this.recipesLoadError = 'Failed to load recipes for this user.';
+				this.requestViewUpdate();
+			}
+		});
+	}
+
+	private requestViewUpdate(): void {
+		this.cdr?.markForCheck?.();
+	}
+
+	private normalizeRecipeIds(recipeIds: number[] | undefined): number[] {
+		if (!Array.isArray(recipeIds)) {
+			return [];
+		}
+
+		const normalizedRecipeIds = recipeIds
+			.map(recipeId => Number(recipeId))
+			.filter(recipeId => Number.isInteger(recipeId) && recipeId > 0);
+
+		return Array.from(new Set(normalizedRecipeIds));
 	}
 
 	protected saveMeal(): void {
@@ -122,7 +284,8 @@ export class MealManagement implements OnChanges {
 		const user = this.authService.currentUser();
 		const currentUsername = user?.username;
 
-		if (this.dish && this.selectedValue && this.selectedDate && this.selectedTime && currentUsername && this.roomCode) {
+		if (this.dish && this.selectedValue && this.selectedDate && this.selectedTime && currentUsername
+			&& this.roomCode) {
 
 			const finalDate = new Date(this.selectedDate);
 			finalDate.setHours(this.selectedTime.getHours());
@@ -131,8 +294,9 @@ export class MealManagement implements OnChanges {
 			const newMeal: Meal = {
 				time: finalDate,
 				name: this.dish,
-				responsible: currentUsername ,
-				room: this.roomCode // Use the roomCode passed from parent instead of currentUsername
+				responsible: currentUsername,
+				room: this.roomCode,
+				recipeIds: [...this.selectedRecipeIds]
 			};
 
 			const editMealId = this.mealToEdit?.id;
@@ -149,17 +313,18 @@ export class MealManagement implements OnChanges {
 			this.isSubmitting = true;
 
 			request.subscribe({
-				next: (meal) => {
+				next: meal => {
 					console.log('Successfully saved meal:', meal);
 					this.mealService.saveError.set('');
 					this.isSubmitting = false;
 					this.mealSaved.emit();
 					this.closePopup();
 				},
-				error: (err) => {
+				error: err => {
 					console.error('Error saving meal:', err);
 					this.isSubmitting = false;
-					this.mealService.saveError.set('Unable to save meal: ' + (err.error?.error || err.message || 'Unknown error'));
+					this.mealService.saveError.set(
+						'Unable to save meal: ' + (err.error?.error || err.message || 'Unknown error'));
 				}
 			});
 		} else {
@@ -187,10 +352,11 @@ export class MealManagement implements OnChanges {
 				this.mealSaved.emit();
 				this.closePopup();
 			},
-			error: (err) => {
+			error: err => {
 				this.isSubmitting = false;
 				console.error('Error deleting meal:', err);
-				this.mealService.saveError.set('Unable to delete meal: ' + (err.error?.error || err.message || 'Unknown error'));
+				this.mealService.saveError.set(
+					'Unable to delete meal: ' + (err.error?.error || err.message || 'Unknown error'));
 			}
 		});
 	}

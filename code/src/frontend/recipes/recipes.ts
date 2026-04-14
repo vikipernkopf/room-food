@@ -1,19 +1,13 @@
-import { Component, effect, inject, signal, WritableSignal } from '@angular/core';
-import { FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatSelectModule } from '@angular/material/select';
+import { Component, effect, inject, signal } from '@angular/core';
 import { AuthService } from '../core/auth-service';
-import { RawRecipeRow, RecipeService } from '../core/recipe-service';
-import { Recipe, User } from '../../backend/model';
+import { RecipeService } from '../core/recipe-service';
+import { Recipe } from '../../backend/model';
 import { DEFAULT_RECIPE_IMAGE } from '../core/user-form-validation';
-
-type RecipeMealType = {
-	value: string;
-	viewValue: string;
-};
+import { RecipeFormValue, RecipeManagement, RecipeMealType } from './recipe-management/recipe-management';
 
 @Component({
 	selector: 'app-recipes',
-	imports: [ReactiveFormsModule, FormsModule, MatSelectModule],
+	imports: [RecipeManagement],
 	templateUrl: './recipes.html',
 	styleUrl: './recipes.scss'
 })
@@ -21,19 +15,13 @@ export class Recipes {
 	protected activePopup: 'create' | 'edit' | null = null;
 	private readonly recipeService = inject(RecipeService);
 	private readonly authService = inject(AuthService);
-	protected readonly currentUser: WritableSignal<User | null>;
+	protected readonly currentUser = this.authService.currentUser;
 	protected readonly defaultRecipeImage = DEFAULT_RECIPE_IMAGE;
 	protected readonly recipes = signal<Recipe[]>([]);
-	protected readonly rawRecipeRows = signal<RawRecipeRow[]>([]);
 	protected readonly recipesLoadError = signal('');
-	protected readonly rawRecipesLoadError = signal('');
 	protected readonly recipeSaveError = signal('');
 	protected creating = false;
 	protected readonly recipeToEdit = signal<Recipe | null>(null);
-	protected readonly recipeNameControl = new FormControl('', [Validators.required, Validators.minLength(3)]);
-	protected readonly recipeDescriptionControl = new FormControl('');
-	protected readonly recipeImageControl = new FormControl('');
-	protected readonly recipeMealTypesControl = new FormControl<string[]>([], { nonNullable: true });
 	protected readonly mealTypeOptions: RecipeMealType[] = [
 		{
 			value: 'breakfast',
@@ -54,100 +42,71 @@ export class Recipes {
 	];
 
 	constructor() {
-		this.currentUser = this.authService.currentUser;
-
 		effect(() => {
 			const username = this.currentUser()?.username?.trim();
 
 			if (!username) {
 				this.recipes.set([]);
-				this.rawRecipeRows.set([]);
 				this.recipesLoadError.set('');
-				this.rawRecipesLoadError.set('');
 				this.closePopup();
 				return;
 			}
 
 			this.fetchRecipes(username);
-			this.fetchRawRecipes();
 		});
 	}
 
 	protected openCreateRecipe(): void {
 		this.activePopup = 'create';
 		this.recipeToEdit.set(null);
-		this.resetRecipeForm();
+		this.recipeSaveError.set('');
+		this.creating = false;
 	}
 
 	protected openEditRecipe(recipe: Recipe): void {
 		this.recipeToEdit.set(recipe);
 		this.activePopup = 'edit';
-		this.prefillRecipeForm(recipe);
-	}
-
-	protected get modalTitle(): string {
-		return this.isEditMode ? 'Edit Recipe' : 'Create Recipe';
-	}
-
-	protected get submitButtonLabel(): string {
-		if (this.creating) {
-			return this.isEditMode ? 'Saving...' : 'Creating...';
-		}
-
-		return this.isEditMode ? 'Save Recipe' : 'Create Recipe';
-	}
-
-	protected get isEditMode(): boolean {
-		return this.recipeToEdit() !== null;
+		this.recipeSaveError.set('');
+		this.creating = false;
 	}
 
 	protected closePopup(): void {
 		this.activePopup = null;
 		this.recipeToEdit.set(null);
-		this.resetRecipeForm();
+		this.recipeSaveError.set('');
+		this.creating = false;
 	}
 
-	protected onOverlayClick(event: MouseEvent): void {
-		if (event.target === event.currentTarget) {
-			this.closePopup();
-		}
-	}
-
-	protected saveRecipe(): void {
+	protected saveRecipe(payload: RecipeFormValue): void {
 		this.recipeSaveError.set('');
 
 		const username = this.currentUser()?.username;
-		const name = this.recipeNameControl.value?.trim() ?? '';
-
 		if (!username) {
 			this.recipeSaveError.set('You must be logged in to create a recipe.');
 			return;
 		}
 
-		if (!name) {
+		if (!payload.name.trim()) {
 			this.recipeSaveError.set('Recipe name is required.');
 			return;
 		}
 
-		const description = this.recipeDescriptionControl.value?.trim() || undefined;
-		const image = this.recipeImageControl.value?.trim() || this.defaultRecipeImage;
-		const mealTypes = this.recipeMealTypesControl.value;
 		const editRecipeId = this.recipeToEdit()?.id;
-
 		this.creating = true;
+
 		const request = editRecipeId
 			? this.recipeService.updateRecipe(editRecipeId, {
-				name,
-				description,
-				image,
-				mealTypes
+				name: payload.name.trim(),
+				description: payload.description,
+				image: payload.image,
+				mealTypes: payload.mealTypes
 			})
 			: this.recipeService.createRecipe({
 				authorUsername: username,
-				name,
-				description,
-				image,
-				mealTypes
+				name: payload.name.trim(),
+				description: payload.description,
+				image: payload.image,
+				mealTypes: payload.mealTypes
 			});
 
 		request.subscribe({
@@ -155,12 +114,11 @@ export class Recipes {
 				this.creating = false;
 				this.closePopup();
 				this.fetchRecipes(username);
-				this.fetchRawRecipes();
 			},
-			error: error => {
+			error: (error: any) => {
 				this.creating = false;
 				this.recipeSaveError.set(
-					'Failed to save recipe: ' + (error.error?.error || error.message || 'Unknown error'));
+					'Failed to save recipe: ' + (error?.error?.error || error?.message || 'Unknown error'));
 			}
 		});
 	}
@@ -179,23 +137,22 @@ export class Recipes {
 				this.recipes.update(currentRecipes =>
 					currentRecipes.filter(currentRecipe => currentRecipe.id !== recipe.id)
 				);
-				this.fetchRawRecipes();
 				if (this.recipeToEdit()?.id === recipe.id) {
 					this.closePopup();
 				}
 			},
-			error: error => {
+			error: (error: any) => {
 				this.creating = false;
 				this.recipeSaveError.set(
-					'Failed to delete recipe: ' + (error.error?.error || error.message || 'Unknown error'));
+					'Failed to delete recipe: ' + (error?.error?.error || error?.message || 'Unknown error'));
 			}
 		});
 	}
 
 	private fetchRecipes(username: string): void {
 		this.recipeService.getRecipesByAuthorUsername(username).subscribe({
-			next: recipes => {
-				this.recipes.set(recipes || []);
+			next: (recipes: Recipe[]) => {
+				this.recipes.set(this.sortRecipesByName(recipes || []));
 				this.recipesLoadError.set('');
 			},
 			error: () => {
@@ -205,17 +162,10 @@ export class Recipes {
 		});
 	}
 
-	private fetchRawRecipes(): void {
-		this.recipeService.getRawRecipes().subscribe({
-			next: rows => {
-				this.rawRecipeRows.set(rows || []);
-				this.rawRecipesLoadError.set('');
-			},
-			error: () => {
-				this.rawRecipeRows.set([]);
-				this.rawRecipesLoadError.set('Failed to load raw recipe rows.');
-			}
-		});
+	private sortRecipesByName(recipes: Recipe[]): Recipe[] {
+		return [...recipes].sort((a, b) => a.name.localeCompare(b.name, undefined, {
+			sensitivity: 'base'
+		}));
 	}
 
 	protected getRecipeCardDescription(recipe: Recipe): string {
@@ -224,22 +174,5 @@ export class Recipes {
 
 	protected getRecipeImage(recipe: Recipe): string {
 		return recipe.image || this.defaultRecipeImage;
-	}
-
-	private resetRecipeForm(): void {
-		this.creating = false;
-		this.recipeSaveError.set('');
-		this.recipeNameControl.reset('');
-		this.recipeDescriptionControl.reset('');
-		this.recipeImageControl.reset('');
-		this.recipeMealTypesControl.setValue([]);
-	}
-
-	private prefillRecipeForm(recipe: Recipe): void {
-		this.resetRecipeForm();
-		this.recipeNameControl.setValue(recipe.name);
-		this.recipeDescriptionControl.setValue(recipe.description ?? '');
-		this.recipeImageControl.setValue(recipe.image ?? this.defaultRecipeImage);
-		this.recipeMealTypesControl.setValue(recipe.mealTypes ?? []);
 	}
 }

@@ -302,6 +302,17 @@ section {
 	text-align: center;
 }
 
+.field-error {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 1.25rem;
+	color: $color-red;
+	font-size: 0.85rem;
+	font-weight: 500;
+	margin-top: 0.4rem;
+}
+
 ::ng-deep .cdk-overlay-container {
 	.mat-mdc-select-panel,
 	.mat-datepicker-content,
@@ -400,6 +411,75 @@ section {
 		color: $color-text-main !important;
 	}
 
+	.recipe-search-option,
+	.recipe-search-option.mat-mdc-option.mdc-list-item--disabled {
+		opacity: 1 !important;
+		background-color: $color-white !important;
+		cursor: default;
+		min-height: auto;
+		padding: 0.35rem 0.75rem;
+		pointer-events: auto !important;
+		--mdc-list-list-item-disabled-label-text-color: #{$color-text-main};
+		--mdc-list-list-item-label-text-color: #{$color-text-main};
+		--mdc-list-list-item-disabled-state-layer-color: transparent;
+	}
+
+	.recipe-search-option .mat-pseudo-checkbox {
+		display: none !important;
+	}
+
+	.recipe-search-option .mdc-list-item__primary-text {
+		width: 100%;
+		opacity: 1 !important;
+	}
+
+	.recipe-search-option input {
+		width: 100%;
+		padding: 0.65rem 0.85rem;
+		border: 1px solid $color-light-gray;
+		border-radius: 10px;
+		background-color: $color-input-bg;
+		color: $color-text-main;
+		font-size: 0.95rem;
+		transition: border-color 0.3s ease, background-color 0.3s ease;
+
+		&:focus {
+			outline: none;
+			border-color: $color-orange-2;
+			background-color: $color-white;
+		}
+
+		&::placeholder {
+			color: $color-blue-gray;
+		}
+
+		opacity: 1 !important;
+	}
+
+	/* Recipe selector: checkbox style only, without orange row selection. */
+	.recipe-panel .mat-mdc-option.mdc-list-item--selected:not(.mdc-list-item--disabled),
+	.recipe-panel .mat-mdc-option[aria-selected="true"]:not(.mdc-list-item--disabled) {
+		background-color: $color-white !important;
+		color: $color-text-main !important;
+	}
+
+	.recipe-panel .mat-pseudo-checkbox {
+		border: 1px solid $color-light-gray !important;
+		border-radius: 4px;
+		background-color: $color-white !important;
+	}
+
+	.recipe-panel .mat-pseudo-checkbox.mat-pseudo-checkbox-checked,
+	.recipe-panel .mat-pseudo-checkbox.mat-pseudo-checkbox-indeterminate {
+		background-color: $color-orange-2 !important;
+		border-color: $color-orange-2 !important;
+		color: $color-white !important;
+	}
+
+	.recipe-panel .recipe-empty-option .mat-pseudo-checkbox {
+		display: none !important;
+	}
+
 	.mat-mdc-option.mat-mdc-option-active:not(.mdc-list-item--disabled),
 	.mat-mdc-option:hover:not(.mdc-list-item--disabled) {
 		background-color: $color-orange-2-overlay-12 !important;
@@ -416,6 +496,50 @@ section {
 	.mat-calendar-body-active .mat-calendar-body-cell-content:not(.mat-calendar-body-selected) {
 		background-color: $color-orange-2-overlay-12 !important;
 		color: $color-text-main;
+	}
+
+	/* Target the real cdk datepicker panel directly, but keep day cells transparent. */
+	.meal-datepicker-panel,
+	.meal-datepicker-panel .mat-calendar,
+	.meal-datepicker-panel .mat-calendar-content,
+	.meal-datepicker-panel .mat-calendar-header,
+	.meal-datepicker-panel .mat-calendar-table-header,
+	.meal-datepicker-panel .mat-calendar-body {
+		background-color: $color-white !important;
+	}
+
+	.meal-datepicker-panel .mat-calendar-body-cell-content {
+		background-color: transparent !important;
+	}
+
+	.meal-datepicker-panel .mat-calendar-body-selected {
+		background-color: $color-orange-2 !important;
+		color: $color-white !important;
+	}
+
+	.meal-datepicker-panel .mat-calendar-previous-button .cdk-visually-hidden,
+	.meal-datepicker-panel .mat-calendar-next-button .cdk-visually-hidden {
+		display: none !important;
+	}
+
+	.meal-datepicker-panel .mat-calendar-previous-button,
+	.meal-datepicker-panel .mat-calendar-next-button {
+		border-radius: 999px;
+		transition: background-color 0.2s ease;
+	}
+
+	.meal-datepicker-panel .mat-calendar-previous-button:hover:not([disabled]),
+	.meal-datepicker-panel .mat-calendar-next-button:hover:not([disabled]) {
+		background-color: $color-orange-2-overlay-12 !important;
+	}
+
+	.mat-mdc-tooltip-panel .mat-mdc-tooltip-surface {
+		background-color: $color-white !important;
+		color: $color-text-main !important;
+		border-radius: 999px !important;
+		box-shadow: 0 6px 14px $color-overlay-10;
+		opacity: 1 !important;
+		padding: 8px 16px 8px 16px !important;
 	}
 }
 
