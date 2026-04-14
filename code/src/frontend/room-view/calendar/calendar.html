@@ -29,19 +29,24 @@
 				}
 			</div>
 
-			<div class="grid-content">
+			<div class="grid-content" [style.height.px]="hours.length * hourHeight">
 				@for (day of weekdays; track day.date; let i = $index) {
 
-					<div class="day-track" (click)="handleColumnClick($event, day)">
+					<div class="day-track"
+						 [style.height.px]="hours.length * hourHeight"
+						 (click)="handleColumnClick($event, day) ">
 
 						@for (meal of getMealsForDay(day); track meal.id) {
 							<div class="meal-box"
-								 [style.top.px]="getMealTop(meal)"
-								 [style.height.px]="hourHeight"
+								 [style.top.px]="getMealPosition(meal.time)"
+								 [style.height.px]="getMealHeight(meal.time, meal.endTime)"
 								 (click)="$event.stopPropagation(); openEdit(meal)">
-								<span class="meal-time">{{ meal.time | date:'HH:mm' }}</span>
+
 								<span class="meal-name">{{ meal.name }}</span>
 								<span class="meal-responsible">{{ meal.responsible }}</span>
+								<span class="meal-time">
+         						{{ meal.time | date:'HH:mm' }} - {{ meal.endTime | date:'HH:mm' }}
+      							</span>
 							</div>
 						}
 					</div>

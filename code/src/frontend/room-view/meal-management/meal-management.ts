@@ -61,9 +61,12 @@ export class MealManagement implements OnChanges {
 	dish: string = '';
 	selectedValue: string = 'breakfast-0';
 	selectedDate: Date | null = null;
-	selectedTime: Date | null = null;
+	selectedStartTime: Date | null = null;
+	selectedEndTime: Date | null = null;
 	showError: boolean = false;
 	isSubmitting: boolean = false;
+	minTime: Date = new Date(new Date().setHours(5, 0, 0, 0));
+	maxTime: Date = new Date(new Date().setHours(23, 0, 0, 0));
 
 	mealTypes: MealType[] = [
 		{value: 'breakfast-0', viewValue: 'Breakfast'},
@@ -79,8 +82,10 @@ export class MealManagement implements OnChanges {
 	}
 
 	ngOnChanges(changes: SimpleChanges): void {
-		if (changes['mealToEdit']) {
+		if (changes['mealToEdit'] && this.mealToEdit) {
 			this.prefillFormFromInput();
+		} else if (changes['initialDate'] || changes['initialTime']) {
+			this.applyInitialDateTime();
 		}
 	}
 
@@ -102,18 +107,13 @@ export class MealManagement implements OnChanges {
 	private prefillFormFromInput(): void {
 		this.clearErrors();
 
-		if (!this.mealToEdit) {
-			this.dish = '';
-			this.selectedValue = 'breakfast-0';
-			this.selectedDate = null;
-			this.selectedTime = null;
-			return;
-		}
+		if (!this.mealToEdit) return;
 
 		const mealTime = new Date(this.mealToEdit.time as unknown as string);
 		this.dish = this.mealToEdit.name;
 		this.selectedDate = mealTime;
-		this.selectedTime = mealTime;
+		this.selectedStartTime = mealTime;
+		this.selectedEndTime = mealTime;
 	}
 
 	protected saveMeal(): void {
@@ -122,14 +122,25 @@ export class MealManagement implements OnChanges {
 		const user = this.authService.currentUser();
 		const currentUsername = user?.username;
 
-		if (this.dish && this.selectedValue && this.selectedDate && this.selectedTime && currentUsername && this.roomCode) {
+		if (this.dish &&
+			this.selectedValue &&
+			this.selectedDate &&
+			this.selectedStartTime &&
+			this.selectedEndTime &&
+			currentUsername &&
+			this.roomCode) {
 
 			const finalDate = new Date(this.selectedDate);
-			finalDate.setHours(this.selectedTime.getHours());
-			finalDate.setMinutes(this.selectedTime.getMinutes());
+			finalDate.setHours(this.selectedStartTime.getHours());
+			finalDate.setMinutes(this.selectedStartTime.getMinutes());
+
+			const finalEndDate = new Date(this.selectedDate);
+			finalEndDate.setHours(this.selectedEndTime.getHours());
+			finalEndDate.setMinutes(this.selectedEndTime.getMinutes());
 
 			const newMeal: Meal = {
 				time: finalDate,
+				endTime: finalEndDate,
 				name: this.dish,
 				responsible: currentUsername ,
 				room: this.roomCode // Use the roomCode passed from parent instead of currentUsername
@@ -193,6 +204,24 @@ export class MealManagement implements OnChanges {
 				this.mealService.saveError.set('Unable to delete meal: ' + (err.error?.error || err.message || 'Unknown error'));
 			}
 		});
+	}
+
+	private applyInitialDateTime() {
+		this.clearErrors();
+
+		if(!this.isEditMode){
+			this.selectedDate = this.initialDate;
+			this.selectedStartTime = this.initialTime;
+
+			if (this.initialTime) {
+				const endTime = new Date(this.initialTime);
+				endTime.setHours(endTime.getHours() + 1);
+				this.selectedEndTime = endTime;
+			}
+
+			this.dish = '';
+			this.selectedValue = 'breakfast-0';
+		}
 	}
 }
 

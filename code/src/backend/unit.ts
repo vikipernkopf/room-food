@@ -159,6 +159,7 @@ class DB {
             (
                 id integer primary key autoincrement,
                 time text not null,
+				endTime text not null,
 				name text,
                 responsible text,
                 roomCode text not null,
@@ -166,9 +167,13 @@ class DB {
 
                 ) strict`
     ); //!!!!!!!!!!! add a recipeId foreign key instead of name
+	  DB.migrateMealTableToIncludeEndTime(connection);
 
-  DB.migrateMealTableToIdIdentity(connection);
+
+	  DB.migrateMealTableToIdIdentity(connection);
   }
+
+
 
   private static migrateRoomTableToProfilePicture(connection: BetterSqlite3.Database): void {
     const columns = connection.prepare(`pragma table_info(Room)`).all() as Array<{ name: string }>;
@@ -209,6 +214,16 @@ class DB {
     }
 
     connection.exec(`create unique index if not exists uq_user_email on User(lower(email));`);
+  }
+
+  private static migrateMealTableToIncludeEndTime(connection: BetterSqlite3.Database): void {
+		const columns = connection.prepare(`pragma table_info(Meal)`).all() as Array<{ name: string }>;
+		const existingColumns = new Set(columns.map((column) => column.name));
+
+		if (!existingColumns.has('endTime')) {
+			// We add it as text to store ISO strings, matching the 'time' column
+			connection.exec(`alter table Meal add column endTime text;`);
+		}
   }
 
   private static migrateMealTableToIdIdentity(connection: BetterSqlite3.Database): void {

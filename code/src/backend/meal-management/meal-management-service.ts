@@ -38,8 +38,8 @@ export class MealManagementService extends ServiceBase {
 
 		[success, id] = this.executeStmt(
 			this.unit.prepare(`
-			insert into Meal(time, name, responsible, roomCode) values (:t, :n, :rs, :rc)
-			`, {t:meal.time.toISOString(), n:meal.name, rs:meal.responsible, rc:meal.room})
+			insert into Meal(time, endTime, name, responsible, roomCode) values (:t, :et,:n, :rs, :rc)
+			`, {t:meal.time.toISOString(), et:meal.endTime.toISOString(),n:meal.name, rs:meal.responsible, rc:meal.room})
 		);
 
 		if(!success){
@@ -95,10 +95,11 @@ export class MealManagementService extends ServiceBase {
 
 		const [success] = this.executeStmt(
 			this.unit.prepare(
-				`update Meal set time=:newTime, name=:newName, responsible=:newResponsible, roomCode=:newRoom
+				`update Meal set time=:newTime, endTime=:newEndTime,name=:newName, responsible=:newResponsible, roomCode=:newRoom
 				 where id=:mealId`,
 				{
 					newTime: updatedMeal.time.toISOString(),
+					newEndTime: updatedMeal.endTime.toISOString(),
 					newName: updatedMeal.name,
 					newResponsible: updatedMeal.responsible,
 					newRoom: updatedMeal.room,
@@ -122,8 +123,8 @@ export class MealManagementService extends ServiceBase {
 	 */
 	public getMealsForUser(username:string):Meal[]{
 		const fetch = this.unit.prepare(`
-	    	select m.id, m.time, m.name, m.roomCode, m.responsible from Meal m where m.responsible=:n
-    	`, {n:username}).all() as {time:string,
+	    	select m.id, m.time, m.endTime,m.name, m.roomCode, m.responsible from Meal m where m.responsible=:n
+    	`, {n:username}).all() as {time:string, endTime:string,
 			id:number,
 			name:string,
 			roomCode:string,
@@ -135,7 +136,7 @@ export class MealManagementService extends ServiceBase {
 
 		fetch.forEach(e =>{
 			const date:Date = new Date(Date.parse(e.time));
-			meals.push({id:e.id, time:date, name:e.name,
+			meals.push({id:e.id, time:date, endTime: e.endTime ? new Date(e.endTime) : new Date(e.time),name:e.name,
 				responsible:e.responsible, room:e.roomCode});
 		})
 
@@ -167,8 +168,8 @@ export class MealManagementService extends ServiceBase {
 	 */
 	public getMealsForRoom(roomCode:string):Meal[]{
 		const fetch = this.unit.prepare(`
-			select m.id, m.time, m.name, m.roomCode, m.responsible from Meal m where m.roomCode=:c
-		`, {c:roomCode}).all() as {time:string,
+			select m.id, m.time, m.endTime,m.name, m.roomCode, m.responsible from Meal m where m.roomCode=:c
+		`, {c:roomCode}).all() as {time:string, endTime:string,
 			id:number,
 			name:string,
 			roomCode:string,
@@ -180,7 +181,7 @@ export class MealManagementService extends ServiceBase {
 
 		fetch.forEach(e =>{
 			const date:Date = new Date(Date.parse(e.time));
-			meals.push({id:e.id, time:date, name:e.name,
+			meals.push({id:e.id, time:date, endTime: e.endTime ? new Date(e.endTime) : new Date(e.time),name:e.name,
 				responsible:e.responsible, room:e.roomCode});
 		})
 

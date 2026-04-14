@@ -25,7 +25,7 @@ export class Calendar implements OnInit {
 	currMonth: string = '';
 	currYear: number = 0;
 	dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-	hours: number[] = Array.from({ length: 24 }, (_, i) => i);
+	hours: number[] = Array.from({ length: 18 }, (_, i) => i + 5);
 	weekdays: {name: string; date: number; month: number; year: number; isToday: boolean}[] = [];
 	protected hourHeight: number = 65;
 	showMealPopup = false;
@@ -164,12 +164,19 @@ export class Calendar implements OnInit {
 		this.selectedMeal = null;
 
 		const clickedY = event.offsetY;
-		const totalMinutes = Math.floor((clickedY / this.hourHeight) * 60);
-		const hours = Math.floor(totalMinutes / 60);
-		const minutes = Math.round((totalMinutes % 60) / 15) * 15;
+
+		const actualHourWithDecimal = (clickedY / this.hourHeight) + 5;
+		let hours = Math.floor(actualHourWithDecimal);
+		const minutesDecimal = actualHourWithDecimal % 1;
+		let minutes = Math.round((minutesDecimal * 60) / 15) * 15;
+
+		if (minutes === 60) {
+			hours += 1;
+			minutes = 0;
+		}
 
 		const targetDate = new Date(dayInfo.year, dayInfo.month, dayInfo.date);
-		const targetTime = new Date();
+		const targetTime = new Date(targetDate);
 		targetTime.setHours(hours, minutes, 0, 0);
 
 		this.selectedDateForPopup = targetDate;
@@ -194,12 +201,22 @@ export class Calendar implements OnInit {
 		});
 	}
 
-	getMealTop(meal: Meal): number {
-		const date = new Date(meal.time);
+	getMealPosition(startTime: Date | string): number {
+		const date = new Date(startTime);
 		const hours = date.getHours();
 		const minutes = date.getMinutes();
 
-		return (hours * this.hourHeight) + ((minutes / 60) * this.hourHeight);
+		const decimalHours = (hours + minutes / 60) - 5;
+		return decimalHours * this.hourHeight;
+	}
+
+	getMealHeight(startTime: Date | string, endTime: Date | string): number {
+		const start = new Date(startTime);
+		const end = new Date(endTime);
+
+		const durationInHours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+
+		return Math.max(durationInHours * this.hourHeight, 30);
 	}
 
 	nextWeek() { this.viewDate.setDate(this.viewDate.getDate() + 7); this.renderWeek(); }
