@@ -30,6 +30,11 @@ export class MealManagementService extends ServiceBase {
 			return 'room_not_found';
 		}
 
+		const recipeIds = this.normalizeRecipeIds(meal.recipeIds);
+		if (!this.checkRecipesExist(recipeIds)) {
+			return 'recipe_not_found';
+		}
+
 		/*if(!this.checkRecipeExists(meal.recipeId)){
 		 return "recipe_not_found";
 		 }*/
@@ -50,6 +55,10 @@ export class MealManagementService extends ServiceBase {
 		);
 
 		if (!success) {
+			return 'error';
+		}
+
+		if (!this.replaceMealRecipes(id, recipeIds)) {
 			return 'error';
 		}
 
@@ -95,9 +104,14 @@ export class MealManagementService extends ServiceBase {
 	public updateMeal(
 		mealId: number,
 		updatedMeal: Meal
-	): true | 'not_found' | 'room_not_found' | 'error' {
+	): true | 'not_found' | 'room_not_found' | 'recipe_not_found' | 'error' {
 		if (!this.checkRoomExists(updatedMeal.room)) {
 			return 'room_not_found';
+		}
+
+		const recipeIds = this.normalizeRecipeIds(updatedMeal.recipeIds);
+		if (!this.checkRecipesExist(recipeIds)) {
+			return 'recipe_not_found';
 		}
 
 		if (!this.checkMealExists(mealId)) {
@@ -123,6 +137,10 @@ export class MealManagementService extends ServiceBase {
 		);
 
 		if (!success) {
+			return 'error';
+		}
+
+		if (!this.replaceMealRecipes(mealId, recipeIds)) {
 			return 'error';
 		}
 
@@ -161,7 +179,8 @@ export class MealManagementService extends ServiceBase {
 				time: date,
 				name: e.name,
 				responsible: e.responsible,
-				room: e.roomCode
+				room: e.roomCode,
+				recipeIds: this.getRecipeIdsForMeal(e.id)
 			});
 		});
 
@@ -219,7 +238,8 @@ export class MealManagementService extends ServiceBase {
 				time: date,
 				name: e.name,
 				responsible: e.responsible,
-				room: e.roomCode
+				room: e.roomCode,
+				recipeIds: this.getRecipeIdsForMeal(e.id)
 			});
 		});
 
@@ -227,6 +247,69 @@ export class MealManagementService extends ServiceBase {
 	}
 
 	// ----------------------- Recipe part ------------------------------
+
+	private normalizeRecipeIds(recipeIds?: number[]): number[] {
+		if (!Array.isArray(recipeIds) || recipeIds.length === 0) {
+			return [];
+		}
+
+		const validIds = recipeIds.filter(recipeId => Number.isInteger(recipeId) && recipeId > 0);
+		return Array.from(new Set(validIds));
+	}
+
+	private checkRecipesExist(recipeIds: number[]): boolean {
+		for (const recipeId of recipeIds) {
+			if (!this.checkRecipeExists(recipeId)) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	private replaceMealRecipes(mealId: number, recipeIds: number[]): boolean {
+		try {
+			this.unit.prepare(
+				`delete
+				 from MealRecipe
+				 where meal_id = :mealId`,
+				{ mealId }
+			).run();
+
+			for (const recipeId of recipeIds) {
+				const result = this.unit.prepare(
+					`insert into MealRecipe(meal_id, recipe_id)
+					 values (:mealId, :recipeId)`,
+					{
+						mealId,
+						recipeId
+					}
+				).run();
+
+				if (result.changes !== 1) {
+					return false;
+				}
+			}
+
+			return true;
+		} catch (_error) {
+			return false;
+		}
+	}
+
+	private getRecipeIdsForMeal(mealId: number): number[] {
+		const rows = this.unit.prepare<{
+			recipe_id: number
+		}>(
+			`select recipe_id
+			 from MealRecipe
+			 where meal_id = :mealId
+			 order by recipe_id`,
+			{ mealId }
+		).all();
+
+		return rows.map(row => row.recipe_id);
+	}
 
 	// noinspection JSUnusedGlobalSymbols
 	public checkRecipeExists(recipeId: number): boolean {

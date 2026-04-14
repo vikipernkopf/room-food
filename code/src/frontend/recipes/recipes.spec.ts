@@ -1,11 +1,13 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
+import { By } from '@angular/platform-browser';
 import { Observable, of } from 'rxjs';
 
 import { Recipes } from './recipes';
 import { AuthService } from '../core/auth-service';
 import { RecipeService } from '../core/recipe-service';
 import { Recipe, User } from '../../backend/model';
+import { RecipeManagement } from './recipe-management/recipe-management';
 
 describe('Recipes', () => {
 	let component: Recipes;
@@ -121,8 +123,10 @@ describe('Recipes', () => {
 		recipeCard.click();
 		fixture.detectChanges();
 
+		const popupDebugElement = fixture.debugElement.query(By.directive(RecipeManagement));
+		expect(popupDebugElement).toBeTruthy();
 		expect(fixture.nativeElement.textContent).toContain('Edit Recipe');
-		expect((component as any).recipeNameControl.value).toBe('Pasta');
+		expect((popupDebugElement.componentInstance as any).recipeNameControl.value).toBe('Pasta');
 	});
 
 	it('saves recipe edits through the edit popup', () => {
@@ -140,11 +144,14 @@ describe('Recipes', () => {
 		authServiceMock.currentUser.set({ username: 'alice' });
 		fixture.detectChanges();
 
-		const recipeComponent = component as any;
-		recipeComponent.openEditRecipe(recipesResponse[0]);
-		recipeComponent.recipeNameControl.setValue('Pasta Deluxe');
-		recipeComponent.recipeDescriptionControl.setValue('Updated pasta');
-		recipeComponent.saveRecipe();
+		(component as any).openEditRecipe(recipesResponse[0]);
+		fixture.detectChanges();
+
+		const popupComponent = fixture.debugElement.query(By.directive(RecipeManagement)).componentInstance as any;
+		popupComponent.recipeNameControl.setValue('Pasta Deluxe');
+		popupComponent.recipeDescriptionControl.setValue('Updated pasta');
+		popupComponent.saveRecipe();
+		fixture.detectChanges();
 
 		expect(updatedRecipePayload).toEqual({
 			name: 'Pasta Deluxe',

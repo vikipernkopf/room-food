@@ -78,5 +78,6 @@ export type Meal = {
 	time: Date,
 	name: string,
 	room: string,
-	responsible: string
+	responsible: string,
+	recipeIds?: number[]
 }

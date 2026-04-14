@@ -9,12 +9,10 @@
 			<p>You must be logged in to view rooms.</p>
 		</div>
 	} @else {
-		<div class="btn-container">
-			<button class="btn-add room-tile" type="button" (click)="openCreateRoom(); $event.stopPropagation()"> +
-			</button>
-		</div>
-
 		<div class="room-container">
+			<button class="btn-add room-tile" type="button" (click)="openCreateRoom(); $event.stopPropagation()">
+				+
+			</button>
 			@for (room of memberRooms(); track room.code) {
 				<div class="room-tile">
 					<img class="room-image" [src]="getRoomImage(room)" [alt]="room.roomName">

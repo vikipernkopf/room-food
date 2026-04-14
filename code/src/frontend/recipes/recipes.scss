@@ -18,41 +18,25 @@
 .recipe-container {
 	margin-top: 2rem;
 	display: flex;
+	flex-wrap: wrap;
+	gap: 1rem;
+	padding: 1.3rem 2rem 2rem;
 	flex-direction: row;
-	flex-wrap: wrap;
-	gap: 1rem;
 }
 
-.recipe-containers {
-	padding-left: 3rem;
-	padding-top: 1.3rem;
+.btn-add {
+	color: $color-orange-2;
+	font-size: 5rem;
 	display: flex;
-	flex-wrap: wrap;
-	flex-direction: column;
-	gap: 1rem;
-
-	.btn-add {
-		color: $color-orange-2;
-		font-size: 5rem;
-
-		display: flex;
-		justify-content: center;
-		align-items: center;
-
-		border-radius: 1rem;
-		border: none;
-		box-shadow: 0 2px 6px $color-overlay-20;
-		cursor: pointer;
-
-		&:hover {
-			background-color: $color-lighter-gray;
-		}
-	}
+	justify-content: center !important;
+	align-items: center !important;
 }
 
-.recipe-tile {
-	width: 14rem;
-	min-height: 8rem;
+.recipe-card {
+	min-height: 20rem;
+	cursor: pointer;
+	transition: box-shadow 0.2s, transform 0.2s;
+	width: 13rem;
 	background: $color-white;
 	border: 1px solid $color-light-gray;
 	border-radius: 1rem;
@@ -61,11 +45,6 @@
 	flex-direction: column;
 	justify-content: space-between;
 	gap: 0.5rem;
-}
-
-.recipe-card {
-	cursor: pointer;
-	transition: box-shadow 0.2s, transform 0.2s;
 
 	&:hover {
 		box-shadow: 0 8px 18px $color-overlay-10;
@@ -159,274 +138,6 @@
 	margin: 0;
 }
 
-.modal-overlay {
-	position: fixed !important;
-	top: 0 !important;
-	left: 0 !important;
-	width: 100vw !important;
-	height: 100vh !important;
-	background-color: $color-overlay-40 !important;
-	display: flex !important;
-	justify-content: center;
-	align-items: center;
-	z-index: 9999 !important;
-}
-
-.modal-card {
-	width: min(38rem, calc(100vw - 2rem));
-	max-height: calc(100vh - 2rem);
-	overflow: auto;
-	background-color: $color-white;
-	border-radius: 1rem;
-	padding: 1rem 1rem 1.2rem;
-}
-
-.modal-header {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	margin-bottom: 0.9rem;
-	padding-bottom: 0.6rem;
-	border-bottom: 1px solid $color-light-gray;
-
-	h2 {
-		margin: 0;
-		font-size: 1.5rem;
-		color: $color-green-4;
-	}
-}
-
-.btn-close {
-	border: none;
-	background: $color-transparent;
-	font-size: 1.3rem;
-	line-height: 1;
-	color: $color-orange-2;
-	cursor: pointer;
-	padding: 0;
-	width: 1.9rem;
-	height: 1.9rem;
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	opacity: 100% !important;
-	border-radius: 100%;
-
-	&:hover {
-		background: $color-orange-2-overlay-12 !important;
-	}
-}
-
-.recipe-form {
-	display: flex;
-	flex-direction: column;
-	gap: 1rem;
-}
-
-.form-group {
-	display: flex;
-	flex-direction: column;
-	gap: 0.45rem;
-
-	color: $color-label-gray;
-	font-size: 0.9rem;
-	font-weight: 600;
-	margin-bottom: 0.4rem;
-
-	input,
-	textarea {
-		padding: 0.65rem 0.85rem;
-		border: 1px solid $color-light-gray;
-		border-radius: 10px;
-		background-color: $color-input-bg;
-		color: $color-text-main;
-		font-size: 0.95rem;
-		transition: border-color 0.3s ease, background-color 0.3s ease;
-
-		&:focus {
-			outline: none;
-			border-color: $color-orange-2;
-			background-color: $color-white;
-		}
-
-		&:disabled {
-			background-color: $color-light-gray;
-			cursor: not-allowed;
-		}
-
-		&::placeholder {
-			color: $color-blue-gray;
-		}
-	}
-
-	textarea {
-		resize: vertical;
-		min-height: 7rem;
-	}
-}
-
-.meal-type-field {
-	width: 100%;
-}
-
-.meal-type-group {
-	::ng-deep mat-select.meal-type-select {
-		padding: 0.65rem 0.625rem 0.65rem 0.85rem;
-		border: 1px solid $color-light-gray;
-		border-radius: 10px;
-		background-color: $color-input-bg;
-		color: $color-text-main;
-		font-size: 0.95rem;
-		display: block;
-		width: 100%;
-		font-weight: 400;
-		box-sizing: border-box;
-		transition: border-color 0.3s ease, background-color 0.3s ease;
-
-		&:focus {
-			outline: none;
-			border-color: $color-orange-2;
-			background-color: $color-white;
-		}
-
-		.mat-mdc-select-trigger {
-			padding: 0;
-			color: $color-text-main;
-			font-size: 0.95rem;
-			line-height: 1.2;
-		}
-
-		.mat-mdc-select-arrow-wrapper {
-			position: absolute;
-			right: 0;
-			top: 50%;
-			transform: translateY(-50%);
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			width: 1.5rem;
-			height: 1.5rem;
-			border-radius: 50%;
-			transition: background-color 0.2s ease;
-		}
-
-		&:hover .mat-mdc-select-arrow-wrapper {
-			background-color: $color-orange-2-overlay-5;
-		}
-	}
-}
-
-::ng-deep .cdk-overlay-container {
-	.meal-type-panel {
-		margin-top: 0.8rem !important;
-		margin-left: -0.9rem !important;
-	}
-
-	.meal-type-panel,
-	.meal-type-panel.mat-mdc-select-panel-above {
-		border-radius: 12px !important;
-		overflow: hidden !important;
-		background-color: $color-white;
-	}
-
-	.meal-type-panel .mat-mdc-option.mdc-list-item--selected:not(.mdc-list-item--disabled),
-	.meal-type-panel .mat-mdc-option[aria-selected="true"]:not(.mdc-list-item--disabled) {
-		background-color: $color-white !important;
-		color: $color-text-main !important;
-	}
-
-	.meal-type-panel .mat-mdc-option.mat-mdc-option-active:not(.mdc-list-item--disabled),
-	.meal-type-panel .mat-mdc-option:hover:not(.mdc-list-item--disabled) {
-		background-color: $color-orange-2-overlay-12 !important;
-	}
-
-	.meal-type-panel .mat-pseudo-checkbox {
-		border: 1px solid $color-light-gray !important;
-		border-radius: 4px;
-		background-color: $color-white !important;
-	}
-
-	.meal-type-panel .mat-pseudo-checkbox.mat-pseudo-checkbox-checked,
-	.meal-type-panel .mat-pseudo-checkbox.mat-pseudo-checkbox-indeterminate {
-		background-color: $color-orange-2 !important;
-		border-color: $color-orange-2 !important;
-		color: $color-white !important;
-	}
-}
-
-.form-actions {
-	display: flex;
-	flex-wrap: wrap;
-	justify-content: center;
-	margin-top: 1.2rem;
-}
-
-.btn-submit {
-	width: 100%;
-	padding: 0.75rem 1rem;
-	border: none;
-	border-radius: 12px;
-	background-color: $color-orange-2;
-	color: $color-white;
-	font-size: 1rem;
-	font-weight: 600;
-	cursor: pointer;
-	transition: background-color 0.3s ease;
-	margin-top: 1.2rem;
-	flex: 1 1 100%;
-
-	&:hover:not(:disabled) {
-		background-color: $color-orange-1;
-	}
-
-	&:disabled {
-		opacity: 0.6;
-		cursor: not-allowed;
-	}
-}
-
-.btn-delete {
-	padding: 0;
-	border: none;
-	background: transparent;
-	color: $color-red;
-	font-size: 0.9rem;
-	font-weight: 500;
-	cursor: pointer;
-	text-decoration: none;
-	transition: color 0.3s ease;
-	margin-top: 1rem;
-
-	&:hover:not(:disabled) {
-		color: $color-red;
-		text-decoration: none;
-	}
-
-	&:focus-visible {
-		outline: 2px solid $color-red-overlay-25;
-		outline-offset: 2px;
-		border-radius: 4px;
-	}
-
-	&:disabled {
-		opacity: 0.6;
-		cursor: not-allowed;
-	}
-}
-
-hr {
-	margin: 1rem 0 0 0;
-	border: none;
-	border-top: 1px solid $color-light-gray;
-}
-
-.modal-error {
-	color: $color-red;
-	font-size: 0.9rem;
-	font-weight: 500;
-	margin-top: 0.8rem;
-	text-align: center;
-}
 
 .not-logged-in-message {
 	color: $color-red;
