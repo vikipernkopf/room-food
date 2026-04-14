@@ -1,4 +1,4 @@
-﻿@use '../../styles/theme' as *;
+﻿@use "../../styles/theme" as *;
 
 $hour-height: 65px;
 
@@ -11,14 +11,14 @@ $hour-height: 65px;
 	padding: 0;
 
 	.month {
-		font-family: 'Inter', sans-serif;
+		font-family: "Inter", sans-serif;
 		text-transform: uppercase;
 		font-size: 50px;
 		font-weight: 300;
 	}
 
 	.year {
-		font-family: 'Inter', sans-serif;
+		font-family: "Inter", sans-serif;
 		font-weight: 300;
 		font-size: 50px;
 	}
@@ -26,7 +26,7 @@ $hour-height: 65px;
 	.button-group {
 		display: flex;
 		gap: 8px; // Space between the buttons themselves
-		font-family: 'Inter', sans-serif;
+		font-family: "Inter", sans-serif;
 		padding-bottom: 13px;
 
 		button {
@@ -60,22 +60,43 @@ $hour-height: 65px;
 .header {
 	display: flex;
 	padding-bottom: 10px;
-	.time-spacer { width: 45px; }
+
+	.time-spacer {
+		width: 45px;
+	}
+
 	.day-label {
 		flex: 1;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		.day-name { font-size: 11px; color: $color-gray; text-transform: uppercase; }
+
+		.day-name {
+			font-size: 11px;
+			color: $color-gray;
+			text-transform: uppercase;
+		}
+
 		.day-number {
-			font-size: 18px; width: 30px; height: 30px;
-			display: flex; align-items: center; justify-content: center;
-			&.today { background: $color-orange-3 !important; color: $color-white; border-radius: 50%; }
+			font-size: 18px;
+			width: 30px;
+			height: 30px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+
+			&.today {
+				background: $color-orange-3 !important;
+				color: $color-white;
+				border-radius: 50%;
+			}
 		}
 	}
 }
 
-.container-body { display: flex; }
+.container-body {
+	display: flex;
+}
 
 .time-column {
 	width: 45px;
@@ -104,7 +125,10 @@ $hour-height: 65px;
 		background-image: linear-gradient($color-light-gray 1px, $color-transparent 1px);
 		background-size: 100% $hour-height;
 		cursor: pointer;
-		&:hover { background-color: $color-overlay-1; }
+
+		&:hover {
+			background-color: $color-overlay-1;
+		}
 	}
 }
 
@@ -131,8 +155,14 @@ $hour-height: 65px;
 }
 
 .modal-overlay {
-	position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
 	background: $color-overlay-40;
-	display: flex; justify-content: center; align-items: center;
+	display: flex;
+	justify-content: center;
+	align-items: center;
 	z-index: 1000;
 }

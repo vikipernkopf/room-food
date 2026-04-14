@@ -119,14 +119,16 @@ describe('Recipes', () => {
 		authServiceMock.currentUser.set({ username: 'alice' });
 		fixture.detectChanges();
 
-		const recipeCard = fixture.nativeElement.querySelector('.recipe-card') as HTMLElement;
+		const recipeCard = fixture.nativeElement.querySelector('.recipe-card[role="button"]') as HTMLElement;
 		recipeCard.click();
 		fixture.detectChanges();
 
 		const popupDebugElement = fixture.debugElement.query(By.directive(RecipeManagement));
 		expect(popupDebugElement).toBeTruthy();
-		expect(fixture.nativeElement.textContent).toContain('Edit Recipe');
-		expect((popupDebugElement.componentInstance as any).recipeNameControl.value).toBe('Pasta');
+		const popupComponent = popupDebugElement.componentInstance as any;
+		expect((component as any).activePopup).toBe('edit');
+		expect((component as any).recipeToEdit().name).toBe('Pasta');
+		expect(popupComponent.recipeNameControl.value).toBe('Pasta');
 	});
 
 	it('saves recipe edits through the edit popup', () => {
