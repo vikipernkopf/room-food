@@ -280,7 +280,7 @@ export class RoomManagementView implements OnDestroy {
 			console.log('Room code is empty, redirecting to error');
 			this.hasRedirected = true;
 			// noinspection JSIgnoredPromiseFromCall
-			await this.router.navigate(['/error']);
+			this.router.navigate(['/error']);
 		}
 		return;
 	}
