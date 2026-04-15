@@ -1,6 +1,7 @@
 import { ServiceBase } from '../service-base';
 import { Unit } from '../unit';
 import { LoginSignUpService } from '../login-sign-up/login-sign-up-service';
+import {Role} from '../model';
 
 export class RoomsService extends ServiceBase {
 
@@ -87,7 +88,7 @@ export class RoomsService extends ServiceBase {
 	 * @param role - role of the new member (member/admin)
 	 * @return true if added successfully, false otherwise
 	 */
-	public addMember(user: string, code: string, role: 'member' | 'admin'): boolean {
+	public addMember(user: string, code: string, role: Role): boolean {
 		if (!this.users.checkUserExists(user) || !this.checkRoomExists(code) || this.checkUserRoomMember(user, code)) {
 			return false;
 		}

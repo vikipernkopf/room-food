@@ -1,12 +1,15 @@
-import { Component, OnDestroy, signal, WritableSignal, effect } from '@angular/core';
+import {Component, OnDestroy, signal, WritableSignal, effect, inject} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatDivider } from '@angular/material/divider';
 import { MatCard } from '@angular/material/card';
 import { MatLabel } from '@angular/material/input';
-import { MatIconButton } from '@angular/material/button';
+import {MatButton, MatIconButton} from '@angular/material/button';
 import { RoomService } from '../core/room-service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
+import {Role, User} from '../../backend/model';
+import {AuthService} from '../core/auth-service';
+import {firstValueFrom} from 'rxjs';
 
 interface Member {
 	username: string;
@@ -25,7 +28,8 @@ interface Request {
 		MatDivider,
 		MatCard,
 		MatIconButton,
-		MatLabel
+		MatLabel,
+		MatButton
 	],
 	templateUrl: './room-management-view.html',
 	styleUrl: './room-management-view.scss'
@@ -35,12 +39,17 @@ export class RoomManagementView implements OnDestroy {
 	protected readonly roomName: WritableSignal<string> = signal('');
 	protected readonly members: WritableSignal<Member[]> = signal([]);
 	protected readonly requests: WritableSignal<Request[]> = signal([]);
+	protected readonly currentUser: WritableSignal<User | null>;
+	protected readonly userRole: WritableSignal<Role> = signal(Role.Member);
+	private authService: AuthService = inject(AuthService);
 	private hasRedirected = false;
 	private lastProcessedCode: string = '';
 
 	constructor(private route: ActivatedRoute,
 		private router: Router,
 		private roomService: RoomService) {
+
+		this.currentUser=this.authService.currentUser;
 		// Subscribe to route param 'code' and unsubscribe on destroy
 		this.route.paramMap
 		.pipe(takeUntilDestroyed())
@@ -94,6 +103,7 @@ export class RoomManagementView implements OnDestroy {
 					console.log('Room exists, loading members and requests');
 					this.hasRedirected = false;
 					this.loadRoomData(roomCode);
+					this.determineRole();
 				} else {
 					console.log('Room does not exist in database, redirecting to error');
 					if (!this.hasRedirected) {
@@ -192,4 +202,36 @@ export class RoomManagementView implements OnDestroy {
 	ngOnDestroy() {
 		// Cleanup is handled by takeUntilDestroyed
 	}
+
+	private async determineRole() {
+		try {
+			const members = await firstValueFrom(this.roomService.getMembersPerRoom(this.roomCode()));
+			const current = this.currentUser();
+			const found = members?.find(m => m.username === current?.username);
+			if(found===undefined){
+				if (!this.hasRedirected) {
+					console.log('Room code is empty, redirecting to error');
+					this.hasRedirected = true;
+					// noinspection JSIgnoredPromiseFromCall
+					await this.router.navigate(['/error']);
+				}
+				return;
+			}
+			this.userRole.set(found.role as Role);
+		} catch (err) {
+			console.error('Error determining role:', err);
+		}
+
+		console.log(`user role: ${this.userRole()}`)
+	}
+
+	deleteRoom() {
+		console.log(`deleting room ${this.roomCode()} by ${this.userRole()} ${this.currentUser()?.username}`)
+	}
+
+	leaveRoom() {
+		console.log(`leaving room ${this.roomCode()} by ${this.userRole()} ${this.currentUser()?.username}`)
+	}
+
+	protected readonly Role = Role;
 }

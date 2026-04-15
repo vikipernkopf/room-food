@@ -1,7 +1,8 @@
-import { StatusCodes } from 'http-status-codes';
-import { Unit } from '../unit';
+import {StatusCodes} from 'http-status-codes';
+import {Unit} from '../unit';
 import express from 'express';
-import { RoomsService } from './rooms-service';
+import {RoomsService} from './rooms-service';
+import {Role} from '../model';
 
 export const roomsRouter = express.Router();
 
@@ -86,7 +87,7 @@ roomsRouter.post('/room/:code/accept-request', async (req, res): Promise<void> =
 	const unit = new Unit(false);
 	try {
 		const roomsService = new RoomsService(unit);
-		const success = roomsService.addMember(username, code, 'member');
+		const success = roomsService.addMember(username, code, Role.Member);
 
 		unit.complete(success);
 		if (success) {
