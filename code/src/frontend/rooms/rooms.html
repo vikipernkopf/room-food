@@ -10,19 +10,22 @@
 		</div>
 	}
 	@else {
-		<div class="btn-container">
-			<button class="btn-add room-tile" type="button" (click)="openCreateRoom(); $event.stopPropagation()"> +
-			</button>
-		</div>
-
-		<div class="room-container">
+		<div class="room-grid">
+			<button class="btn-add" type="button" (click)="openCreateRoom()"> + </button>
 			@for (room of memberRooms(); track room.code) {
-				<div class="room-tile">
-					<p class="room-code">{{ room.code }}</p>
-					<p class="room-role">{{ room.role }}</p>
-					<div class="room-actions">
-									<a [routerLink]="['/calendar', room.code]">Open</a>
-									<a [routerLink]="['/manage', room.code]">Manage</a>
+				<div class="room-card">
+					<div class="menu-container">
+						<a [routerLink]="['/manage', room.code]" class="corner-link">⋮</a>
+					</div>
+					<img class="room-icon" [src]="getRoomImage(room)" [alt]="room.name">
+
+					<div class="room-info" style="text-align: center;">
+						<h3>{{ room.name || 'Unnamed Room' }}</h3>
+
+						<p class="room-code-label">{{ room.code }}</p>
+						<div class="room-actions">
+							<a [routerLink]="['/calendar', room.code]">Open</a>
+						</div>
 					</div>
 				</div>
 			}

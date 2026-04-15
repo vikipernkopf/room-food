@@ -170,16 +170,25 @@ export class RoomsService extends ServiceBase {
 	 * @param username - user to check
 	 * @return an array representing the rooms and the user's role in that room
 	 */
-	public getRoomsPerMember(username:string):{code:string, role:string}[]{
+	public getRoomsPerMember(username:string): {
+		code: string,
+		name: string,
+		role: string,
+		profile_picture: string}[]{
 		if(!this.users.checkUserExists(username)){
 			return [];
 		}
 
 		return this.unit.prepare(`
-			SELECT r.code, ru.role from Room r
+			SELECT r.code, r.name, ru.role, r.profile_picture from Room r
 			JOIN main.RoomUserMember ru on r.code=ru.room_code
 			where ru.username=:n
-		`, {n: username}).all() as { code: string, role: string }[];
+		`, { n: username }).all() as {
+			code: string,
+			name: string,
+			role: string,
+			profile_picture: string
+		}[];
 	}
 
 	/**

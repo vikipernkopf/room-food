@@ -187,7 +187,7 @@ roomsRouter.get("/room/name/:code", async (req, res): Promise<void> => {
 });
 
 roomsRouter.post("/room", async (req, res): Promise<void> => {
-	const { owner, roomName } = req.body;
+	const { owner, roomName, pfp } = req.body;
 
 	if (!owner || !roomName) {
 		res.status(StatusCodes.BAD_REQUEST).json();
@@ -199,7 +199,7 @@ roomsRouter.post("/room", async (req, res): Promise<void> => {
 	const unit = new Unit(false);
 	try {
 		const roomsService = new RoomsService(unit);
-		const result = roomsService.createRoom(owner, roomName, null);
+		const result = roomsService.createRoom(owner, roomName, pfp);
 
 		if (result === "error") {
 			unit.complete(false);

@@ -6,8 +6,14 @@ import {FormControl, ReactiveFormsModule, Validators} from '@angular/forms';
 import {RoomCreation} from './create-room/create-room';
 import {JoinRoom} from './join-room/join-room';
 import {RouterLink} from '@angular/router';
+import {DEFAULT_PROFILE_PICTURE} from '../core/user-form-validation';
 
-type MemberRoom = { code: string, role: string };
+type MemberRoom = {
+	name:string,
+	code: string,
+	role: string,
+	profile_picture?: string
+};
 
 @Component({
   selector: 'app-rooms',
@@ -88,6 +94,10 @@ export class Rooms {
 			});
 	}
 
+	protected getRoomImage(room: MemberRoom): string {
+		return room.profile_picture || DEFAULT_PROFILE_PICTURE;
+	}
+
 	protected openCreateRoom() {
 		this.activePopup = 'create';
 	}
@@ -105,4 +115,5 @@ export class Rooms {
 			this.closePopup();
 		}
 	}
+
 }

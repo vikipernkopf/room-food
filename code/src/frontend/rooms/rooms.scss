@@ -1,10 +1,16 @@
-﻿@use '../styles/theme' as *;
+﻿// --- Variables ---
+$color-green-4: #105b37;
+$color-orange-1: #c85a04;
+$color-orange-2: #e67e22;
+$color-white: #ffffff;
+$color-light-gray: #eee;
+$color-text-main: #333;
 
 .room-header {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	padding: 10px;
+	padding: 10px 20px;
 	margin-bottom: 20px;
 	border-bottom: 1px solid $color-light-gray;
 
@@ -27,79 +33,141 @@
 		transition: background 0.2s;
 
 		&:hover {
-			background-color: $color-green-3;
+			background-color: darken($color-green-4, 5%);
 		}
 	}
 }
 
-.room-container {
-	margin-top: 2rem;
+.room-containers {
+	padding-top: 0.5rem;
 	display: flex;
-	flex-direction: row;
-	flex-wrap: wrap;
-	gap: 1rem;
+	flex-direction: column;
+	width: 100%;
 }
 
-.room-containers{
-	padding-left: 3rem;
-	padding-top: 1.3rem;
+.room-grid {
 	display: flex;
 	flex-wrap: wrap;
+	gap: 25px;
+	padding: 20px 3rem;
+	justify-content: flex-start;
+}
+
+.room-card {
+	width: 20rem;
+	height: 13rem;
+	background: $color-white;
+	border-radius: 1rem;
+	display: flex;
 	flex-direction: column;
-	gap: 1rem;
+	align-items: center;
+	justify-content: center;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+	border: 1px solid #f0f0f0;
+	transition: transform 0.2s ease, box-shadow 0.2s ease;
+	padding: 1rem;
+	position: relative;
 
-	.btn-add {
-		color: $color-orange-2;
-		font-size: 5rem;
+	&:hover {
+		transform: translateY(-5px);
+		box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+	}
 
+	.menu-container {
+		position: absolute;
+		top: 8px;
+		right: 8px;
+		z-index: 2; // Stay above the image/text
+	}
+
+	.corner-link {
 		display: flex;
-		justify-content: center;
 		align-items: center;
+		justify-content: center;
 
-		border-radius: 1rem;
-		border: none;
-		box-shadow: 0 2px 6px $color-overlay-20;
-		cursor: pointer;
+		width: 32px;
+		height: 32px;
+
+		color: #666;
+		font-size: 1.4rem;
+		text-decoration: none;
+		border-radius: 50%;
+		transition: background-color 0.2s ease, color 0.2s ease;
 
 		&:hover {
-			background-color: $color-lighter-gray;
+			background-color: rgba(0, 0, 0, 0.08);
+			color: #000;
+			text-decoration: none;
+		}
+	}
+
+	.room-icon {
+		width: 80px;
+		height: 80px;
+		background: #fff7ed;
+		color: $color-orange-2;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-weight: bold;
+		font-size: 1.8rem;
+		margin-bottom: 12px;
+		text-transform: uppercase;
+	}
+
+	h3 {
+		margin: 0;
+		font-size: 1.4rem;
+		color: $color-text-main;
+		font-weight: 600;
+	}
+
+	.room-code {
+		color: #a0aec0;
+		font-size: 0.9rem;
+		margin-top: 4px;
+		font-family: monospace;
+	}
+
+	.room-actions {
+		margin-top: 0px;
+
+		a {
+			font-size: 0.9rem;
+			color: $color-green-4;
+			text-decoration: none;
+			font-weight: 700;
+
+			&:hover {
+				text-decoration: underline;
+			}
+
+			&.manage-link {
+				color: $color-orange-2;
+			}
 		}
 	}
 }
 
-.room-tile {
-	width: 14rem;
-	min-height: 8rem;
-	background: $color-white;
-	border: 1px solid $color-light-gray;
+.btn-add {
+	background-color: #fafaf9;
+	color: $color-orange-2;
+	font-size: 5rem;
+	width: 20rem;
+	height: 13rem;
+	display: flex;
+	justify-content: center;
+	align-items: center;
 	border-radius: 1rem;
-	padding: 0.8rem;
-	display: flex;
-	flex-direction: column;
-	justify-content: space-between;
-}
+	border: 2px dashed #e2e8f0;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+	cursor: pointer;
+	transition: all 0.2s;
 
-.room-code {
-	margin: 0;
-	font-size: 1.1rem;
-	font-weight: 700;
-	color: $color-green-4;
-}
-
-.room-role {
-	margin: 0.3rem 0 0;
-	font-size: 0.9rem;
-	color: $color-orange-1;
-}
-
-.room-actions {
-	display: flex;
-	gap: 0.75rem;
-
-	a {
-		color: $color-green-3;
-		text-decoration: none;
-		font-weight: 600;
+	&:hover {
+		background-color: #f1f0ef;
+		border-color: $color-orange-2;
 	}
 }
 
@@ -109,7 +177,8 @@
 	left: 0 !important;
 	width: 100vw !important;
 	height: 100vh !important;
-	background-color: $color-overlay-40 !important;
+	background-color: rgba(0, 0, 0, 0.4) !important;
+	backdrop-filter: blur(4px);
 	display: flex !important;
 	justify-content: center;
 	align-items: center;
@@ -117,50 +186,21 @@
 }
 
 .modal-card {
-	width: min(34rem, calc(100vw - 2rem));
-	max-height: calc(100vh - 2rem);
-	overflow: auto;
-	background-color: #fff;
-	border-radius: 1rem;
-	padding: 1rem 1rem 1.2rem;
-}
+	width: 100%;
+	max-width: 500px;
+	background: white;
+	border-radius: 1.5rem;
+	padding: 20px;
+	box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 
-.modal-header {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	margin-bottom: 0.9rem;
-	padding-bottom: 0.6rem;
-	border-bottom: 1px solid $color-light-gray;
-
-	h2 {
-		margin: 0;
-		font-size: 1.5rem;
-		color: $color-green-4;
+	&.join-modal {
+		max-width: 400px;
 	}
 }
 
-.btn-close {
-	border: none;
-	background: $color-transparent;
-	font-size: 1.3rem;
-	line-height: 1;
-	color: $color-orange-2;
-	cursor: pointer;
-	padding: 0;
-	width: 1.9rem;
-	height: 1.9rem;
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	opacity: 100% !important;
-	border-radius: 100%;
-
-	&:hover {
-		background: $color-orange-2-overlay-12 !important;
-	}
-}
-
-.not-logged-in-message {
-	color: $color-red;
+.login-warning {
+	padding: 2rem 3rem;
+	color: #e53e3e;
+	font-weight: 500;
+	text-align: center;
 }
