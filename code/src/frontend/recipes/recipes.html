@@ -1,0 +1,75 @@
+<!--suppress IncorrectFormatting -->
+<div class="recipe-header">
+	<h1>My Recipes</h1>
+</div>
+<div class="recipe-containers">
+	@if (!currentUser()?.username) {
+		<div class="not-logged-in-message recipe-card">
+			<p>You must be logged in to view recipes.</p>
+		</div>
+	} @else {
+		<div class="recipe-container">
+			<button class="btn-add recipe-card" type="button" (click)="openCreateRecipe();$event.stopPropagation()">
+				+
+			</button>
+			@for (recipe of recipes(); track recipe.id) {
+				<div class="recipe-card" role="button" tabindex="0" (click)="openEditRecipe(recipe)"
+					(keydown.enter)="openEditRecipe(recipe)"
+					(keydown.space)="$event.preventDefault(); openEditRecipe(recipe)">
+					<img class="recipe-image" [src]="getRecipeImage(recipe)" [alt]="recipe.name">
+					<p class="recipe-name">{{ recipe.name }}</p>
+					<p class="recipe-description">{{ getRecipeCardDescription(recipe) }}</p>
+					@if (recipe.mealTypes.length) {
+						<div class="recipe-meal-types">
+							@for (mealType of recipe.mealTypes; track mealType) {
+								<span class="meal-type-tag">{{ mealType }}</span>
+							}
+						</div>
+					} @else {
+						<p class="recipe-meal-types-empty">No meal types selected.</p>
+					}
+					<div class="recipe-actions">
+						<button type="button" class="btn-edit-tile"
+							(click)="$event.stopPropagation(); openEditRecipe(recipe)">
+							Edit
+						</button>
+						<button type="button" class="btn-delete-tile"
+							(click)="$event.stopPropagation(); deleteRecipe(recipe)">
+							Delete
+						</button>
+					</div>
+				</div>
+			}
+			@if (!recipes().length) {
+				<div class="recipe-tile recipe-empty-state">
+					<p>You have no recipes yet.</p>
+				</div>
+			}
+		</div>
+	}
+</div>
+@if (recipesLoadError()) {
+	<p class="recipes-error">{{ recipesLoadError() }}</p>
+}
+<!--@if (currentUser()?.username) {
+	<section class="recipe-debug-section">
+		<h2>Recipe table debug (select * from Recipe)</h2>
+		@if (rawRecipesLoadError()) {
+			<p class="recipes-error">{{ rawRecipesLoadError() }}</p>
+		} @else {
+			<pre>{{ rawRecipeRows() | json }}</pre>
+		}
+	</section>
+}-->
+@if (activePopup) {
+	<app-recipe-management
+		[recipe]="recipeToEdit()"
+		[creating]="creating"
+		[defaultRecipeImage]="defaultRecipeImage"
+		[saveError]="recipeSaveError()"
+		[mealTypeOptions]="mealTypeOptions"
+		(closed)="closePopup()"
+		(saved)="saveRecipe($event)"
+		(deleteRequested)="deleteRecipe($event)">
+	</app-recipe-management>
+}

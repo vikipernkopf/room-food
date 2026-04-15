@@ -72,6 +72,15 @@
 				}
 			</div>
 
+
+
+			<div class="leave-delete-div">
+				<button mat-stroked-button class="reject-btn" (click)="leaveRoom()">Leave Room</button>
+				@if (userRole()===Role.Owner){
+					<button mat-stroked-button class="reject-btn" (click)="deleteRoom()">Delete Room</button>
+				}
+			</div>
+
 		</div>
 	</mat-card>
 </div>

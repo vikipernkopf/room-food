@@ -1,8 +1,11 @@
 import express from "express";
-import { Unit } from "../unit";
-import { LoginSignUpService } from "./login-sign-up-service";
-import { StatusCodes } from "http-status-codes";
-import { PublicProfile, SignUpCredentials, UpdateProfilePayload, User } from "../model";
+import {Unit} from "../unit";
+import {LoginSignUpService} from "./login-sign-up-service";
+import {StatusCodes} from "http-status-codes";
+import {PublicProfile, SignUpCredentials, UpdateProfilePayload, User} from "../model";
+import bcrypt from 'bcryptjs';
+
+const SALT_ROUNDS = 12;
 
 const DEFAULT_PROFILE_PICTURE =
 	'https://i.imgur.com/tdi3NGa_d.webp?maxwidth=760&fidelity=grand';
@@ -25,7 +28,7 @@ loginSignUpRouter.get('/admin/users', (req, res) => {
 	}
 });
 
-loginSignUpRouter.post('/login', (req, res) => {
+loginSignUpRouter.post('/login', async (req, res) => {
 	const identifierRaw = req.body?.identifier ?? req.body?.username ?? req.body?.email;
 	const passwordRaw = req.body?.password;
 
@@ -39,29 +42,33 @@ loginSignUpRouter.post('/login', (req, res) => {
 	const unit = new Unit(false);
 	try {
 		const loginService = new LoginSignUpService(unit);
-		const user = loginService.getUserByUsernameOrEmail(identifier);
-		const check = loginService.checkLoginAttempt(identifier, password);
 
-		if (check !== true) {
+		const user = loginService.getUserByUsernameOrEmail(identifier);
+		if (!user) {
+			unit.complete(false);
+			return res.sendStatus(StatusCodes.UNAUTHORIZED);
+		}
+
+		if (!user.password) {
+			unit.complete(false);
+			return res.sendStatus(StatusCodes.UNAUTHORIZED);
+		}
+
+		const isValid = await bcrypt.compare(password, user.password); // <- still gives error + warning
+		if (!isValid) {
 			unit.complete(false);
 			return res.sendStatus(StatusCodes.UNAUTHORIZED);
 		}
 
 		unit.complete(true);
-		if (!user) {
-			return res.sendStatus(StatusCodes.UNAUTHORIZED);
-		}
-
 		return res.status(StatusCodes.OK).json(publicUserFrom(user));
 	} catch (e) {
 		console.error(e);
 		unit.complete(false);
 		return res.sendStatus(StatusCodes.INTERNAL_SERVER_ERROR);
 	}
-})
-
-
-loginSignUpRouter.post('/signup', (req, res) => {
+});
+loginSignUpRouter.post('/signup', async (req, res) => {
 	const signUpPayload = parseSignUpPayload(req.body);
 	if (!signUpPayload) {
 		return res.sendStatus(StatusCodes.BAD_REQUEST);
@@ -70,7 +77,7 @@ loginSignUpRouter.post('/signup', (req, res) => {
 	const unit = new Unit(false);
 	try {
 		const loginSignUpService = new LoginSignUpService(unit);
-
+		signUpPayload.password = await generateHashAndSalt(signUpPayload.password);
 		if (loginSignUpService.getUserByUsername(signUpPayload.username)) {
 			unit.complete(false);
 			return res.status(StatusCodes.CONFLICT).json({ reason: 'username_taken' });
@@ -106,6 +113,37 @@ loginSignUpRouter.post('/signup', (req, res) => {
 	}
 })
 
+loginSignUpRouter.delete('/delete', (req, res) => {
+	const identifierRaw = req.body?.identifier ?? req.body?.username ?? req.body?.email;
+	if (!identifierRaw) {
+		console.log('Invalid identifierRaw');
+		res.sendStatus(StatusCodes.BAD_REQUEST);
+	}
+
+	const unit = new Unit(false);
+	try {
+		const loginService = new LoginSignUpService(unit);
+		const deletedUser = loginService.deleteUser(identifierRaw);
+		if (deletedUser === "error") {
+			console.log("While deleting user an error occured");
+			unit.complete(false);
+			res.sendStatus(StatusCodes.BAD_REQUEST);
+		}
+		if (deletedUser === "not_found") {
+			console.log("User could not be found.");
+			unit.complete(false);
+			res.sendStatus(StatusCodes.NOT_FOUND);
+		}
+
+		unit.complete(true);
+		res.sendStatus(StatusCodes.OK);
+	} catch (e) {
+		console.error(e);
+		unit.complete(false);
+		res.sendStatus(StatusCodes.INTERNAL_SERVER_ERROR);
+	}
+})
+
 loginSignUpRouter.get('/users/:username', (req, res) => {
 	const username = (req.params.username ?? '').trim();
 	if (!username) {
@@ -130,7 +168,7 @@ loginSignUpRouter.get('/users/:username', (req, res) => {
 	}
 });
 
-loginSignUpRouter.put('/users/:username', (req, res) => {
+loginSignUpRouter.put('/users/:username', async (req, res) => {
 	const username = (req.params.username ?? '').trim();
 	console.log('Profile update requested for:', username);
 	if (!username) {
@@ -157,6 +195,11 @@ loginSignUpRouter.put('/users/:username', (req, res) => {
 			unit.complete(false);
 			console.log('Profile update conflict: email already in use');
 			return res.status(StatusCodes.CONFLICT).json({ reason: 'email_taken' });
+		}
+
+		// in the router, before calling updateUserProfile
+		if (payload.password) {
+			payload.password = await bcrypt.hash(payload.password, SALT_ROUNDS);
 		}
 
 		const result = loginSignUpService.updateUserProfile(username, payload);
@@ -301,3 +344,10 @@ function isEmail(email: string): boolean {
 	return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
+async function generateHashAndSalt(password: string): Promise<string> {
+	return await bcrypt.hash(password, SALT_ROUNDS);
+}
+
+export async function verifyPassword(hash: string, password: string): Promise<boolean> {
+	return await bcrypt.compare(password, hash);
+}

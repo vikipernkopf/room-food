@@ -50,3 +50,10 @@ body {
 	overflow-x: hidden;
 }
 
+/* Keep Angular Material overlays above feature modals that use z-index: 9999. */
+// this is for testing, fix later
+.cdk-overlay-container,
+.cdk-global-overlay-wrapper,
+.cdk-overlay-pane {
+	z-index: 10010 !important;
+}

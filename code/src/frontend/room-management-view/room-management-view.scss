@@ -210,8 +210,19 @@
 }
 
 .reject-btn {
-	color: $color-red;
-	font-size: 18px;
+	color: red;
+	font-size: 15px;
+}
+
+.leave-delete-btn {
+	color: red;
+	font-size: 15px;
+	max-width: 20rem;
+}
+
+.leave-delete-div {
+	align-self: flex-end;
+	max-width: 40rem;
 }
 
 .reject-btn:hover {

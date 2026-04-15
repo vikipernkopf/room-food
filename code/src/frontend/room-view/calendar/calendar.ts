@@ -119,8 +119,6 @@ export class Calendar implements OnInit {
 			return;
 		}
 
-		console.log("hi 111 1 1212 2 22 23 3333")
-
 		this.mealService.getMealsByRoomCode(this.roomCode()).subscribe({
 			next: (meals) => {
 				console.log('Meals received for calendar:', meals);
