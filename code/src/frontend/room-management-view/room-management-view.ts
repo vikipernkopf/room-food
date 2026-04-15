@@ -1,12 +1,15 @@
-import { Component, OnDestroy, signal, WritableSignal, effect } from '@angular/core';
+import {Component, OnDestroy, signal, WritableSignal, effect, inject} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatDivider } from '@angular/material/divider';
 import { MatCard } from '@angular/material/card';
 import { MatLabel } from '@angular/material/input';
-import { MatIconButton } from '@angular/material/button';
+import {MatButton, MatIconButton} from '@angular/material/button';
 import { RoomService } from '../core/room-service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
+import {Role, User} from '../../backend/model';
+import {AuthService} from '../core/auth-service';
+import {firstValueFrom} from 'rxjs';
 
 interface Member {
 	username: string;
@@ -25,7 +28,8 @@ interface Request {
 		MatDivider,
 		MatCard,
 		MatIconButton,
-		MatLabel
+		MatLabel,
+		MatButton
 	],
 	templateUrl: './room-management-view.html',
 	styleUrl: './room-management-view.scss'
@@ -35,12 +39,17 @@ export class RoomManagementView implements OnDestroy {
 	protected readonly roomName: WritableSignal<string> = signal('');
 	protected readonly members: WritableSignal<Member[]> = signal([]);
 	protected readonly requests: WritableSignal<Request[]> = signal([]);
+	protected readonly currentUser: WritableSignal<User | null>;
+	protected readonly userRole: WritableSignal<Role> = signal(Role.Member);
+	private authService: AuthService = inject(AuthService);
 	private hasRedirected = false;
 	private lastProcessedCode: string = '';
 
 	constructor(private route: ActivatedRoute,
 		private router: Router,
 		private roomService: RoomService) {
+
+		this.currentUser=this.authService.currentUser;
 		// Subscribe to route param 'code' and unsubscribe on destroy
 		this.route.paramMap
 		.pipe(takeUntilDestroyed())
@@ -94,6 +103,7 @@ export class RoomManagementView implements OnDestroy {
 					console.log('Room exists, loading members and requests');
 					this.hasRedirected = false;
 					this.loadRoomData(roomCode);
+					this.determineRole();
 				} else {
 					console.log('Room does not exist in database, redirecting to error');
 					if (!this.hasRedirected) {
@@ -192,4 +202,88 @@ export class RoomManagementView implements OnDestroy {
 	ngOnDestroy() {
 		// Cleanup is handled by takeUntilDestroyed
 	}
+
+	private async determineRole() {
+		try {
+			const members = await firstValueFrom(this.roomService.getMembersPerRoom(this.roomCode()));
+			const current = this.currentUser();
+			const found = members?.find(m => m.username === current?.username);
+			if(found===undefined){
+				this.errorPage();
+				return;
+			}
+			this.userRole.set(found.role as Role);
+		} catch (err) {
+			console.error('Error determining role:', err);
+		}
+
+		console.log(`user role: ${this.userRole()}`)
+	}
+
+	deleteRoom() {
+		const code = this.roomCode();
+		const current = this.currentUser();
+		if (!current) {
+			this.errorPage();
+			return;
+		}
+
+		//I use confirm for now cuz i don't wanna do a popup but it can be changed later
+		if (!confirm(`Delete room ${code}? This action cannot be undone.`)) return;
+
+		this.roomService.deleteRoom(code, current.username).subscribe({
+			next: res => {
+				console.log('Room deleted:', res);
+				// navigate back to rooms list or homepage
+				this.router.navigate(['/rooms']);
+			},
+			error: err => {
+				console.error('Error deleting room:', err);
+				if (err?.status === 403) {
+					alert('You do not have permission to delete this room');
+				} else {
+					alert('Failed to delete room');
+				}
+			}
+		});
+	}
+
+	leaveRoom() {
+		const code = this.roomCode();
+		const current = this.currentUser();
+		if (!current) {
+			this.errorPage();
+			return;
+		}
+
+		if (!confirm(`Leave room ${code}?`)) return;
+
+		this.roomService.leaveRoom(code, current.username).subscribe({
+			next: res => {
+				console.log('Left room:', res);
+				// navigate away after leaving
+				this.router.navigate(['/rooms']);
+			},
+			error: err => {
+				console.error('Error leaving room:', err);
+				if (err?.status === 403) {
+					alert('You do not have permission to leave this room');
+				} else {
+					alert('Failed to leave room');
+				}
+			}
+		});
+	}
+
+	errorPage(){
+		if (!this.hasRedirected) {
+			console.log('Room code is empty, redirecting to error');
+			this.hasRedirected = true;
+			// noinspection JSIgnoredPromiseFromCall
+			this.router.navigate(['/error']);
+		}
+		return;
+	}
+
+	protected readonly Role = Role;
 }

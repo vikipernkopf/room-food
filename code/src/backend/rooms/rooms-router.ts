@@ -1,7 +1,8 @@
-import { StatusCodes } from 'http-status-codes';
-import { Unit } from '../unit';
+import {StatusCodes} from 'http-status-codes';
+import {Unit} from '../unit';
 import express from 'express';
-import { RoomsService } from './rooms-service';
+import {RoomsService} from './rooms-service';
+import {Role} from '../model';
 
 export const roomsRouter = express.Router();
 
@@ -86,7 +87,7 @@ roomsRouter.post('/room/:code/accept-request', async (req, res): Promise<void> =
 	const unit = new Unit(false);
 	try {
 		const roomsService = new RoomsService(unit);
-		const success = roomsService.addMember(username, code, 'member');
+		const success = roomsService.addMember(username, code, Role.Member);
 
 		unit.complete(success);
 		if (success) {
@@ -269,5 +270,106 @@ roomsRouter.post('/room/join', async (req, res): Promise<void> => {
 		unit.complete(false);
 		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json();
 		console.log('Failed to create room');
+	}
+});
+
+roomsRouter.post('/room/:code/remove-member', async (req, res): Promise<void> => {
+	const { code } = req.params;
+	const { username, enacter } = req.body;
+
+	if (!code || !username || !enacter) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Room code, username and enacter are required' });
+		return;
+	}
+
+	const unit = new Unit(false);
+	try {
+		const roomsService = new RoomsService(unit);
+		const result = roomsService.removeMember(username, code, enacter);
+
+		unit.complete(result === true);
+		if (result === true) {
+			res.status(StatusCodes.OK).json({ success: true, message: 'Member removed' });
+			console.log('Removed member', username, 'from room', code, 'by', enacter);
+			return;
+		}
+
+		if (result === 'role_conflict') {
+			res.status(StatusCodes.FORBIDDEN).json({ error: 'Insufficient privileges to remove this member' });
+			console.log('Role conflict when', enacter, 'tried to remove', username, 'from', code);
+			return;
+		}
+
+		// otherwise failure
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Failed to remove member' });
+		console.log('Failed to remove member', username, 'from room', code, 'by', enacter);
+	} catch (error) {
+		unit.complete(false);
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to remove member' });
+		console.error('Error removing member:', error);
+	}
+});
+
+roomsRouter.put('/room/:code', async (req, res): Promise<void> => {
+	const { code } = req.params;
+	const { enacter, roomName, pfp } = req.body;
+
+	if (!code || !enacter) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Room code and enacter are required' });
+		return;
+	}
+
+	// at least one field to update should be provided
+	if (roomName === undefined && pfp === undefined) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'No update fields provided' });
+		return;
+	}
+
+	const unit = new Unit(false);
+	try {
+		const roomsService = new RoomsService(unit);
+		const success = roomsService.editRoom(code, enacter, roomName ?? null, pfp ?? null);
+
+		unit.complete(success);
+		if (success) {
+			res.status(StatusCodes.OK).json({ success: true, message: 'Room updated' });
+			console.log('Updated room', code, 'by', enacter);
+		} else {
+			res.status(StatusCodes.FORBIDDEN).json({ error: 'Not allowed to edit room or room does not exist' });
+			console.log('Failed to update room', code, 'by', enacter);
+		}
+	} catch (error) {
+		unit.complete(false);
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to edit room' });
+		console.error('Error editing room:', error);
+	}
+});
+
+roomsRouter.delete('/room/:code', async (req, res): Promise<void> => {
+	const { code } = req.params;
+	const { enacter } = req.body;
+
+	if (!code || !enacter) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Room code and enacter are required' });
+		return;
+	}
+
+	const unit = new Unit(false);
+	try {
+		const roomsService = new RoomsService(unit);
+		const success = roomsService.deleteRoom(code, enacter);
+
+		unit.complete(success);
+		if (success) {
+			res.status(StatusCodes.OK).json({ success: true, message: 'Room deleted' });
+			console.log('Deleted room', code, 'by', enacter);
+		} else {
+			res.status(StatusCodes.FORBIDDEN).json({ error: 'Not allowed to delete room or room does not exist' });
+			console.log('Failed to delete room', code, 'by', enacter);
+		}
+	} catch (error) {
+		unit.complete(false);
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to delete room' });
+		console.error('Error deleting room:', error);
 	}
 });

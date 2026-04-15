@@ -81,3 +81,9 @@ export type Meal = {
 	responsible: string,
 	recipeIds?: number[]
 }
+
+export enum Role {
+	Member='member',
+	Admin='admin',
+	Owner='owner'
+}

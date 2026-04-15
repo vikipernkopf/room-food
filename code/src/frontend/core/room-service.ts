@@ -121,4 +121,30 @@ export class RoomService {
 			success: boolean
 		}>(apiUrl, { username });
 	}
+	public removeMember(code: string, username: string, enacter: string): Observable<{
+		success: boolean
+	}> {
+		const apiUrl = `${this.apiBase}/room/${code}/remove-member`;
+		return this.http.post<{
+			success: boolean
+		}>(apiUrl, { username, enacter });
+	}
+
+	public deleteRoom(code: string, enacter: string): Observable<{
+		success: boolean,
+		message?: string
+	}> {
+		const apiUrl = `${this.apiBase}/room/${code}`;
+		// DELETE with body (enacter)
+		return this.http.delete<{
+			success: boolean,
+			message?: string
+		}>(apiUrl, { body: { enacter } });
+	}
+
+	public leaveRoom(code: string, username: string): Observable<{
+		success: boolean
+	}> {
+		return this.removeMember(code, username, username);
+	}
 }
