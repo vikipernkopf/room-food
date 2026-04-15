@@ -322,6 +322,11 @@ export class RoomsService extends ServiceBase {
 		return fetch.name;
 	}
 
+	/**
+	 * Removes the user from the "requests" queue
+	 * @param user - user to remove
+	 * @param code - which room's queue to remove from
+	 */
 	public removeFromRequestQueue(user: string, code: string): boolean {
 		if (!this.checkUserRoomRequesting(user, code)) {
 			return true;
@@ -343,4 +348,136 @@ export class RoomsService extends ServiceBase {
 
 		return success;
 	}
+
+	private checkRole(user:string, code:string): Role | null {
+		// Return the role of the user in the room or null if not a member
+		const fetch = this.unit.prepare(`
+			SELECT role
+			from RoomUserMember
+			where username = :u
+			  and room_code = :c
+		`, {
+			u: user,
+			c: code
+		}).get() as { role: string } | undefined;
+
+		if (!fetch || !fetch.role) return null;
+
+		const roleStr = (fetch.role || '').toString().toLowerCase();
+		if (roleStr === (Role.Owner as unknown as string) || roleStr === 'owner') return Role.Owner;
+		if (roleStr === (Role.Admin as unknown as string) || roleStr === 'admin') return Role.Admin;
+		if (roleStr === (Role.Member as unknown as string) || roleStr === 'member') return Role.Member;
+
+		// Unknown role stored in DB
+		return null;
+	}
+
+	/**
+	 * Remove a member from a room. Only possible if the role of the enacter is higher than the removed one
+	 * or user is removing himself
+	 * @param user - user to remove
+	 * @param code - room to remove user from
+	 * @param enacter - person trying to remove the user
+	 * @returns true if removed, 'role_conflict' if the roles do not allow enacter to remove a user,
+	 * false if something goes wrong
+	 */
+	public removeMember(user:string, code:string, enacter:string):boolean | 'role_conflict'{
+		if(!this.checkUserRoomMember(user, code)){
+			return true;
+		}
+		if(!this.checkUserRoomMember(enacter, code)){
+			return 'role_conflict';
+		}
+
+		const enacterRole = this.checkRole(enacter, code);
+		const targetRole = this.checkRole(user, code);
+
+		let success: boolean;
+
+		// If enacter is the same as user -> user is leaving on their own; allow
+		if(enacter !== user && (
+				(enacterRole === Role.Owner && targetRole === Role.Owner) ||
+				(enacterRole === Role.Admin && targetRole !== Role.Member) ||
+				(enacterRole === Role.Member)
+			)
+		)
+		{
+			return 'role_conflict';
+		}
+
+		[success] = this.executeStmt(
+			this.unit.prepare(`
+					DELETE
+					from RoomUserMember
+					where username = :n
+					  and room_code = :c
+				`, {
+				n: user,
+				c: code
+			})
+		);
+
+		return success;
+	}
+
+	/**
+	 * Delete a room (only owners can perform this)
+	 * @param code - room to delete
+	 * @param enacter - person trying to delete the room
+	 * @returns true if deleted successfully, false otherwise
+	 */
+	public deleteRoom(code:string, enacter:string): boolean {
+		if(!this.checkRoomExists(code)) return false;
+		if(!this.checkUserRoomMember(enacter, code)) return false;
+
+		const enacterRole = this.checkRole(enacter, code);
+		if(enacterRole !== Role.Owner) return false;
+
+		// Remove members and requests and then the room
+		try{
+			this.unit.prepare(`DELETE FROM RoomUserMember where room_code = :c`, { c: code }).run();
+			this.unit.prepare(`DELETE FROM RoomUserRequest where room_code = :c`, { c: code }).run();
+			const res = this.unit.prepare(`DELETE FROM Room where code = :c`, { c: code }).run();
+
+			// res.changes should be 1 when room deleted
+			return res.changes === 1;
+		} catch (e) {
+			console.error('Error deleting room', e);
+			return false;
+		}
+	}
+
+	/**
+	 * Edit a room's metadata (name / profile picture)
+	 * @param code - room to modify
+	 * @param enacter - person trying to apply changes
+	 * @param name - new name of the room
+	 * @param pfp - new pfp of the room
+	 * @returns true if modifications successful, false otherwise
+	 */
+	public editRoom(code:string, enacter:string, name?:string | null, pfp?:string | null): boolean{
+		if(!this.checkRoomExists(code)) return false;
+		if(!this.checkUserRoomMember(enacter, code)) return false;
+
+		const enacterRole = this.checkRole(enacter, code);
+		if(enacterRole !== Role.Owner && enacterRole !== Role.Admin) return false;
+
+		// Only update provided fields
+		let success:boolean = true;
+		if(typeof name === 'string'){
+			let s:boolean;
+			[s] = this.executeStmt(this.unit.prepare(`UPDATE Room SET name = :n WHERE code = :c`, { n: name, c: code }));
+			if(!s) return false;
+			success = success && s;
+		}
+		if(typeof pfp === 'string'){
+			let s:boolean;
+			[s] = this.executeStmt(this.unit.prepare(`UPDATE Room SET profile_picture = :p WHERE code = :c`, { p: pfp, c: code }));
+			if(!s) return false;
+			success = success && s;
+		}
+
+		return success;
+	}
+
 }
