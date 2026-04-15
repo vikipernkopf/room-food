@@ -1,11 +1,12 @@
 // noinspection GrazieInspection
 
-import {Injectable, signal, WritableSignal} from '@angular/core';
+import {inject, Injectable, signal, WritableSignal} from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
 import { LoginCredentials, PublicProfile, SignUpCredentials, UpdateProfilePayload, User } from '../../backend/model';
 import { Observable, tap } from 'rxjs';
+import {CookieService} from 'ngx-cookie-service';
 
 function getApiBase(): string {
   // Runtime override: window.__API_URL can be injected into the page (e.g. by a script
@@ -18,12 +19,26 @@ function getApiBase(): string {
 @Injectable({
   providedIn: 'root',
 })
+// IN CASE OF EXTREME PANIC AND SCARYNESS UNCOMMENT ALL THE COMMENTS AND LIE TO THE CUSTOMER
 export class AuthService {
 	private apiBase = getApiBase();
 	constructor(private http: HttpClient, private router: Router) {}
 	public readonly currentUser: WritableSignal<User | null> = signal(null);
 	public readonly loginError: WritableSignal<string> = signal('');
 	public readonly signUpError: WritableSignal<string> = signal('');
+
+	/*public cookieService= inject(CookieService);
+
+	restoreSession(): void {
+		const username = this.cookieService.get('auth_token');
+		console.log('restoring session for:', username); // check this prints the username
+		if (username) {
+			this.http.get<User>(`${this.apiBase}/me`, { params: { username } }).subscribe({
+				next: (user) => this.currentUser.set(user),
+				error: () => this.cookieService.delete('auth_token', '/')
+			});
+		}
+	}*/
 
 	login(credentials: LoginCredentials, returnUrl: string = '/homepage') {
 		console.log("Logging in at endpoint:", `${this.apiBase}/login`);
@@ -33,6 +48,7 @@ export class AuthService {
 				console.log('Login successful for:', user.username);
 				this.currentUser.set(user);
 				this.loginError.set('');
+				//this.cookieService.set('auth_token', user.username, 7, '/');
 				// noinspection JSIgnoredPromiseFromCall
 				this.router.navigateByUrl(returnUrl);
 			},
@@ -82,6 +98,7 @@ export class AuthService {
 	logout() {
 		this.currentUser.set(null);
 		console.log("User logged out");
+		//this.cookieService.delete('auth_token', '/');
 		this.router.navigate(['/homepage']);
 	}
 

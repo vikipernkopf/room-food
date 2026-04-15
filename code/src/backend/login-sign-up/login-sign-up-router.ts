@@ -68,6 +68,25 @@ loginSignUpRouter.post('/login', async (req, res) => {
 		return res.sendStatus(StatusCodes.INTERNAL_SERVER_ERROR);
 	}
 });
+
+// UNCOMMENT IN CASE OF ME NOT BEING ABLE TO FINISH COOKIES
+/*loginSignUpRouter.get('/me', (req, res) => {
+	const username = req.query["username"] as string;
+	if (!username) return res.sendStatus(StatusCodes.BAD_REQUEST);
+
+	const unit = new Unit(true);
+	try {
+		const svc = new LoginSignUpService(unit);
+		const user = svc.getUserByUsername(username);
+		unit.complete();
+		if (!user) return res.sendStatus(StatusCodes.NOT_FOUND);
+		return res.status(StatusCodes.OK).json(publicUserFrom(user));
+	} catch (e) {
+		unit.complete(false);
+		return res.sendStatus(StatusCodes.INTERNAL_SERVER_ERROR);
+	}
+});*/
+
 loginSignUpRouter.post('/signup', async (req, res) => {
 	const signUpPayload = parseSignUpPayload(req.body);
 	if (!signUpPayload) {
