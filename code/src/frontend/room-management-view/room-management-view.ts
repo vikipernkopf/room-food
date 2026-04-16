@@ -1,4 +1,4 @@
-import {Component, effect, inject, OnDestroy, signal, WritableSignal} from '@angular/core';
+import {Component, effect, inject, OnDestroy, signal, WritableSignal, DestroyRef} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {MatDivider} from '@angular/material/divider';
 import {MatCard} from '@angular/material/card';
@@ -10,6 +10,7 @@ import {CommonModule} from '@angular/common';
 import {Role, User} from '../../backend/model';
 import {AuthService} from '../core/auth-service';
 import {firstValueFrom} from 'rxjs';
+import { DEFAULT_ROOM_PICTURE } from '../core/user-form-validation';
 
 interface Member {
 	username: string;
@@ -37,11 +38,13 @@ interface Request {
 export class RoomManagementView implements OnDestroy {
 	protected readonly roomCode: WritableSignal<string> = signal('');
 	protected readonly roomName: WritableSignal<string> = signal('');
+	protected readonly roomImage: WritableSignal<string> = signal(DEFAULT_ROOM_PICTURE);
 	protected readonly members: WritableSignal<Member[]> = signal([]);
 	protected readonly requests: WritableSignal<Request[]> = signal([]);
 	protected readonly currentUser: WritableSignal<User | null>;
 	protected readonly userRole: WritableSignal<Role> = signal(Role.Member);
 	private authService: AuthService = inject(AuthService);
+	private destroyRef = inject(DestroyRef);
 	private hasRedirected = false;
 	private lastProcessedCode: string = '';
 
@@ -52,7 +55,7 @@ export class RoomManagementView implements OnDestroy {
 		this.currentUser=this.authService.currentUser;
 		// Subscribe to route param 'code' and unsubscribe on destroy
 		this.route.paramMap
-		.pipe(takeUntilDestroyed())
+		.pipe(takeUntilDestroyed(this.destroyRef))
 		.subscribe(paramMap => {
 			const code = paramMap.get('code') ?? '';
 			console.log('Route param received, setting roomCode to:', code);
@@ -103,6 +106,8 @@ export class RoomManagementView implements OnDestroy {
 					console.log('Room exists, loading members and requests');
 					this.hasRedirected = false;
 					this.loadRoomData(roomCode);
+					// also fetch the room image (profile picture) for display
+					this.fetchRoomImage(roomCode);
 					this.determineRole();
 				} else {
 					console.log('Room does not exist in database, redirecting to error');
@@ -119,6 +124,25 @@ export class RoomManagementView implements OnDestroy {
 					this.hasRedirected = true;
 					this.router.navigate(['/error']);
 				}
+			}
+		});
+	}
+
+	private fetchRoomImage(roomCode: string) {
+		const username = this.currentUser()?.username;
+		if (!username) {
+			this.roomImage.set(DEFAULT_ROOM_PICTURE);
+			return;
+		}
+
+		this.roomService.getRoomsForMember(username).subscribe({
+			next: rooms => {
+				const found = (rooms || []).find(r => r.code === roomCode);
+				this.roomImage.set(found?.profilePicture || DEFAULT_ROOM_PICTURE);
+			},
+			error: err => {
+				console.error('Failed to fetch room image:', err);
+				this.roomImage.set(DEFAULT_ROOM_PICTURE);
 			}
 		});
 	}
