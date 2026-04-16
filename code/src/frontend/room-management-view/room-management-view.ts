@@ -318,4 +318,12 @@ export class RoomManagementView implements OnDestroy {
 	}
 
 	protected readonly Role = Role;
+
+	editRoom() {
+		if (!this.hasRedirected) {
+			this.hasRedirected = true;
+			this.router.navigate([`/manage/${this.roomCode()}/edit`]);
+		}
+		return;
+	}
 }

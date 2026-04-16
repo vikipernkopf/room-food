@@ -10,6 +10,7 @@ import { Recipes } from '../../frontend/recipes/recipes';
 import { RoomManagementView } from '../../frontend/room-management-view/room-management-view';
 import { ErrorPage } from '../../frontend/error-page/error-page';
 import { Calendar } from '../../frontend/room-view/calendar/calendar';
+import {EditRoom} from '../../frontend/room-management-view/edit-room/edit-room';
 
 export const routes: Routes = [
 	{
@@ -60,6 +61,10 @@ export const routes: Routes = [
 	{
 		path: 'manage/:code',
 		component: RoomManagementView
+	},
+	{
+		path: 'manage/:code/edit',
+		component: EditRoom
 	},
 	{
 		path: '**',

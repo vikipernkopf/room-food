@@ -22,6 +22,10 @@
 				<span class="info-value code-value">{{roomCode()}}</span>
 			</div>
 
+			@if (userRole()===Role.Owner || userRole()===Role.Owner) {
+				<button mat-stroked-button class="accept-btn" (click)="editRoom()">Edit Room</button>
+			}
+
 		</div>
 
 		<!-- DIVIDER -->
