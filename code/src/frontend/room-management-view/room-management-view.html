@@ -39,43 +39,49 @@
 							<span class="member-username">{{member.username}}</span>
 							<span class="member-role">{{member.role}}</span>
 						</div>
-						<button mat-icon-button class="action-btn remove-btn" aria-label="Remove member" (click)="removeMember(member.username)">
-							✕
-						</button>
+						@if (userRole()===Role.Admin && member.role===Role.Member ||
+							userRole()===Role.Owner && member.role!==Role.Owner)
+						{
+							<button mat-icon-button class="action-btn remove-btn" aria-label="Remove member" (click)="removeMember(member.username)">
+								✕
+							</button>
+						}
 					</div>
 				} @empty {
 					<div class="empty-message">No roommates yet</div>
 				}
 			</div>
 
-			<mat-divider class="section-divider"></mat-divider>
+			@if (userRole()===Role.Owner ||
+				userRole()===Role.Admin)
+			{
+				<mat-divider class="section-divider"></mat-divider>
 
-			<!-- Requests -->
-			<h3 class="section-title">Requests</h3>
-			<div class="member-list">
-				@for (request of requests(); track request.username) {
-					<div class="request-item">
-						<div class="member-info">
-							<span class="member-username">{{request.username}}</span>
+				<!-- Requests -->
+				<h3 class="section-title">Requests</h3>
+				<div class="member-list">
+					@for (request of requests(); track request.username) {
+						<div class="request-item">
+							<div class="member-info">
+								<span class="member-username">{{request.username}}</span>
+							</div>
+							<div class="action-buttons">
+								<button mat-icon-button class="action-btn accept-btn" aria-label="Accept request" (click)="acceptRequest(request.username)">
+									✓
+								</button>
+								<button mat-icon-button class="action-btn reject-btn" aria-label="Reject request" (click)="rejectRequest(request.username)">
+									✕
+								</button>
+							</div>
 						</div>
-						<div class="action-buttons">
-							<button mat-icon-button class="action-btn accept-btn" aria-label="Accept request" (click)="acceptRequest(request.username)">
-								✓
-							</button>
-							<button mat-icon-button class="action-btn reject-btn" aria-label="Reject request" (click)="rejectRequest(request.username)">
-								✕
-							</button>
-						</div>
-					</div>
-				} @empty {
-					<div class="empty-message">No pending requests</div>
-				}
-			</div>
-
-
+					} @empty {
+						<div class="empty-message">No pending requests</div>
+					}
+				</div>
+			}
 
 			<div class="leave-delete-div">
-				<button mat-stroked-button class="reject-btn" (click)="leaveRoom()">Leave Room</button>
+				<button mat-stroked-button class="reject-btn" [disabled]="userRole()===Role.Owner" (click)="leaveRoom()">Leave Room</button>
 				@if (userRole()===Role.Owner){
 					<button mat-stroked-button class="reject-btn" (click)="deleteRoom()">Delete Room</button>
 				}
