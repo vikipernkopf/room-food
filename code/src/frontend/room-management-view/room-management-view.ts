@@ -11,6 +11,7 @@ import {Role, User} from '../../backend/model';
 import {AuthService} from '../core/auth-service';
 import {firstValueFrom} from 'rxjs';
 import { DEFAULT_ROOM_PICTURE } from '../core/user-form-validation';
+import {MatMenu, MatMenuItem, MatMenuTrigger} from '@angular/material/menu';
 
 interface Member {
 	username: string;
@@ -30,7 +31,10 @@ interface Request {
 		MatCard,
 		MatIconButton,
 		MatLabel,
-		MatButton
+		MatButton,
+		MatMenuTrigger,
+		MatMenu,
+		MatMenuItem
 	],
 	templateUrl: './room-management-view.html',
 	styleUrl: './room-management-view.scss'
@@ -349,5 +353,24 @@ export class RoomManagementView implements OnDestroy {
 			this.router.navigate([`/manage/${this.roomCode()}/edit`]);
 		}
 		return;
+	}
+
+	protected updateRole(member: string, newRole: Role) {
+		const code = this.roomCode();
+		const current = this.currentUser();
+
+		if (!current) {
+			this.errorPage();
+			return;
+		}
+
+		this.roomService.updateMemberRole(code, member, newRole, current.username).subscribe({
+			next: () => {
+				this.fetchMembers(code);
+			},
+			error: err => {
+				console.error('Error updating role:', err);
+			}
+		})
 	}
 }
