@@ -4,7 +4,7 @@ import {AuthService} from '../core/auth-service';
 import {Meal, User} from '../../backend/model';
 import {MealService} from '../core/meal-service';
 import {RoomService} from '../core/room-service';
-import {MealManagement} from '../meal-management/meal-management';
+import {MealManagement} from './meal-management/meal-management';
 import {ActivatedRoute, Router} from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
@@ -64,6 +64,7 @@ export class RoomView implements OnDestroy {
 					this.hasRedirected = true;
 					this.meals.set([]);
 					this.stopAutoRefresh();
+					// noinspection JSIgnoredPromiseFromCall
 					this.router.navigate(['/error']);
 				}
 				return;
@@ -94,6 +95,7 @@ export class RoomView implements OnDestroy {
 						this.hasRedirected = true;
 						this.meals.set([]);
 						this.stopAutoRefresh();
+						// noinspection JSIgnoredPromiseFromCall
 						this.router.navigate(['/error']);
 					}
 				}
@@ -105,6 +107,7 @@ export class RoomView implements OnDestroy {
 					this.hasRedirected = true;
 					this.meals.set([]);
 					this.stopAutoRefresh();
+					// noinspection JSIgnoredPromiseFromCall
 					this.router.navigate(['/error']);
 				}
 			}
@@ -188,9 +191,5 @@ export class RoomView implements OnDestroy {
 			this.fetchMealsForRoom(code);
 		}
 		this.closeMealPopup();
-	}
-
-	private checkRoomExists(roomCode: string | null | undefined): boolean {
-		return roomCode != null && roomCode.length > 0;
 	}
 }

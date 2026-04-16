@@ -1,5 +1,5 @@
 <section>
-	<form class="login-container" [formGroup]="signUpForm" (ngSubmit)="onFormSubmit()" autocomplete="on">
+	<form class="signup-container" [formGroup]="signUpForm" (ngSubmit)="onFormSubmit()" autocomplete="on">
 		<header>
 			<h4>
 				Sign up
@@ -170,7 +170,7 @@
 		</button>
 
 		<nav>
-			<a [routerLink]="['/login']">Already have an account?</a>
+			<a [routerLink]="['/login']" [queryParams]="loginQueryParams">Already have an account?</a>
 		</nav>
 		<hr>
 	</form>

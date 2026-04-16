@@ -1,29 +1,50 @@
 <div class="room-header">
 	<h1>Rooms</h1>
-	<button class="btn-join">Join Room</button>
+	<!--<button class="btn-join" (click)="openJoinRoom()">Join Room</button>-->
 </div>
+
 <div class="room-containers">
-	<button class="btn-add" (click)="openAddRoom()"> +
-	</button>
+	@if (!currentUser()?.username) {
+		<div class="not-logged-in-message room-tile">
+			<p>You must be logged in to view rooms.</p>
+		</div>
+	} @else {
+		<div class="room-container">
+			<button class="btn-add room-tile" type="button" (click)="openCreateRoom(); $event.stopPropagation()">
+				+
+			</button>
+			@for (room of memberRooms(); track room.code) {
+				<div class="room-tile">
+					<img class="room-image" [src]="getRoomImage(room)" [alt]="room.roomName">
+					<p class="room-name">{{ room.roomName }} ({{ room.code }})</p>
+					<p class="room-role">{{ room.role }}</p>
+					<div class="room-actions">
+						<a [routerLink]="['/calendar', room.code]">Open</a>
+						<a [routerLink]="['/manage', room.code]">Manage</a>
+					</div>
+				</div>
+			}
+		</div>
+	}
 </div>
 
-@if(showAddRoom) {
-	<div>
-		<app-room-creation></app-room-creation>
-	</div>
+@if (roomsLoadError()) {
+	<p>{{ roomsLoadError() }}</p>
 }
 
-@if(!currentUser()?.username){
-	<div>
-		<p>You must be logged in to create a room.</p>
+@if (activePopup) {
+	<div class="modal-overlay" (click)="onOverlayClick($event)">
+		<div class="modal-card" (click)="$event.stopPropagation()">
+			<div class="modal-header">
+				<h2>{{ activePopup === 'create' ? 'Create Room' : 'Join Room' }}</h2>
+				<button class="btn-close" type="button" (click)="closePopup()">x</button>
+			</div>
+			@if (activePopup === 'create') {
+				<app-room-creation [showJoinExistingLink]="true"
+					(joinExistingRequested)="openJoinRoom()"></app-room-creation>
+			} @else {
+				<app-join-room [showCreateRoomLink]="true" (createRoomRequested)="openCreateRoom()"></app-join-room>
+			}
+		</div>
 	</div>
 }
-
-
-
-
-
-
-
-
-

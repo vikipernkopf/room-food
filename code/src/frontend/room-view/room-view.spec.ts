@@ -1,10 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Component, EventEmitter, Input, Output, signal, WritableSignal } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { By } from '@angular/platform-browser';
 import { vi } from 'vitest';
+import { of } from 'rxjs';
 
 import { RoomView } from './room-view';
 import { AuthService } from '../core/auth-service';
@@ -29,6 +30,7 @@ class StubMealPlan {
 })
 class StubAddMeal {
   @Input() mealToEdit: Meal | null = null;
+  @Input() roomCode: string = '';
   @Output() close = new EventEmitter<void>();
   @Output() mealSaved = new EventEmitter<void>();
 }
@@ -59,6 +61,10 @@ describe('RoomView', () => {
         provideRouter([]),
         provideHttpClient(),
         provideHttpClientTesting(),
+        {
+          provide: ActivatedRoute,
+          useValue: { paramMap: of(convertToParamMap({ code: 'A1' })) }
+        },
         { provide: AuthService, useValue: authService }
       ]
     })
@@ -90,10 +96,13 @@ describe('RoomView', () => {
   });
 
   it('renders empty state when backend returns no meals', () => {
-    authService.currentUser.set({ username: 'luni' });
     fixture.detectChanges();
 
-    const req = httpMock.expectOne('/api/meals/luni');
+    const validationReq = httpMock.expectOne('/api/room/exists/A1');
+    expect(validationReq.request.method).toBe('GET');
+    validationReq.flush({ exists: true });
+
+    const req = httpMock.expectOne('/api/room_meals/A1');
     expect(req.request.method).toBe('GET');
     req.flush([]);
 
@@ -107,10 +116,12 @@ describe('RoomView', () => {
   });
 
   it('renders meals after fetch', () => {
-    authService.currentUser.set({ username: 'luni' });
     fixture.detectChanges();
 
-    const req = httpMock.expectOne('/api/meals/luni');
+    const validationReq = httpMock.expectOne('/api/room/exists/A1');
+    validationReq.flush({ exists: true });
+
+    const req = httpMock.expectOne('/api/room_meals/A1');
     req.flush([
       { name: 'Pasta', time: new Date('2026-02-27T12:00:00Z'), room: 'A1', responsible: 'luni' },
       { name: 'Salad', time: new Date('2026-02-27T18:00:00Z'), room: 'A1', responsible: 'luni' }
@@ -125,10 +136,12 @@ describe('RoomView', () => {
   });
 
   it('shows add-meal popup when button is clicked', () => {
-    authService.currentUser.set({ username: 'luni' });
     fixture.detectChanges();
 
-    const req = httpMock.expectOne('/api/meals/luni');
+    const validationReq = httpMock.expectOne('/api/room/exists/A1');
+    validationReq.flush({ exists: true });
+
+    const req = httpMock.expectOne('/api/room_meals/A1');
     req.flush([]);
     fixture.detectChanges();
 
@@ -142,15 +155,17 @@ describe('RoomView', () => {
 
   it('auto-refreshes meals on interval', () => {
     vi.useFakeTimers();
-    authService.currentUser.set({ username: 'luni' });
     fixture.detectChanges();
 
-    const first = httpMock.expectOne('/api/meals/luni');
+    const validationReq = httpMock.expectOne('/api/room/exists/A1');
+    validationReq.flush({ exists: true });
+
+    const first = httpMock.expectOne('/api/room_meals/A1');
     first.flush([]);
     fixture.detectChanges();
 
-    vi.advanceTimersByTime(2000);
-    const refresh = httpMock.expectOne('/api/meals/luni');
+    vi.advanceTimersByTime(10000);
+    const refresh = httpMock.expectOne('/api/room_meals/A1');
     refresh.flush([]);
 
     vi.useRealTimers();

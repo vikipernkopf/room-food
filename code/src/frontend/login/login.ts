@@ -1,11 +1,9 @@
-import {Component, signal, ChangeDetectionStrategy, WritableSignal, OnInit} from '@angular/core';
-import {ActivatedRoute, Router, RouterLink} from '@angular/router';
+import {Component, signal, ChangeDetectionStrategy, WritableSignal, inject} from '@angular/core';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../core/auth-service';
 import { LoginCredentials } from '../../backend/model';
-import {CookieService} from 'ngx-cookie-service';
-import {inject} from '@angular/core';
 
 @Component({
 	selector: 'app-login-sign-up',
@@ -24,8 +22,7 @@ export class Login {
 	});
 	public loginError: WritableSignal<String>= signal('');
 	private returnUrl = '/homepage';
-	private readonly title="annoying";
-	private cookieValue = '';
+	protected signUpQueryParams: { returnUrl: string } | null = null;
 	public cookieService= inject(CookieService);
 
 	/*ngOnInit(): void {
@@ -40,6 +37,7 @@ export class Login {
 		const requestedReturn = this.route.snapshot.queryParamMap.get('returnUrl');
 		if (requestedReturn && requestedReturn.startsWith('/')) {
 			this.returnUrl = requestedReturn;
+			this.signUpQueryParams = { returnUrl: requestedReturn };
 		}
 	}
 	onFormSubmit() {

@@ -1,33 +1,13 @@
-// Green Palette
-$color-green-1: #6FC276;
-$color-green-2: #4CAF50;
-$color-green-3: #2E7D32;
-$color-green-4: #105B37;
-$color-green-5: #0A3D23;
-
-// Orange Palette
-$color-orange-1: #C85A04;
-$color-orange-2: #E67E22;
-$color-orange-3: #FF9800;
-$color-orange-4: #FFB74D;
-$color-orange-5: #FFCC80;
-
-// Login Page Colors
-$color-bg: #F0F4F8;
-$color-white: #ffffff;
-$color-text: #4A5568;
-$color-text-light: #A0AEC0;
-$color-orange-btn: #F2791D;
+﻿@use '../styles/theme' as *;
 
 /* Navbar - white like the card */
 .navbar {
+	position: relative;
 	background-color: $color-orange-3;
 	padding: 0.65rem 0;
 	border-bottom: 4px solid $color-green-2;
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+	box-shadow: 0 2px 8px $color-overlay-4;
 	min-height: 64px;
-	contain: layout;
-	will-change: auto;
 }
 
 /* Container */
@@ -35,11 +15,63 @@ $color-orange-btn: #F2791D;
 	max-width: 100%;
 	padding-left: 1rem;
 	padding-right: 1rem;
-	contain: layout;
+	min-width: 0;
+}
+
+.navbar-shell {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	flex-wrap: nowrap;
+	min-width: 0;
+}
+
+.navbar-menu {
+	flex: 1 1 auto;
+	display: flex;
+	justify-content: flex-end;
+	min-width: 0;
+}
+
+.navbar-menu.is-collapsed {
+	position: absolute;
+	top: calc(100% + 0.75rem);
+	left: 1rem;
+	right: 1rem;
+	padding: 1.5rem;
+	background-color: $color-white;
+	border-radius: 16px;
+	box-shadow: 0 4px 20px $color-overlay-8;
+	z-index: 20;
+	display: none;
+}
+
+.navbar-menu.is-collapsed.is-open {
+	display: flex;
+}
+
+.navbar-menu.is-collapsed .navbar-links {
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 0.75rem;
+	white-space: normal;
+	width: 100%;
+}
+
+.navbar-links {
+	display: flex;
+	align-items: center;
+	gap: 2.5rem;
+	flex-wrap: nowrap;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	white-space: nowrap;
 }
 
 /* Logo */
 .navbar-brand {
+	flex: 0 0 auto;
 	padding: 0;
 	margin: 0;
 	display: inline-flex;
@@ -70,11 +102,8 @@ $color-orange-btn: #F2791D;
 }
 
 /* Navigation */
-.navbar-nav {
-	gap: 2.5rem;
-}
 
-.navbar-nav .nav-link {
+.navbar-links .nav-link {
 	color: $color-green-4 !important;
 	font-weight: 600;
 	font-size: 0.95rem;
@@ -82,26 +111,19 @@ $color-orange-btn: #F2791D;
 	padding: 0 !important;
 	transition: color 0.2s ease;
 	white-space: nowrap;
+	background: $color-transparent;
+	border: 0;
 }
 
-.navbar-nav .nav-link:hover,
-.navbar-nav .nav-link.active {
+.navbar-links .nav-link:hover,
+.navbar-links .nav-link.active {
 	color: $color-green-3 !important;
-}
-
-/* Tagline */
-.navbar-text {
-	color: $color-green-5 !important;
-	font-size: 0.9rem;
-	font-weight: 600;
-	line-height: 1.2;
-	margin-left: 1.5rem;
-	white-space: nowrap;
 }
 
 /* Mobile Toggler */
 .navbar-toggler {
-	border: 1px solid $color-text-light;
+	flex: 0 0 auto;
+	border: 1px solid $color-blue-gray;
 	padding: 0.5rem;
 	border-radius: 8px;
 }
@@ -110,37 +132,44 @@ $color-orange-btn: #F2791D;
 	background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='%234A5568' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 8h24M4 16h24M4 24h24'/%3E%3C/svg%3E") !important;
 }
 
-/* Desktop */
-@media (min-width: 992px) {
-	.navbar-collapse {
-		flex-grow: 0;
-	}
+.navbar-measure {
+	position: absolute;
+	left: -10000px;
+	top: 0;
+	visibility: hidden;
+	pointer-events: none;
+	height: 0;
+	overflow: hidden;
 }
 
-/* Mobile */
-@media (max-width: 991px) {
-	.navbar > .container {
-		padding-left: 1rem;
-		padding-right: 1.5rem;
-	}
+.navbar-measure .container {
+	max-width: none;
+	width: max-content;
+	padding-left: 1rem;
+	padding-right: 1rem;
+}
 
-	.navbar-collapse {
-		background-color: $color-white;
-		padding: 1.5rem;
-		margin-top: 1rem;
-		border-radius: 16px;
-		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-	}
+.navbar-measure .navbar-shell {
+	width: max-content;
+}
 
-	.navbar-nav {
-		gap: 0.75rem;
-	}
+.navbar-measure .navbar-menu {
+	flex: 0 0 auto;
+	display: flex;
+	position: static;
+	padding: 0;
+	box-shadow: none;
+	background: $color-transparent;
+	left: auto;
+	right: auto;
+	top: auto;
+}
 
-	.navbar-text {
-		margin-left: 0;
-		margin-top: 1rem;
-		padding-top: 1rem;
-		border-top: 1px solid $color-bg;
-		display: block;
-	}
+.navbar-measure .navbar-menu.is-collapsed {
+	display: flex;
+}
+
+.navbar-measure .navbar-links {
+	gap: 2.5rem;
+	padding: 0;
 }

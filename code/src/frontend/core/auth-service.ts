@@ -69,14 +69,14 @@ export class AuthService {
 			})
 		);
 	}
-	signUp(credentials: SignUpCredentials) {
+	signUp(credentials: SignUpCredentials, returnUrl: string = '/homepage') {
 		this.http.post<User>(`${this.apiBase}/signup`, credentials).subscribe({
 			next: (user) => {
 				console.log('Sign up successful for:', user);
 				this.currentUser.set(user);
 				this.signUpError.set('');
 				// noinspection JSIgnoredPromiseFromCall
-				this.router.navigate(['/homepage']);
+				this.router.navigateByUrl(returnUrl);
 			},
 			error: (err) => {
 				if (err.status === 409) {
