@@ -130,7 +130,7 @@ export class MealManagementService extends ServiceBase {
 				 where id = :mealId`,
 				{
 					newTime: updatedMeal.time.toISOString(),
-					newEndTime: updatedMeal.time.toISOString(),
+					newEndTime: updatedMeal.endTime.toISOString(),
 					newName: updatedMeal.name,
 					newResponsible: updatedMeal.responsible,
 					newRoom: updatedMeal.room,
@@ -181,7 +181,7 @@ export class MealManagementService extends ServiceBase {
 			meals.push({
 				id: e.id,
 				time: date,
-				endTime: date,
+				endTime: new Date(Date.parse(e.endTime)),
 				name: e.name,
 				responsible: e.responsible,
 				room: e.roomCode,
