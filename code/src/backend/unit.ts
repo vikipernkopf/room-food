@@ -162,6 +162,8 @@ class DB {
 				 name        text not null,
 				 description text,
 				 image       text,
+				 visibility  text not null default 'private'
+					constraint ck_recipe_visibility check (visibility in ('public', 'private')),
 				 author      integer not null,
 
 				 constraint fk_author foreign key (author) REFERENCES User (id) ON DELETE CASCADE
@@ -287,6 +289,7 @@ class DB {
 			const recipeHasMealTypeColumn = recipeColumnNames.has('mealtype');
 			const recipeHasDescriptionColumn = recipeColumnNames.has('description');
 			const recipeHasImageColumn = recipeColumnNames.has('image');
+			const recipeHasVisibilityColumn = recipeColumnNames.has('visibility');
 			const recipeHasAuthorColumn = recipeColumnNames.has('author');
 			const recipeHasLegacyIdDefault = recipeSql.includes('default (abs(random())');
 			const recipeHasLegacyUqRecipe = recipeSql.includes('uq_recipe');
@@ -294,6 +297,7 @@ class DB {
 				recipeHasMealTypeColumn ||
 				!recipeHasDescriptionColumn ||
 				!recipeHasImageColumn ||
+				!recipeHasVisibilityColumn ||
 				!recipeHasAuthorColumn ||
 				recipeHasLegacyIdDefault ||
 				recipeHasLegacyUqRecipe;
@@ -336,6 +340,8 @@ class DB {
 					name        text not null,
 					description text,
 					image       text,
+					visibility  text not null default 'private'
+						constraint ck_recipe_visibility check (visibility in ('public', 'private')),
 					author      integer not null,
 
 					constraint fk_author foreign key (author) REFERENCES User (id) ON DELETE CASCADE
@@ -349,6 +355,13 @@ class DB {
 
 				const legacyDescriptionExpr = legacyRecipeColumnNames.has('description') ? 'description' : 'null';
 				const legacyImageExpr = legacyRecipeColumnNames.has('image') ? 'image' : 'null';
+				const legacyVisibilityExpr = legacyRecipeColumnNames.has('visibility')
+					? `case
+						when lower(trim(legacy.visibility)) = 'public' then 'public'
+						when lower(trim(legacy.visibility)) = 'private' then 'private'
+						else 'private'
+					end`
+					: `'private'`;
 				const legacyAuthorExpr = DB.getLegacyRecipeAuthorExpr(legacyRecipeColumnNames, 'legacy');
 
 				if (legacyAuthorExpr === null) {
@@ -357,13 +370,14 @@ class DB {
 					);
 				} else {
 					connection.exec(`
-					insert into Recipe(id, name, description, image, author)
-					select id, name, description, image, resolved_author
+					insert into Recipe(id, name, description, image, visibility, author)
+					select id, name, description, image, visibility, resolved_author
 					from (
 						select legacy.id                                            as id,
 						       legacy.name                                          as name,
 						       ${legacyDescriptionExpr}                              as description,
 						       ${legacyImageExpr}                                    as image,
+						       ${legacyVisibilityExpr}                               as visibility,
 						       ${legacyAuthorExpr}                                   as resolved_author
 						from Recipe_legacy legacy
 					)

@@ -99,14 +99,16 @@ export class Recipes {
 				name: payload.name.trim(),
 				description: payload.description,
 				image: payload.image,
-				mealTypes: payload.mealTypes
+				mealTypes: payload.mealTypes,
+				visibility: payload.visibility
 			})
 			: this.recipeService.createRecipe({
 				authorUsername: username,
 				name: payload.name.trim(),
 				description: payload.description,
 				image: payload.image,
-				mealTypes: payload.mealTypes
+				mealTypes: payload.mealTypes,
+				visibility: payload.visibility
 			});
 
 		request.subscribe({

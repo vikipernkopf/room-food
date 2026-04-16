@@ -2,7 +2,7 @@ import express from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { Unit } from '../unit';
 import { RecipesService } from './recipes-service';
-import { RecipeCreatePayload, RecipeUpdatePayload } from '../model';
+import { RecipeCreatePayload, RecipeUpdatePayload, RecipeVisibility } from '../model';
 
 export const recipesRouter = express.Router();
 
@@ -53,6 +53,11 @@ recipesRouter.post('/recipes', async (req, res): Promise<void> => {
 		return;
 	}
 
+	if (!isRecipeVisibility(payload.visibility)) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Recipe visibility must be public or private' });
+		return;
+	}
+
 	const unit = new Unit(false);
 
 	try {
@@ -63,7 +68,8 @@ recipesRouter.post('/recipes', async (req, res): Promise<void> => {
 			name: payload.name,
 			description: payload.description,
 			image: payload.image,
-			mealTypes: payload.mealTypes ?? []
+			mealTypes: payload.mealTypes ?? [],
+			visibility: payload.visibility
 		});
 
 		if (result === 'author_not_found') {
@@ -101,6 +107,11 @@ recipesRouter.put('/recipes/:id', async (req, res): Promise<void> => {
 		return;
 	}
 
+	if (!isRecipeVisibility(payload.visibility)) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Recipe visibility must be public or private' });
+		return;
+	}
+
 	const unit = new Unit(false);
 
 	try {
@@ -109,7 +120,8 @@ recipesRouter.put('/recipes/:id', async (req, res): Promise<void> => {
 			name: payload.name,
 			description: payload.description,
 			image: payload.image,
-			mealTypes: payload.mealTypes ?? []
+			mealTypes: payload.mealTypes ?? [],
+			visibility: payload.visibility
 		});
 
 		if (result === 'not_found') {
@@ -132,6 +144,10 @@ recipesRouter.put('/recipes/:id', async (req, res): Promise<void> => {
 		console.error('Error updating recipe:', error);
 	}
 });
+
+function isRecipeVisibility(value: unknown): value is RecipeVisibility {
+	return value === 'public' || value === 'private';
+}
 
 recipesRouter.delete('/recipes/:id', async (req, res): Promise<void> => {
 	const recipeId = Number(req.params.id);

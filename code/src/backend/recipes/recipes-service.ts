@@ -1,7 +1,7 @@
 import { ServiceBase } from '../service-base';
 import { Unit } from '../unit';
 import { LoginSignUpService } from '../login-sign-up/login-sign-up-service';
-import { Recipe, RecipeCreatePayload, RecipeUpdatePayload } from '../model';
+import { Recipe, RecipeCreatePayload, RecipeUpdatePayload, RecipeVisibility } from '../model';
 
 export class RecipesService extends ServiceBase {
 	private readonly users: LoginSignUpService;
@@ -22,6 +22,7 @@ export class RecipesService extends ServiceBase {
 			name: string;
 			description?: string | null;
 			image?: string | null;
+			visibility: RecipeVisibility;
 			author: number;
 			mealTypes: string | null;
 		}>(`
@@ -29,12 +30,13 @@ export class RecipesService extends ServiceBase {
 			       r.name,
 			       r.description,
 			       r.image,
+			       r.visibility,
 			       r.author,
 			       coalesce(group_concat(rmt.meal_type, '||'), '') as mealTypes
 			from Recipe r
 			left join RecipeMealType rmt on r.id = rmt.recipe_id
 			where r.author = :author
-			group by r.id, r.name, r.description, r.image, r.author
+			group by r.id, r.name, r.description, r.image, r.visibility, r.author
 			order by r.id desc
 		`, { author: authorId }).all();
 
@@ -43,6 +45,7 @@ export class RecipesService extends ServiceBase {
 			name: recipe.name,
 			description: recipe.description ?? undefined,
 			image: recipe.image ?? undefined,
+			visibility: RecipesService.normalizeVisibility(recipe.visibility),
 			author: recipe.author,
 			mealTypes: recipe.mealTypes ? recipe.mealTypes.split('||').filter(Boolean) : []
 		}));
@@ -53,6 +56,7 @@ export class RecipesService extends ServiceBase {
 		name: string;
 		description: string | null;
 		image: string | null;
+		visibility: RecipeVisibility;
 		author: number;
 	}> {
 		return this.unit.prepare<{
@@ -60,12 +64,14 @@ export class RecipesService extends ServiceBase {
 			name: string;
 			description: string | null;
 			image: string | null;
+			visibility: RecipeVisibility;
 			author: number;
 		}>(`
 			select id,
 			       name,
 			       description,
 			       image,
+			       visibility,
 			       author
 			from Recipe
 			order by id desc
@@ -90,15 +96,17 @@ export class RecipesService extends ServiceBase {
 				name: string;
 				description: string | null;
 				image: string | null;
+				visibility: RecipeVisibility;
 				author: number;
 			}>(
-				`insert into Recipe(name, description, image, author)
-				 values (:name, :description, :image, :author)
+				`insert into Recipe(name, description, image, visibility, author)
+				 values (:name, :description, :image, :visibility, :author)
 				 returning id`,
 				{
 					name: recipe.name.trim(),
 					description: recipe.description?.trim() || null,
 					image: recipe.image?.trim() || null,
+					visibility: RecipesService.normalizeVisibility(recipe.visibility),
 					author: authorId
 				}
 			).get();
@@ -154,12 +162,14 @@ export class RecipesService extends ServiceBase {
 				`update Recipe
 				 set name = :name,
 				     description = :description,
-				     image = :image
+				     image = :image,
+				     visibility = :visibility
 				 where id = :id`,
 				{
 					name: recipe.name.trim(),
 					description: recipe.description?.trim() || null,
 					image: recipe.image?.trim() || null,
+					visibility: RecipesService.normalizeVisibility(recipe.visibility),
 					id: recipeId
 				}
 			).run();
@@ -187,6 +197,10 @@ export class RecipesService extends ServiceBase {
 		}
 
 		return true;
+	}
+
+	private static normalizeVisibility(visibility: RecipeVisibility | string | undefined): RecipeVisibility {
+		return visibility === 'public' ? 'public' : 'private';
 	}
 
 	public deleteRecipe(recipeId: number): true | 'not_found' | 'error' {

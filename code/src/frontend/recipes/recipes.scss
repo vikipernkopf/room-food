@@ -81,11 +81,31 @@
 	word-break: break-word;
 }
 
-.recipe-description-empty,
-.recipe-meal-types-empty,
-.not-logged-in-message p {
+.recipe-visibility {
 	margin: 0;
-	color: $color-gray;
+	font-size: 0.8rem;
+	font-weight: 600;
+	color: $color-orange-2;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+}
+
+.not-logged-in-message {
+	cursor: default;
+
+	&:hover {
+		box-shadow: none !important;
+		transform: none !important;
+	}
+
+	&:focus-visible {
+		outline: none !important;
+	}
+
+	p {
+		margin: 0;
+		color: $color-gray;
+	}
 }
 
 .recipe-meal-types {
@@ -135,11 +155,6 @@
 .recipes-error {
 	color: $color-red;
 	margin: 0;
-}
-
-
-.not-logged-in-message {
-	color: $color-red;
 }
 
 .recipe-debug-section {
