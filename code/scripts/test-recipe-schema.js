@@ -28,14 +28,15 @@ try {
 console.log("\n2. Creating recipe with description and image...");
 try {
 	const stmt = db.prepare(`
-		INSERT INTO Recipe (name, description, image, author)
-		VALUES (:name, :description, :image, :author)
+		INSERT INTO Recipe (name, description, image, visibility, author)
+		VALUES (:name, :description, :image, :visibility, :author)
 	`);
 
 	const result = stmt.run({
 		name: "Spaghetti Carbonara",
 		description: "Classic Italian pasta with eggs, cheese, and bacon",
 		image: "https://example.com/carbonara.jpg",
+		visibility: "public",
 		author: userId
 	});
 
@@ -59,7 +60,7 @@ try {
 	// Verify the recipe with all its data
 	console.log("\n4. Verifying recipe data...");
 	const recipe = db.prepare(`
-		SELECT r.id, r.name, r.description, r.image, r.author
+		SELECT r.id, r.name, r.description, r.image, r.visibility, r.author
 		FROM Recipe r
 		WHERE r.id = :id
 	`).get({ id: recipeId });
@@ -69,6 +70,7 @@ try {
 	console.log(`   - Name: ${recipe.name}`);
 	console.log(`   - Description: ${recipe.description}`);
 	console.log(`   - Image: ${recipe.image}`);
+	console.log(`   - Visibility: ${recipe.visibility}`);
 	console.log(`   - Author (User ID): ${recipe.author}`);
 
 	// Get username for reference
