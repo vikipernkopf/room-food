@@ -76,6 +76,7 @@ export type RecipeUpdatePayload = {
 export type Meal = {
 	id?: number,
 	time: Date,
+	endTime: Date,
 	name: string,
 	room: string,
 	responsible: string,

@@ -69,7 +69,10 @@ export class MealManagement implements OnChanges {
 	dish: string = '';
 	selectedValue: string = 'breakfast-0';
 	selectedDate: Date | null = null;
-	selectedTime: Date | null = null;
+	selectedStartTime: Date | null = null;
+	selectedEndTime: Date | null = null;
+	minTime: Date = new Date(new Date().setHours(5, 0, 0, 0));
+	maxTime: Date = new Date(new Date().setHours(23, 0, 0, 0));
 	showError: boolean = false;
 	isSubmitting: boolean = false;
 	selectedRecipeIds: number[] = [];
@@ -111,8 +114,10 @@ export class MealManagement implements OnChanges {
 	}
 
 	ngOnChanges(changes: SimpleChanges): void {
-		if (changes['mealToEdit']) {
+		if (changes['mealToEdit'] && this.mealToEdit) {
 			this.prefillFormFromInput();
+		} else if(changes['initialDate'] || changes['initialTime']) {
+			this.applyInitialDateTime();
 		}
 
 		this.loadRecipesForCurrentUser();
@@ -140,7 +145,8 @@ export class MealManagement implements OnChanges {
 			this.dish = '';
 			this.selectedValue = 'breakfast-0';
 			this.selectedDate = null;
-			this.selectedTime = null;
+			this.selectedStartTime = null;
+			this.selectedEndTime = null;
 			this.selectedRecipeIds = [];
 			this.recipeSearchTerm = '';
 			this.applyRecipeFilter();
@@ -151,7 +157,8 @@ export class MealManagement implements OnChanges {
 		const mealTime = new Date(this.mealToEdit.time as unknown as string);
 		this.dish = this.mealToEdit.name;
 		this.selectedDate = mealTime;
-		this.selectedTime = mealTime;
+		this.selectedStartTime = new Date(this.mealToEdit.time);
+		this.selectedEndTime = new Date(this.mealToEdit.endTime);
 		this.selectedRecipeIds = this.normalizeRecipeIds(this.mealToEdit.recipeIds);
 		this.recipeSearchTerm = '';
 		this.applyRecipeFilter();
@@ -284,15 +291,33 @@ export class MealManagement implements OnChanges {
 		const user = this.authService.currentUser();
 		const currentUsername = user?.username;
 
-		if (this.dish && this.selectedValue && this.selectedDate && this.selectedTime && currentUsername
+		if (this.dish
+			&& this.selectedValue
+			&& this.selectedDate
+			&& this.selectedStartTime
+			&& this.selectedEndTime
+			&& currentUsername
 			&& this.roomCode) {
 
+			// 1. Create a fresh Date object for Start from the selected Date
 			const finalDate = new Date(this.selectedDate);
-			finalDate.setHours(this.selectedTime.getHours());
-			finalDate.setMinutes(this.selectedTime.getMinutes());
+			finalDate.setHours(this.selectedStartTime.getHours());
+			finalDate.setMinutes(this.selectedStartTime.getMinutes());
+			finalDate.setSeconds(0);
+			finalDate.setMilliseconds(0);
+
+			const finalEndDate = new Date(this.selectedDate);
+			finalEndDate.setHours(this.selectedEndTime.getHours());
+			finalEndDate.setMinutes(this.selectedEndTime.getMinutes());
+			finalEndDate.setSeconds(0);
+			finalEndDate.setMilliseconds(0);
+
+			console.log("START STRING:", finalDate.toISOString());
+			console.log("END STRING:", finalEndDate.toISOString());
 
 			const newMeal: Meal = {
 				time: finalDate,
+				endTime: finalEndDate,
 				name: this.dish,
 				responsible: currentUsername,
 				room: this.roomCode,
@@ -359,6 +384,24 @@ export class MealManagement implements OnChanges {
 					'Unable to delete meal: ' + (err.error?.error || err.message || 'Unknown error'));
 			}
 		});
+	}
+
+	private applyInitialDateTime() {
+		this.clearErrors();
+
+		if(!this.isEditMode){
+			this.selectedDate = this.initialDate;
+			this.selectedStartTime = this.initialTime;
+
+			if (this.initialTime) {
+				const endTime = new Date(this.initialTime);
+				endTime.setHours(endTime.getHours() + 1);
+				this.selectedEndTime = endTime;
+			}
+
+			this.dish = '';
+			this.selectedValue = 'breakfast-0';
+		}
 	}
 }
 

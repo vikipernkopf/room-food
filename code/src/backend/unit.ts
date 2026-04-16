@@ -184,6 +184,7 @@ class DB {
 			 (
 				 id          integer primary key autoincrement,
 				 time        text not null,
+				 endTime	 text not null,
 				 name        text,
 				 responsible text,
 				 roomCode    text not null,
@@ -192,6 +193,7 @@ class DB {
 			 ) strict`
 		);
 
+		DB.migrateMealTableToIncludeEndTime(connection);
 		DB.migrateRecipeAndMealTables(connection);
 	}
 
@@ -250,6 +252,15 @@ class DB {
 		}
 
 		connection.exec(`create unique index if not exists uq_user_email on User (lower(email));`);
+	}
+
+	private static migrateMealTableToIncludeEndTime(connection: BetterSqlite3.Database): void {
+		const columns = connection.prepare(`pragma table_info(Meal)`).all() as Array<{ name: string }>;
+		const existingColumns = new Set(columns.map((column) => column.name));
+
+		if (!existingColumns.has('endTime')) {
+			connection.exec(`alter table Meal add column endTime text;`);
+		}
 	}
 
 	private static migrateRecipeAndMealTables(connection: BetterSqlite3.Database): void {

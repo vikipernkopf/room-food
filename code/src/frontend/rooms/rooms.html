@@ -17,10 +17,10 @@
 					<div class="menu-container">
 						<a [routerLink]="['/manage', room.code]" class="corner-link">⋮</a>
 					</div>
-					<img class="room-icon" [src]="getRoomImage(room)" [alt]="room.name">
+					<img class="room-icon" [src]="getRoomImage(room)" [alt]="room.roomName">
 
 					<div class="room-info" style="text-align: center;">
-						<h3>{{ room.name || 'Unnamed Room' }}</h3>
+						<h3>{{ room.roomName }}</h3>
 
 						<p class="room-code-label">{{ room.code }}</p>
 						<div class="room-actions">

@@ -56,14 +56,33 @@
 				</div>
 			</div>
 			<div class="field-group">
-				<label class="field-label" for="mealTime">Time</label>
+				<label class="field-label" for="startTime">Start Time</label>
 				<div class="input-with-icon">
-					<input id="mealTime" matInput placeholder="Select time" [matTimepicker]="minutesPicker"
-						[(ngModel)]="selectedTime" name="time" (ngModelChange)="clearErrors()">
-					<mat-timepicker-toggle matIconSuffix [for]="minutesPicker"></mat-timepicker-toggle>
-					<mat-timepicker interval="15min" #minutesPicker></mat-timepicker>
+					<input id="startTime" matInput
+						   [matTimepicker]="startPicker"
+						   [min]="minTime"
+						   [max]="maxTime"
+						   [(ngModel)]="selectedStartTime"
+						   name="startTime">
+					<mat-timepicker-toggle matIconSuffix [for]="startPicker"></mat-timepicker-toggle>
+					<mat-timepicker interval="15min" #startPicker></mat-timepicker>
 				</div>
 			</div>
+
+			<div class="field-group">
+				<label class="field-label" for="endTime">End Time</label>
+				<div class="input-with-icon">
+					<input id="endTime" matInput
+						   [matTimepicker]="endPicker"
+						   [min]="minTime"
+						   [max]="maxTime"
+						   [(ngModel)]="selectedEndTime"
+						   name="endTime">
+					<mat-timepicker-toggle matIconSuffix [for]="endPicker"></mat-timepicker-toggle>
+					<mat-timepicker interval="15min" #endPicker></mat-timepicker>
+				</div>
+			</div>
+
 		</div>
 		<div class="action-row">
 			<button mat-flat-button type="button" class="save-btn" (click)="saveMeal()" [disabled]="isSubmitting">

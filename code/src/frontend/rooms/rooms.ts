@@ -9,10 +9,10 @@ import {RouterLink} from '@angular/router';
 import {DEFAULT_PROFILE_PICTURE} from '../core/user-form-validation';
 
 type MemberRoom = {
-	name:string,
 	code: string,
+	roomName:string,
 	role: string,
-	profile_picture?: string
+	profilePicture?: string
 };
 
 @Component({
@@ -56,6 +56,7 @@ export class Rooms {
 	private fetchMemberRooms(username: string) {
 		this.roomsService.getRoomsForMember(username).subscribe({
 			next: (rooms) => {
+				console.log('Raw data received from API:', rooms);
 				this.memberRooms.set(rooms || []);
 				this.roomsLoadError.set('');
 			},
@@ -95,7 +96,7 @@ export class Rooms {
 	}
 
 	protected getRoomImage(room: MemberRoom): string {
-		return room.profile_picture || DEFAULT_PROFILE_PICTURE;
+		return room.profilePicture || DEFAULT_PROFILE_PICTURE;
 	}
 
 	protected openCreateRoom() {
