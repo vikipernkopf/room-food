@@ -6,13 +6,14 @@
 
 			<!-- Room Name -->
 			<div class="field-row room-name-row">
-				<mat-label>Room: {{this.roomName()}}</mat-label>
+				<mat-label>Room: {{ roomName() }}</mat-label>
 			</div>
 
 			<!-- Room Image -->
 			<div class="room-image-wrapper">
 				<div class="room-image-placeholder">
-
+					<!-- use the roomImage signal populated in the component -->
+					<img class="room-image" src="{{ roomImage() }}" alt="{{ roomName() }}">
 				</div>
 			</div>
 
@@ -21,6 +22,10 @@
 				<span class="info-label">Room code:</span>
 				<span class="info-value code-value">{{roomCode()}}</span>
 			</div>
+
+			@if (userRole()===Role.Owner || userRole()===Role.Admin) {
+				<button mat-stroked-button class="accept-btn" (click)="editRoom()">Edit Room</button>
+			}
 
 		</div>
 

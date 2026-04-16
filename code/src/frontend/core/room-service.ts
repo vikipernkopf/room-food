@@ -147,4 +147,15 @@ export class RoomService {
 	}> {
 		return this.removeMember(code, username, username);
 	}
+
+	public editRoom(code: string, enacter: string, roomName?: string | null, pfp?: string | null): Observable<{
+		success: boolean,
+		message?: string
+	}> {
+		const apiUrl = `${this.apiBase}/room/${code}`;
+		const payload: any = { enacter };
+		if (roomName !== undefined && roomName !== null) payload.roomName = roomName;
+		if (pfp !== undefined && pfp !== null) payload.pfp = pfp;
+		return this.http.put<{ success: boolean, message?: string }>(apiUrl, payload);
+	}
 }

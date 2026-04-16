@@ -1,0 +1,117 @@
+@use '../../styles/theme' as *;
+
+:host {
+	display: block;
+	height: calc(100dvh - 68px);
+}
+
+.edit-room-wrapper {
+	display: flex;
+	justify-content: center;
+	align-items: flex-start;
+	padding: 2rem;
+	background-color: $color-lighter-gray;
+	min-height: 100%;
+}
+
+.edit-room-form {
+	background: $color-white;
+	padding: 2rem;
+	border-radius: 18px;
+	border: 1px solid $color-input-bg;
+	width: 100%;
+	max-width: 520px;
+	box-shadow: 0 8px 20px $color-overlay-3;
+
+	header {
+		margin-bottom: 1.25rem;
+		h3 {
+			color: $color-orange-2;
+			font-size: 1.4rem;
+			font-weight: 800;
+			margin: 0;
+		}
+	}
+
+	.field-group {
+		margin-bottom: 1rem;
+	}
+
+	label {
+		display: block;
+		font-weight: 600;
+		color: $color-label-gray;
+		margin-bottom: 0.5rem;
+		font-size: 0.95rem;
+	}
+
+	input {
+		width: 100%;
+		padding: 0.9rem 1rem;
+		background-color: $color-input-bg;
+		border: 1.5px solid $color-light-gray;
+		border-radius: 12px;
+		font-size: 1rem;
+		color: $color-text-main;
+		transition: all 0.15s ease;
+		box-sizing: border-box;
+
+		&::placeholder { color: $color-blue-gray; }
+
+		&:focus {
+			outline: none;
+			border-color: $color-orange-2;
+			background-color: $color-white;
+			box-shadow: 0 0 0 4px $color-orange-5-overlay-50;
+		}
+	}
+
+	.error-msg {
+		display: flex;
+		align-items: center;
+		min-height: 1.25rem;
+		color: $color-red;
+		font-size: 0.9rem;
+		font-weight: 600;
+		margin-top: 0.4rem;
+	}
+
+	aside {
+		margin-top: 0.4rem;
+		span { color: $color-red; font-size: 0.85rem; font-weight: 500; }
+	}
+
+	.actions {
+		display: flex;
+		gap: 0.75rem;
+		margin-top: 1rem;
+
+		button {
+			flex: 1 1 0;
+			padding: 0.9rem 1rem;
+			border-radius: 12px;
+			font-weight: 700;
+			cursor: pointer;
+			border: none;
+			transition: transform 0.08s ease, background-color 0.12s ease;
+		}
+
+		button[type="submit"] {
+			background-color: $color-orange-2;
+			color: $color-white;
+			box-shadow: 0 4px 12px $color-orange-2-overlay-20;
+		}
+
+		button[type="button"] {
+			background-color: $color-slate-1;
+			color: $color-text-main;
+			border: 1px solid $color-light-gray;
+		}
+
+		button:disabled {
+			opacity: 0.6;
+			cursor: not-allowed;
+		}
+	}
+}
+

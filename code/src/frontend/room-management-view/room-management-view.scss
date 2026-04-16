@@ -63,8 +63,12 @@
 /* ===== ROOM IMAGE ===== */
 .room-image-wrapper {
 	position: relative;
-	width: 160px;
-	height: 140px;
+	/* responsive width: up to 40% of viewport but no more than 320px */
+	width: min(40vw, 320px);
+	max-width: 320px;
+	/* allow height to scale but cap it to viewport to avoid overflow */
+	height: auto;
+	max-height: calc(100vh - 220px);
 }
 
 .room-image-placeholder {
@@ -76,6 +80,17 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	overflow: hidden;
+}
+
+.room-image {
+	display: block;
+	width: 100%;
+	height: auto;
+	max-height: 100%;
+	object-fit: cover;
+	border-radius: 12px;
+	border: 1px solid $color-light-gray;
 }
 
 /* ===== INFO ROWS (Room code, Password) ===== */

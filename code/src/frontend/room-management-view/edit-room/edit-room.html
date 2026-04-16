@@ -1,0 +1,43 @@
+<section class="edit-room-wrapper">
+	<form class="edit-room-form" [formGroup]="editForm" (ngSubmit)="onSubmit()">
+		<header>
+			<h3>Edit room {{ roomCode }}</h3>
+		</header>
+
+		<div class="field-group">
+			<label for="roomName">Room name</label>
+			<input id="roomName" formControlName="roomName" type="text" placeholder="Enter room name">
+			@if (editForm.get('roomName')?.touched && editForm.get('roomName')?.invalid) {
+				<aside>
+					@if (editForm.get('roomName')?.hasError('required')) {
+						<span>Room name is required</span>
+					}
+					@if (editForm.get('roomName')?.hasError('maxLength')) {
+						<span>Room name too long</span>
+					}
+				</aside>
+			}
+		</div>
+
+		<div class="field-group">
+			<label for="pfp">Profile picture (URL)</label>
+			<input id="pfp" formControlName="pfp" type="text" placeholder="Optional link to image">
+			@if (editForm.get('pfp')?.touched && editForm.get('pfp')?.invalid) {
+				<aside>
+					<span>Invalid value</span>
+				</aside>
+			}
+		</div>
+
+		@if (submitError) {
+			<div class="error-msg">
+				<span>{{ submitError }}</span>
+			</div>
+		}
+
+		<div class="actions">
+			<button type="submit" [disabled]="loading || !roomCode">Save</button>
+			<button type="button" (click)="onCancel()" [disabled]="loading">Cancel</button>
+		</div>
+	</form>
+</section>
