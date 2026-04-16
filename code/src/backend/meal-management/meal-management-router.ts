@@ -22,6 +22,7 @@ function normalizeRecipeIds(recipeIds: unknown): number[] | null {
 mealManagementRouter.post('/meal', async (req, res): Promise<void> => {
 	const {
 		time,
+		endTime,
 		name,
 		room,
 		responsible
@@ -34,7 +35,7 @@ mealManagementRouter.post('/meal', async (req, res): Promise<void> => {
 		return;
 	}
 
-	if (!time || !name || !room || !responsible) {
+	if (!time || !endTime || !name || !room || !responsible) {
 		res.status(StatusCodes.BAD_REQUEST).json();
 		console.log('Missing required fields');
 
@@ -45,6 +46,7 @@ mealManagementRouter.post('/meal', async (req, res): Promise<void> => {
 	try {
 		const meal = {
 			time: new Date(time),
+			endTime: new Date(endTime),
 			name,
 			room,
 			responsible,
@@ -129,7 +131,7 @@ mealManagementRouter.put('/meal/:id', async (req, res): Promise<void> => {
 	}
 
 	const requiredUpdated =
-		updatedMeal.time && updatedMeal.name && updatedMeal.room && updatedMeal.responsible;
+		updatedMeal.time && updatedMeal.endTime && updatedMeal.name && updatedMeal.room && updatedMeal.responsible;
 
 	if (!requiredUpdated) {
 		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Missing required meal fields' });
@@ -143,6 +145,7 @@ mealManagementRouter.put('/meal/:id', async (req, res): Promise<void> => {
 		const updated = {
 			id: mealId,
 			time: new Date(updatedMeal.time),
+			endTime: new Date(updatedMeal.endTime),
 			name: updatedMeal.name,
 			room: updatedMeal.room,
 			responsible: updatedMeal.responsible,

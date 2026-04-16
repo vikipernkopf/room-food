@@ -22,6 +22,7 @@ section {
 }
 
 .meal-management-container {
+	overflow: visible !important;
 	background: $color-white;
 	padding: 1rem 1rem 1.2rem;
 	border-radius: 1rem;
@@ -65,10 +66,13 @@ section {
 	grid-template-columns: 1fr 1fr;
 	gap: 1.2rem;
 	margin-bottom: 1.2rem;
-
 	@media (max-width: 640px) {
 		grid-template-columns: 1fr;
 	}
+}
+
+.field-group--full {
+	grid-column: 1 / -1; /* This forces the element to stretch across all columns */
 }
 
 .field-group {
@@ -325,7 +329,11 @@ section {
 		--mdc-theme-primary: #{$color-orange-2};
 		background-color: $color-white;
 		opacity: 1;
-		overflow: hidden;
+	}
+
+	.mat-timepicker-panel,
+	.mat-mdc-select-panel {
+		overflow-y: auto !important;
 	}
 
 	.mat-mdc-select-panel,
@@ -542,4 +550,6 @@ section {
 		padding: 8px 16px 8px 16px !important;
 	}
 }
+
+
 

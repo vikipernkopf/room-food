@@ -119,7 +119,7 @@ $hour-height: 65px;
 
 	.day-track {
 		flex: 1;
-		height: calc(24 * #{$hour-height});
+		height: calc(18 * #{$hour-height});
 		border-right: 1px solid $color-light-gray;
 		position: relative;
 		background-image: linear-gradient($color-light-gray 1px, $color-transparent 1px);
@@ -147,10 +147,33 @@ $hour-height: 65px;
 	overflow: hidden;
 	pointer-events: auto; // Ensures it's clickable
 
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+
+	span {
+		display: block; // Ensures they take full width
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis; // Adds "..." if the text is too long
+	}
+
 	.meal-name {
 		font-weight: bold;
 		display: block;
 		color: $color-green-4; // Make the name pop
+	}
+
+	.meal-responsible {
+		font-size: 0.75rem;
+		opacity: 0.9;
+		font-style: italic;
+	}
+
+	.meal-time {
+		font-size: 0.75rem;
+		font-weight: 500;
+		margin-top: 1.1px; // Pushes the time to the bottom of the box
 	}
 }
 
