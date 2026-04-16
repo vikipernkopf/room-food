@@ -25,6 +25,17 @@
 
 			@if (userRole()===Role.Owner || userRole()===Role.Admin) {
 				<button mat-stroked-button class="accept-btn" (click)="editRoom()">Edit Room</button>
+				@if (isPopupVisible()) {
+					<div class="popup-overlay">
+						<div class="popup-content">
+							<app-edit-room
+								[roomCode]="roomCode()"
+								[initialName]="roomName()"
+								(close)="closePopup($event)">
+							</app-edit-room>
+						</div>
+					</div>
+				}
 			}
 
 		</div>

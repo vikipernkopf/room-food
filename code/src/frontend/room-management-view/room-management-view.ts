@@ -12,6 +12,7 @@ import {AuthService} from '../core/auth-service';
 import {firstValueFrom} from 'rxjs';
 import { DEFAULT_ROOM_PICTURE } from '../core/user-form-validation';
 import {MatMenu, MatMenuItem, MatMenuTrigger} from '@angular/material/menu';
+import {EditRoom} from './edit-room/edit-room';
 
 interface Member {
 	username: string;
@@ -34,7 +35,8 @@ interface Request {
 		MatButton,
 		MatMenuTrigger,
 		MatMenu,
-		MatMenuItem
+		MatMenuItem,
+		EditRoom
 	],
 	templateUrl: './room-management-view.html',
 	styleUrl: './room-management-view.scss'
@@ -47,6 +49,7 @@ export class RoomManagementView implements OnDestroy {
 	protected readonly requests: WritableSignal<Request[]> = signal([]);
 	protected readonly currentUser: WritableSignal<User | null>;
 	protected readonly userRole: WritableSignal<Role> = signal(Role.Member);
+	public readonly isPopupVisible = signal<boolean>(false);
 	private authService: AuthService = inject(AuthService);
 	private destroyRef = inject(DestroyRef);
 	private hasRedirected = false;
@@ -348,11 +351,25 @@ export class RoomManagementView implements OnDestroy {
 	protected readonly Role = Role;
 
 	editRoom() {
-		if (!this.hasRedirected) {
-			this.hasRedirected = true;
-			this.router.navigate([`/manage/${this.roomCode()}/edit`]);
+		console.log('Opening popup...');
+		this.isPopupVisible.set(true);
+	}
+
+	closePopup(success?: boolean) {
+		this.isPopupVisible.set(false); // Hide the popup
+
+		if (success) {
+			const code = this.roomCode();
+			this.roomService.getRoomName(code).subscribe({
+				next: (res) => {
+					if (res && res.roomName) {
+						this.roomName.set(res.roomName);
+					}
+				},
+				error: (err) => console.error('Failed to refresh room name:', err)
+			});
+			this.fetchMembers(code);
 		}
-		return;
 	}
 
 	protected updateRole(member: string, newRole: Role) {
