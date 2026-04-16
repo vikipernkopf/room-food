@@ -1,7 +1,9 @@
 import { Component, effect, input, output } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { Recipe } from '../../../backend/model';
+import { Recipe, RecipeVisibility } from '../../../backend/model';
 
 export type RecipeMealType = {
 	value: string;
@@ -13,12 +15,13 @@ export type RecipeFormValue = {
 	description?: string;
 	image?: string;
 	mealTypes: string[];
+	visibility: RecipeVisibility;
 };
 
 @Component({
 	selector: 'app-recipe-management',
 	standalone: true,
-	imports: [FormsModule, MatSelectModule, ReactiveFormsModule],
+	imports: [FormsModule, MatFormFieldModule, MatInputModule, MatSelectModule, ReactiveFormsModule],
 	templateUrl: './recipe-management.html',
 	styleUrl: './recipe-management.scss',
 })
@@ -35,6 +38,7 @@ export class RecipeManagement {
 	readonly recipeDescriptionControl = new FormControl('');
 	readonly recipeImageControl = new FormControl('');
 	readonly recipeMealTypesControl = new FormControl<string[]>([], { nonNullable: true });
+	readonly recipeVisibilityControl = new FormControl<RecipeVisibility>('private', { nonNullable: true });
 
 	constructor() {
 		effect(() => {
@@ -89,7 +93,8 @@ export class RecipeManagement {
 			name: this.recipeNameControl.value?.trim() ?? '',
 			description: this.recipeDescriptionControl.value?.trim() || undefined,
 			image: this.recipeImageControl.value?.trim() || this.defaultRecipeImage(),
-			mealTypes: this.recipeMealTypesControl.value
+			mealTypes: this.recipeMealTypesControl.value,
+			visibility: this.recipeVisibilityControl.value
 		});
 	}
 
@@ -106,6 +111,7 @@ export class RecipeManagement {
 		this.recipeDescriptionControl.reset('');
 		this.recipeImageControl.reset('');
 		this.recipeMealTypesControl.setValue([]);
+		this.recipeVisibilityControl.setValue('private');
 	}
 
 	private prefillRecipeForm(recipe: Recipe): void {
@@ -113,6 +119,7 @@ export class RecipeManagement {
 		this.recipeDescriptionControl.setValue(recipe.description ?? '');
 		this.recipeImageControl.setValue(recipe.image ?? this.defaultRecipeImage());
 		this.recipeMealTypesControl.setValue(recipe.mealTypes ?? []);
+		this.recipeVisibilityControl.setValue(recipe.visibility ?? 'private');
 	}
 
 }

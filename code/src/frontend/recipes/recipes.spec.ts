@@ -32,6 +32,7 @@ describe('Recipes', () => {
 				name: string;
 				description: string | null;
 				image: string | null;
+				visibility: 'public' | 'private';
 				author: number;
 			}>>;
 			createRecipe: () => Observable<{
@@ -93,6 +94,7 @@ describe('Recipes', () => {
 				description: 'Simple pasta',
 				image: undefined,
 				mealTypes: ['dinner'],
+				visibility: 'private',
 				author: 1
 			}
 		];
@@ -112,6 +114,7 @@ describe('Recipes', () => {
 				description: 'Simple pasta',
 				image: undefined,
 				mealTypes: ['dinner'],
+				visibility: 'private',
 				author: 1
 			}
 		];
@@ -139,6 +142,7 @@ describe('Recipes', () => {
 				description: 'Simple pasta',
 				image: undefined,
 				mealTypes: ['dinner'],
+				visibility: 'private',
 				author: 1
 			}
 		];
@@ -152,6 +156,7 @@ describe('Recipes', () => {
 		const popupComponent = fixture.debugElement.query(By.directive(RecipeManagement)).componentInstance as any;
 		popupComponent.recipeNameControl.setValue('Pasta Deluxe');
 		popupComponent.recipeDescriptionControl.setValue('Updated pasta');
+		popupComponent.recipeVisibilityControl.setValue('public');
 		popupComponent.saveRecipe();
 		fixture.detectChanges();
 
@@ -159,7 +164,8 @@ describe('Recipes', () => {
 			name: 'Pasta Deluxe',
 			description: 'Updated pasta',
 			image: (component as any).defaultRecipeImage,
-			mealTypes: ['dinner']
+			mealTypes: ['dinner'],
+			visibility: 'public'
 		});
 	});
 });

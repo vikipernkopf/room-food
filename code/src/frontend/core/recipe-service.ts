@@ -2,13 +2,14 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { Recipe, RecipeCreatePayload, RecipeUpdatePayload } from '../../backend/model';
+import { Recipe, RecipeCreatePayload, RecipeUpdatePayload, RecipeVisibility } from '../../backend/model';
 
 export type RawRecipeRow = {
 	id: number;
 	name: string;
 	description: string | null;
 	image: string | null;
+	visibility: RecipeVisibility;
 	author: number;
 };
 

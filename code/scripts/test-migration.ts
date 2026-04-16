@@ -90,6 +90,7 @@ async function main(): Promise<void> {
 		const recipeColumnNames = new Set(recipeColumns.map(c => c.name));
 		assert(recipeColumnNames.has('description'), 'Recipe.description was not migrated');
 		assert(recipeColumnNames.has('image'), 'Recipe.image was not migrated');
+		assert(recipeColumnNames.has('visibility'), 'Recipe.visibility was not migrated');
 		assert(!recipeColumnNames.has('mealType'), 'Recipe.mealType still exists unexpectedly');
 
 		const recipeMealTypeColumns = migratedDb.prepare(`pragma table_info(RecipeMealType)`).all() as Array<{
@@ -106,16 +107,18 @@ async function main(): Promise<void> {
 			'Meal unique(time) was not removed');
 
 		const recipeRow = migratedDb.prepare(
-			`select id, name, description, image, author from Recipe where id = 12345678`).get() as {
+			`select id, name, description, image, visibility, author from Recipe where id = 12345678`).get() as {
 			id: number,
 			name: string,
 			description: string | null,
 			image: string | null,
+			visibility: string,
 			author: number
 		} | undefined;
 		assert(!!recipeRow, 'Legacy recipe row was not preserved');
 		assert(recipeRow?.description === null, 'Legacy recipe description should migrate as null');
 		assert(recipeRow?.image === null, 'Legacy recipe image should migrate as null');
+		assert(recipeRow?.visibility === 'private', 'Legacy recipe visibility should default to private');
 		assert(recipeRow?.author === 1, 'Legacy recipe authorUsername was not mapped to User.id');
 
 		const migratedRecipeMealType = migratedDb.prepare(

@@ -5,32 +5,54 @@
 			<button class="btn-close" type="button" (click)="closePopup()">x</button>
 		</div>
 		<form class="recipe-form" (ngSubmit)="saveRecipe()">
-			<label class="form-group">
+			<div class="form-group">
 				<span>Recipe name</span>
-				<input type="text" [formControl]="recipeNameControl" placeholder="Grandma's pasta">
+				<mat-form-field class="recipe-field" subscriptSizing="dynamic">
+					<input matInput type="text" [formControl]="recipeNameControl" placeholder="Grandma's pasta">
+				</mat-form-field>
 				@if (recipeNameControl.touched && recipeNameControl.hasError('required')) {
 					<p class="field-error">Recipe name is required.</p>
 				} @else if (recipeNameControl.touched && recipeNameControl.hasError('minlength')) {
 					<p class="field-error">Recipe name must be at least 3 characters.</p>
 				}
-			</label>
-			<label class="form-group">
+			</div>
+			<div class="form-group">
 				<span>Description</span>
-				<textarea [formControl]="recipeDescriptionControl" rows="4"
-					placeholder="Describe the recipe"></textarea>
-			</label>
-			<label class="form-group">
+				<mat-form-field class="recipe-field" subscriptSizing="dynamic">
+					<textarea matInput [formControl]="recipeDescriptionControl" rows="4"
+						placeholder="Describe the recipe"></textarea>
+				</mat-form-field>
+			</div>
+			<div class="form-group">
 				<span>Image URL</span>
-				<input type="url" [formControl]="recipeImageControl" placeholder="https://example.com/image.jpg">
-			</label>
+				<mat-form-field class="recipe-field" subscriptSizing="dynamic">
+					<input
+						matInput
+						type="url"
+						[formControl]="recipeImageControl"
+						placeholder="https://example.com/image.jpg">
+				</mat-form-field>
+			</div>
+			<div class="form-group">
+				<span>Visibility</span>
+				<mat-form-field class="recipe-field" subscriptSizing="dynamic">
+					<mat-select class="visibility-select" panelClass="visibility-panel" [disableOptionCentering]="true"
+						[formControl]="recipeVisibilityControl">
+						<mat-option value="private">Private</mat-option>
+						<mat-option value="public">Public</mat-option>
+					</mat-select>
+				</mat-form-field>
+			</div>
 			<div class="form-group meal-type-group">
 				<span>Meal types</span>
-				<mat-select class="meal-type-select" panelClass="meal-type-panel"
-					[disableOptionCentering]="true" [formControl]="recipeMealTypesControl" multiple>
-					@for (mealType of mealTypeOptions(); track mealType.value) {
-						<mat-option [value]="mealType.value">{{ mealType.viewValue }}</mat-option>
-					}
-				</mat-select>
+				<mat-form-field class="recipe-field" subscriptSizing="dynamic">
+					<mat-select class="meal-type-select" panelClass="meal-type-panel"
+						[disableOptionCentering]="true" [formControl]="recipeMealTypesControl" multiple>
+						@for (mealType of mealTypeOptions(); track mealType.value) {
+							<mat-option [value]="mealType.value">{{ mealType.viewValue }}</mat-option>
+						}
+					</mat-select>
+				</mat-form-field>
 			</div>
 			<div class="form-actions">
 				<button class="btn-submit" type="submit" [disabled]="creating()">{{ submitButtonLabel }}</button>

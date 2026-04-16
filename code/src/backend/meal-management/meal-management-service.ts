@@ -340,12 +340,13 @@ export class MealManagementService extends ServiceBase {
 		// noinspection JSUnusedAssignment
 		[_, id] = this.executeStmt(
 			this.unit.prepare(`
-				insert into Recipe(name, description, image, author)
-				values (:n, :d, :i, :a)
+				insert into Recipe(name, description, image, visibility, author)
+				values (:n, :d, :i, :v, :a)
 			`, {
 				n: recipe.name,
 				d: recipe.description || null,
 				i: recipe.image || null,
+				v: recipe.visibility,
 				a: recipe.author
 			})
 		);

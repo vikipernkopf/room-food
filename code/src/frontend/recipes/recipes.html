@@ -1,14 +1,13 @@
-<!--suppress IncorrectFormatting -->
 <div class="recipe-header">
 	<h1>My Recipes</h1>
 </div>
 <div class="recipe-containers">
-	@if (!currentUser()?.username) {
-		<div class="not-logged-in-message recipe-card">
-			<p>You must be logged in to view recipes.</p>
-		</div>
-	} @else {
-		<div class="recipe-container">
+	<div class="recipe-container">
+		@if (!currentUser()?.username) {
+			<div class="not-logged-in-message recipe-card">
+				<p>You must be logged in to view recipes.</p>
+			</div>
+		} @else {
 			<button class="btn-add recipe-card" type="button" (click)="openCreateRecipe();$event.stopPropagation()">
 				+
 			</button>
@@ -18,6 +17,7 @@
 					(keydown.space)="$event.preventDefault(); openEditRecipe(recipe)">
 					<img class="recipe-image" [src]="getRecipeImage(recipe)" [alt]="recipe.name">
 					<p class="recipe-name">{{ recipe.name }}</p>
+					<p class="recipe-visibility">{{ recipe.visibility === 'public' ? 'Public' : 'Private' }}</p>
 					<p class="recipe-description">{{ getRecipeCardDescription(recipe) }}</p>
 					@if (recipe.mealTypes.length) {
 						<div class="recipe-meal-types">
@@ -40,8 +40,8 @@
 					</div>
 				</div>
 			}
-		</div>
-	}
+		}
+	</div>
 </div>
 @if (recipesLoadError()) {
 	<p class="recipes-error">{{ recipesLoadError() }}</p>
@@ -57,14 +57,7 @@
 	</section>
 }-->
 @if (activePopup) {
-	<app-recipe-management
-		[recipe]="recipeToEdit()"
-		[creating]="creating"
-		[defaultRecipeImage]="defaultRecipeImage"
-		[saveError]="recipeSaveError()"
-		[mealTypeOptions]="mealTypeOptions"
-		(closed)="closePopup()"
-		(saved)="saveRecipe($event)"
-		(deleteRequested)="deleteRecipe($event)">
-	</app-recipe-management>
+	<app-recipe-management [recipe]="recipeToEdit()" [creating]="creating" [defaultRecipeImage]="defaultRecipeImage"
+		[saveError]="recipeSaveError()" [mealTypeOptions]="mealTypeOptions" (closed)="closePopup()"
+		(saved)="saveRecipe($event)" (deleteRequested)="deleteRecipe($event)"></app-recipe-management>
 }
