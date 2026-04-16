@@ -1,9 +1,12 @@
-@if(meal) {
+@if (meal) {
 	<div class="meal-plan" [class.even]="index % 2 === 1">
 		<h3>{{ meal.name }}</h3>
 		<p><strong>Time:</strong> {{ meal.time | date:'short' }}</p>
 		<p><strong>Room:</strong> {{ meal.room }}</p>
 		<p><strong>Responsible:</strong> {{ meal.responsible }}</p>
+		@if (meal.responsibleUsers && meal.responsibleUsers.length > 0) {
+			<p><strong>Responsible Users:</strong> {{ meal.responsibleUsers.join(', ') }}</p>
+		}
 		<div class="action-row">
 			<button type="button" class="edit-btn" (click)="onEditClick()">Edit Meal</button>
 			<button type="button" class="delete-btn" (click)="onDeleteClick()">Delete Meal</button>

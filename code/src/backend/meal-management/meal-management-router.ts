@@ -19,6 +19,19 @@ function normalizeRecipeIds(recipeIds: unknown): number[] | null {
 	return Array.from(new Set(filteredRecipeIds));
 }
 
+function normalizeResponsibleUsers(responsibleUsers: unknown): string[] | null {
+	if (responsibleUsers === undefined) {
+		return [];
+	}
+
+	if (!Array.isArray(responsibleUsers)) {
+		return null;
+	}
+
+	const filteredUsers = responsibleUsers.filter(user => typeof user === 'string' && user.trim().length > 0) as string[];
+	return Array.from(new Set(filteredUsers));
+}
+
 mealManagementRouter.post('/meal', async (req, res): Promise<void> => {
 	const {
 		time,
@@ -28,9 +41,16 @@ mealManagementRouter.post('/meal', async (req, res): Promise<void> => {
 		responsible
 	} = req.body;
 	const recipeIds = normalizeRecipeIds(req.body?.recipeIds);
+	const responsibleUsers = normalizeResponsibleUsers(req.body?.responsibleUsers);
 
 	if (recipeIds === null) {
 		res.status(StatusCodes.BAD_REQUEST).json({ error: 'recipeIds must be an array of numeric ids' });
+
+		return;
+	}
+
+	if (responsibleUsers === null) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'responsibleUsers must be an array of usernames' });
 
 		return;
 	}
@@ -50,6 +70,7 @@ mealManagementRouter.post('/meal', async (req, res): Promise<void> => {
 			name,
 			room,
 			responsible,
+			responsibleUsers,
 			recipeIds
 		} as Meal;
 
@@ -130,6 +151,13 @@ mealManagementRouter.put('/meal/:id', async (req, res): Promise<void> => {
 		return;
 	}
 
+	const responsibleUsers = normalizeResponsibleUsers(updatedMeal?.responsibleUsers);
+	if (responsibleUsers === null) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'updatedMeal.responsibleUsers must be an array of usernames' });
+
+		return;
+	}
+
 	const requiredUpdated =
 		updatedMeal.time && updatedMeal.endTime && updatedMeal.name && updatedMeal.room && updatedMeal.responsible;
 
@@ -149,6 +177,7 @@ mealManagementRouter.put('/meal/:id', async (req, res): Promise<void> => {
 			name: updatedMeal.name,
 			room: updatedMeal.room,
 			responsible: updatedMeal.responsible,
+			responsibleUsers,
 			recipeIds
 		} as Meal;
 

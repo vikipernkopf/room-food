@@ -22,8 +22,7 @@
 						<input matInput type="text" placeholder="Search recipes (e.g. Pasta)"
 							[(ngModel)]="recipeSearchTerm" [ngModelOptions]="{standalone: true}"
 							(ngModelChange)="onRecipeSearchChange($event)" (click)="$event.stopPropagation()"
-							(mousedown)="$event.stopPropagation()"
-							(keydown)="onRecipeSearchKeydown($event)">
+							(mousedown)="$event.stopPropagation()" (keydown)="onRecipeSearchKeydown($event)">
 					</mat-option>
 					@for (recipe of filteredRecipes; track recipe.id) {
 						<mat-option [value]="recipe.id">{{ recipe.name }}</mat-option>
@@ -34,6 +33,26 @@
 				</mat-select>
 				@if (recipesLoadError) {
 					<div class="error-text field-error">{{ recipesLoadError }}</div>
+				}
+			</div>
+			<div class="field-group field-group--full">
+				<label class="field-label" for="responsibleUsers">Responsible Users</label>
+				<mat-select id="responsibleUsers" panelClass="meal-type-panel responsible-panel"
+					placeholder="Select responsible users" [disableOptionCentering]="true"
+					[(ngModel)]="selectedResponsibleUsers" name="responsibleUsers" multiple
+					(ngModelChange)="onResponsibleUsersChange($event)">
+					<mat-select-trigger>
+						{{ getSelectedResponsibleUsersLabel() || 'Select responsible users' }}
+					</mat-select-trigger>
+					@for (member of availableRoomMembers; track member) {
+						<mat-option [value]="member">{{ member }}</mat-option>
+					}
+					@if (!availableRoomMembers.length) {
+						<mat-option class="recipe-empty-option" disabled>No room members found</mat-option>
+					}
+				</mat-select>
+				@if (roomMembersLoadError) {
+					<div class="error-text field-error">{{ roomMembersLoadError }}</div>
 				}
 			</div>
 			<div class="field-group field-group--full">
@@ -58,12 +77,8 @@
 			<div class="field-group">
 				<label class="field-label" for="startTime">Start Time</label>
 				<div class="input-with-icon">
-					<input id="startTime" matInput
-						   [matTimepicker]="startPicker"
-						   [min]="minTime"
-						   [max]="maxTime"
-						   [(ngModel)]="selectedStartTime"
-						   name="startTime">
+					<input id="startTime" matInput [matTimepicker]="startPicker" [min]="minTime" [max]="maxTime"
+						[(ngModel)]="selectedStartTime" name="startTime">
 					<mat-timepicker-toggle matIconSuffix [for]="startPicker"></mat-timepicker-toggle>
 					<mat-timepicker interval="15min" #startPicker></mat-timepicker>
 				</div>
@@ -72,12 +87,8 @@
 			<div class="field-group">
 				<label class="field-label" for="endTime">End Time</label>
 				<div class="input-with-icon">
-					<input id="endTime" matInput
-						   [matTimepicker]="endPicker"
-						   [min]="minTime"
-						   [max]="maxTime"
-						   [(ngModel)]="selectedEndTime"
-						   name="endTime">
+					<input id="endTime" matInput [matTimepicker]="endPicker" [min]="minTime" [max]="maxTime"
+						[(ngModel)]="selectedEndTime" name="endTime">
 					<mat-timepicker-toggle matIconSuffix [for]="endPicker"></mat-timepicker-toggle>
 					<mat-timepicker interval="15min" #endPicker></mat-timepicker>
 				</div>
