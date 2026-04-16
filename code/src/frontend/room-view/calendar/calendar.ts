@@ -1,14 +1,14 @@
 // noinspection GrazieInspection
 
-import {Component, effect, OnInit, signal, WritableSignal} from '@angular/core';
-import {DatePipe} from '@angular/common';
-import {MealManagement} from '../meal-management/meal-management';
-import {MealService} from '../../core/meal-service';
-import {Meal} from '../../../backend/model';
-import {AuthService} from '../../core/auth-service';
-import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
-import {ActivatedRoute, Router} from '@angular/router';
-import {RoomService} from '../../core/room-service';
+import { Component, effect, OnInit, signal, WritableSignal } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { MealManagement } from '../meal-management/meal-management';
+import { MealService } from '../../core/meal-service';
+import { Meal } from '../../../backend/model';
+import { AuthService } from '../../core/auth-service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router } from '@angular/router';
+import { RoomService } from '../../core/room-service';
 
 @Component({
 	selector: 'app-calendar',
@@ -26,7 +26,13 @@ export class Calendar implements OnInit {
 	currYear: number = 0;
 	dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 	hours: number[] = Array.from({ length: 18 }, (_, i) => i + 5);
-	weekdays: {name: string; date: number; month: number; year: number; isToday: boolean}[] = [];
+	weekdays: {
+		name: string;
+		date: number;
+		month: number;
+		year: number;
+		isToday: boolean
+	}[] = [];
 	protected hourHeight: number = 65;
 	showMealPopup = false;
 
@@ -35,23 +41,23 @@ export class Calendar implements OnInit {
 	selectedDateForPopup: Date | null = null;
 	selectedTimeForPopup: Date | null = null;
 
-	protected readonly username: WritableSignal<string> = signal("");
-	protected readonly roomCode: WritableSignal<string> = signal("");
+	protected readonly username: WritableSignal<string> = signal('');
+	protected readonly roomCode: WritableSignal<string> = signal('');
 	private hasRedirected = false;
-	private lastProcessedCode: string = ""; // track which code we've already processed
+	private lastProcessedCode: string = ''; // track which code we've already processed
 
-	constructor(private route:ActivatedRoute, private router: Router, private authService: AuthService,
-				private mealService: MealService, private roomService: RoomService) {
+	constructor(private route: ActivatedRoute, private router: Router, private authService: AuthService,
+		private mealService: MealService, private roomService: RoomService) {
 		console.log('Calendar component initialized');
 
 		// Subscribe to route param 'code' and unsubscribe on destroy
 		this.route.paramMap
-			.pipe(takeUntilDestroyed())
-			.subscribe((paramMap) => {
-				const code = paramMap.get('code') ?? "";
-				console.log('Route param received, setting roomCode to:', code);
-				this.roomCode.set(code);
-			});
+		.pipe(takeUntilDestroyed())
+		.subscribe(paramMap => {
+			const code = paramMap.get('code') ?? '';
+			console.log('Route param received, setting roomCode to:', code);
+			this.roomCode.set(code);
+		});
 
 		effect(() => {
 			const code = this.roomCode();
@@ -73,9 +79,11 @@ export class Calendar implements OnInit {
 
 	private validateAndLoadRoom(roomCode: string) {
 		this.roomService.checkRoomExists(roomCode).subscribe({
-			next: (response) => {
+			next: response => {
 				console.log('Room validation response:', response);
-				if (!response.exists) {
+				if (response.exists) {
+					this.loadMeals();
+				} else {
 					console.log('Room does not exist in database, redirecting to error');
 					if (!this.hasRedirected) {
 						this.hasRedirected = true;
@@ -84,11 +92,8 @@ export class Calendar implements OnInit {
 						this.router.navigate(['/error']);
 					}
 				}
-				else{
-					this.loadMeals();
-				}
 			},
-			error: (error) => {
+			error: error => {
 				console.error('Error validating room:', error);
 				// If validation fails, redirect to error
 				if (!this.hasRedirected) {
@@ -120,7 +125,7 @@ export class Calendar implements OnInit {
 		}
 
 		this.mealService.getMealsByRoomCode(this.roomCode()).subscribe({
-			next: (meals) => {
+			next: meals => {
 				console.log('Meals received for calendar:', meals);
 				const formattedMeals = meals.map(m => ({
 					...m,
@@ -128,7 +133,7 @@ export class Calendar implements OnInit {
 				}));
 				this.meals.set(formattedMeals);
 			},
-			error: (err) => console.error('Error loading meals', err)
+			error: err => console.error('Error loading meals', err)
 		});
 	}
 
@@ -137,7 +142,7 @@ export class Calendar implements OnInit {
 		sunday.setDate(this.viewDate.getDate() - this.viewDate.getDay());
 		sunday.setHours(0, 0, 0, 0);
 
-		this.currMonth = sunday.toLocaleString('en-US', { month: "long" });
+		this.currMonth = sunday.toLocaleString('en-US', { month: 'long' });
 		this.currYear = sunday.getFullYear();
 
 		this.weekdays = [];
@@ -163,7 +168,7 @@ export class Calendar implements OnInit {
 
 		const clickedY = event.offsetY;
 
-		const actualHourWithDecimal = (clickedY / this.hourHeight) + 5;
+		const actualHourWithDecimal = clickedY / this.hourHeight + 5;
 		let hours = Math.floor(actualHourWithDecimal);
 		const minutesDecimal = actualHourWithDecimal % 1;
 		let minutes = Math.round((minutesDecimal * 60) / 15) * 15;
@@ -217,7 +222,47 @@ export class Calendar implements OnInit {
 		return Math.max(durationInHours * this.hourHeight, 30);
 	}
 
-	nextWeek() { this.viewDate.setDate(this.viewDate.getDate() + 7); this.renderWeek(); }
-	prevWeek() { this.viewDate.setDate(this.viewDate.getDate() - 7); this.renderWeek(); }
-	goToToday() { this.viewDate = new Date(); this.renderWeek(); }
+	nextWeek() {
+		this.viewDate.setDate(this.viewDate.getDate() + 7);
+		this.renderWeek();
+	}
+
+	prevWeek() {
+		this.viewDate.setDate(this.viewDate.getDate() - 7);
+		this.renderWeek();
+	}
+
+	goToToday() {
+		this.viewDate = new Date();
+		this.renderWeek();
+	}
+
+	getFormattedResponsibleUsers(meal: Meal): string {
+		const currentUser = this.authService.currentUser();
+		const currentUsername = currentUser?.username;
+
+		// If no responsible users, return empty
+		if (!meal.responsibleUsers || meal.responsibleUsers.length === 0) {
+			return '';
+		}
+
+		// Start with the current user if they're in the list
+		const users: string[] = [];
+		const allUsers = [...meal.responsibleUsers];
+
+		if (currentUsername && allUsers.includes(currentUsername)) {
+			users.push(currentUsername);
+			allUsers.splice(allUsers.indexOf(currentUsername), 1);
+		}
+
+		// Add remaining users
+		users.push(...allUsers);
+
+		// Format to single line with ellipsis
+		if (users.length === 1) {
+			return users[0];
+		}
+
+		return users.slice(0, 2).join(', ') + (users.length > 2 ? '...' : '');
+	}
 }

@@ -195,6 +195,18 @@ class DB {
 			 ) strict`
 		);
 
+		connection.exec(
+			`create table if not exists MealResponsibleUser
+			 (
+				 meal_id  integer not null,
+				 username text    not null,
+
+				 constraint pk_meal_responsible_user primary key (meal_id, username),
+				 constraint fk_meal_id foreign key (meal_id) references Meal (id) ON DELETE CASCADE,
+				 constraint fk_username foreign key (username) references User (username) ON DELETE CASCADE
+			 ) strict`
+		);
+
 		DB.migrateMealTableToIncludeEndTime(connection);
 		DB.migrateRecipeAndMealTables(connection);
 	}
@@ -504,6 +516,26 @@ class DB {
 				) strict
 			`);
 			}
+
+			// Ensure MealResponsibleUser table exists
+			const mealResponsibleUserExists = connection.prepare(
+				`select name from sqlite_master where type = 'table' and name = 'MealResponsibleUser'`
+			).get();
+
+			if (!mealResponsibleUserExists) {
+				connection.exec(`
+				create table if not exists MealResponsibleUser
+				(
+					meal_id  integer not null,
+					username text    not null,
+
+					constraint pk_meal_responsible_user primary key (meal_id, username),
+					constraint fk_meal_id foreign key (meal_id) references Meal (id) ON DELETE CASCADE,
+					constraint fk_username foreign key (username) references User (username) ON DELETE CASCADE
+				) strict
+			`);
+			}
+
 			console.log('Database schema migration check completed');
 		} finally {
 			connection.pragma('foreign_keys = ON');
