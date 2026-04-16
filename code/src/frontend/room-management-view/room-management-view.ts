@@ -209,12 +209,7 @@ export class RoomManagementView implements OnDestroy {
 			const current = this.currentUser();
 			const found = members?.find(m => m.username === current?.username);
 			if(found===undefined){
-				if (!this.hasRedirected) {
-					console.log('Room code is empty, redirecting to error');
-					this.hasRedirected = true;
-					// noinspection JSIgnoredPromiseFromCall
-					await this.router.navigate(['/error']);
-				}
+				this.errorPage();
 				return;
 			}
 			this.userRole.set(found.role as Role);
@@ -226,11 +221,68 @@ export class RoomManagementView implements OnDestroy {
 	}
 
 	deleteRoom() {
-		console.log(`deleting room ${this.roomCode()} by ${this.userRole()} ${this.currentUser()?.username}`)
+		const code = this.roomCode();
+		const current = this.currentUser();
+		if (!current) {
+			this.errorPage();
+			return;
+		}
+
+		//I use confirm for now cuz i don't wanna do a popup but it can be changed later
+		if (!confirm(`Delete room ${code}? This action cannot be undone.`)) return;
+
+		this.roomService.deleteRoom(code, current.username).subscribe({
+			next: res => {
+				console.log('Room deleted:', res);
+				// navigate back to rooms list or homepage
+				this.router.navigate(['/rooms']);
+			},
+			error: err => {
+				console.error('Error deleting room:', err);
+				if (err?.status === 403) {
+					alert('You do not have permission to delete this room');
+				} else {
+					alert('Failed to delete room');
+				}
+			}
+		});
 	}
 
 	leaveRoom() {
-		console.log(`leaving room ${this.roomCode()} by ${this.userRole()} ${this.currentUser()?.username}`)
+		const code = this.roomCode();
+		const current = this.currentUser();
+		if (!current) {
+			this.errorPage();
+			return;
+		}
+
+		if (!confirm(`Leave room ${code}?`)) return;
+
+		this.roomService.leaveRoom(code, current.username).subscribe({
+			next: res => {
+				console.log('Left room:', res);
+				// navigate away after leaving
+				this.router.navigate(['/rooms']);
+			},
+			error: err => {
+				console.error('Error leaving room:', err);
+				if (err?.status === 403) {
+					alert('You do not have permission to leave this room');
+				} else {
+					alert('Failed to leave room');
+				}
+			}
+		});
+	}
+
+	errorPage(){
+		if (!this.hasRedirected) {
+			console.log('Room code is empty, redirecting to error');
+			this.hasRedirected = true;
+			// noinspection JSIgnoredPromiseFromCall
+			this.router.navigate(['/error']);
+		}
+		return;
 	}
 
 	protected readonly Role = Role;
