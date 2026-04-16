@@ -232,12 +232,10 @@ roomsRouter.post('/room', async (req, res): Promise<void> => {
 });
 
 roomsRouter.post('/room/join', async (req, res): Promise<void> => {
-	const {
-		user,
-		roomName
-	} = req.body;
+	const { user } = req.body;
+	const roomCode = req.body.roomCode;
 
-	if (!user || !roomName) {
+	if (!user || !roomCode) {
 		res.status(StatusCodes.BAD_REQUEST).json();
 		console.log('Missing required fields');
 
@@ -247,7 +245,7 @@ roomsRouter.post('/room/join', async (req, res): Promise<void> => {
 	const unit = new Unit(false);
 	try {
 		const roomsService = new RoomsService(unit);
-		const result = roomsService.requestToJoin(user, roomName);
+		const result = roomsService.requestToJoin(user, roomCode);
 
 		if (result === 'exists') {
 			unit.complete(false);

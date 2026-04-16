@@ -6,21 +6,21 @@
 
 		<div class="form-grid">
 			<div class="field-group field-group--full">
-				<label for="roomName">Room Code</label>
+				<label for="roomCode">Room Code</label>
 				<input
-					formControlName="roomName"
-					id="roomName"
+					formControlName="roomCode"
+					id="roomCode"
 					type="text"
 					placeholder="e.g. HFAUJC"
 					autocomplete="off">
 
-				@if (roomJoinForm.get('roomName'); as roomNameControl) {
-					@if (roomNameControl.touched && roomNameControl.invalid) {
+				@if (roomJoinForm.get('roomCode'); as roomCodeControl) {
+					@if (roomCodeControl.touched && roomCodeControl.invalid) {
 						<aside>
-							@if (roomNameControl.hasError('required')) {
+							@if (roomCodeControl.hasError('required')) {
 								<span>Room code is required</span>
 							}
-							@if (roomNameControl.hasError('minlength')) {
+							@if (roomCodeControl.hasError('minlength')) {
 								<span>Room code must be at least 2 characters</span>
 							}
 						</aside>
@@ -29,8 +29,11 @@
 			</div>
 		</div>
 
-		<div class="error-msg">
-			<span>{{ createRoomError() }}</span>
+		<div
+			class="status-msg"
+			[class.status-msg--success]="isJoinRoomSuccess()"
+			[class.status-msg--error]="isJoinRoomError()">
+			<span>{{ joinRoomStatus() || ' ' }}</span>
 		</div>
 
 		<button type="submit" [disabled]="isLoading">

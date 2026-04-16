@@ -1,19 +1,19 @@
-import {Component, OnDestroy, signal, WritableSignal, effect, inject} from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { MatDivider } from '@angular/material/divider';
-import { MatCard } from '@angular/material/card';
-import { MatLabel } from '@angular/material/input';
+import {Component, effect, inject, OnDestroy, signal, WritableSignal} from '@angular/core';
+import {ActivatedRoute, Router} from '@angular/router';
+import {MatDivider} from '@angular/material/divider';
+import {MatCard} from '@angular/material/card';
+import {MatLabel} from '@angular/material/input';
 import {MatButton, MatIconButton} from '@angular/material/button';
-import { RoomService } from '../core/room-service';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CommonModule } from '@angular/common';
+import {RoomService} from '../core/room-service';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
+import {CommonModule} from '@angular/common';
 import {Role, User} from '../../backend/model';
 import {AuthService} from '../core/auth-service';
 import {firstValueFrom} from 'rxjs';
 
 interface Member {
 	username: string;
-	role: string;
+	role: Role;
 }
 
 interface Request {
@@ -132,7 +132,11 @@ export class RoomManagementView implements OnDestroy {
 		this.roomService.getMembersPerRoom(roomCode).subscribe({
 			next: members => {
 				console.log('Successfully fetched members:', members);
-				this.members.set(members || []);
+				const result: Member[] = [];
+				members.forEach(m =>{
+					result.push({username: m.username, role:m.role as Role})
+				})
+				this.members.set(result || []);
 			},
 			error: error => {
 				console.error('Error fetching members:', error);
@@ -190,13 +194,27 @@ export class RoomManagementView implements OnDestroy {
 		});
 	}
 
-	removeMember(username: string) {
+	protected async removeMember(username: string) {
 		const code = this.roomCode();
-		console.log('Removing member:', username, 'from room:', code);
+		this.determineRole().then(async _ =>{
+			if((!(this.userRole()===Role.Owner) &&
+				!(this.userRole()===Role.Admin)))
+			{
+				alert('Role insufficient');
+				return
+			}
 
-		// For now, show an alert that this feature needs to be implemented
-		// You would need a backend method to remove members
-		alert('Remove member functionality coming soon');
+			//I use confirm for now cuz i don't wanna do a popup but it can be changed later
+			if (!confirm(`Kick member ${username}?`)) return;
+
+			console.log('Removing member:', username, 'from room:', code);
+
+			const result:boolean = (await firstValueFrom(this.roomService.removeMember(this.roomCode(), username, this.currentUser()?.username || ''))).success;
+
+			console.log(result);
+
+			this.fetchMembers(this.roomCode());
+		})
 	}
 
 	ngOnDestroy() {
@@ -231,21 +249,28 @@ export class RoomManagementView implements OnDestroy {
 		//I use confirm for now cuz i don't wanna do a popup but it can be changed later
 		if (!confirm(`Delete room ${code}? This action cannot be undone.`)) return;
 
-		this.roomService.deleteRoom(code, current.username).subscribe({
-			next: res => {
-				console.log('Room deleted:', res);
-				// navigate back to rooms list or homepage
-				this.router.navigate(['/rooms']);
-			},
-			error: err => {
-				console.error('Error deleting room:', err);
-				if (err?.status === 403) {
-					alert('You do not have permission to delete this room');
-				} else {
-					alert('Failed to delete room');
-				}
+		this.determineRole().then(_ =>{
+			if(this.userRole()!=Role.Owner){
+				alert("You must be owner to delete room") // just in case
+				return;
 			}
-		});
+
+			this.roomService.deleteRoom(code, current.username).subscribe({
+				next: res => {
+					console.log('Room deleted:', res);
+					// navigate back to rooms list or homepage
+					this.router.navigate(['/myrooms']);
+				},
+				error: err => {
+					console.error('Error deleting room:', err);
+					if (err?.status === 403) {
+						alert('You do not have permission to delete this room');
+					} else {
+						alert('Failed to delete room');
+					}
+				}
+			});
+		})
 	}
 
 	leaveRoom() {
@@ -258,26 +283,33 @@ export class RoomManagementView implements OnDestroy {
 
 		if (!confirm(`Leave room ${code}?`)) return;
 
-		this.roomService.leaveRoom(code, current.username).subscribe({
-			next: res => {
-				console.log('Left room:', res);
-				// navigate away after leaving
-				this.router.navigate(['/rooms']);
-			},
-			error: err => {
-				console.error('Error leaving room:', err);
-				if (err?.status === 403) {
-					alert('You do not have permission to leave this room');
-				} else {
-					alert('Failed to leave room');
-				}
+		this.determineRole().then(_ => {
+			if (this.userRole() === Role.Owner) {
+				alert("An owner can't leave a room. Please delegate the owner to someone else to leave.")
+				return;
 			}
+
+			this.roomService.leaveRoom(code, current.username).subscribe({
+				next: res => {
+					console.log('Left room:', res);
+					// navigate away after leaving
+					this.router.navigate(['/myrooms']);
+				},
+				error: err => {
+					console.error('Error leaving room:', err);
+					if (err?.status === 403) {
+						alert('You do not have permission to leave this room');
+					} else {
+						alert('Failed to leave room');
+					}
+				}
+			});
 		});
 	}
 
 	errorPage(){
 		if (!this.hasRedirected) {
-			console.log('Room code is empty, redirecting to error');
+			console.log('Requirements to stay in room management view not fulfilled, redirecting to error');
 			this.hasRedirected = true;
 			// noinspection JSIgnoredPromiseFromCall
 			this.router.navigate(['/error']);
