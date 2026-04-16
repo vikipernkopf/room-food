@@ -1,4 +1,4 @@
-﻿@use "../styles/theme" as *;
+@use "../styles/theme" as *;
 
 .room-header {
 	display: flex;
@@ -71,6 +71,24 @@
 	&:focus-visible {
 		outline: 2px solid $color-orange-2;
 		outline-offset: 2px;
+	}
+}
+
+.not-logged-in-message {
+	cursor: default;
+
+	&:hover {
+		box-shadow: none !important;
+		transform: none !important;
+	}
+
+	&:focus-visible {
+		outline: none !important;
+	}
+
+	p {
+		margin: 0;
+		color: $color-gray;
 	}
 }
 
@@ -163,8 +181,4 @@
 	&:hover {
 		background: $color-orange-2-overlay-12 !important;
 	}
-}
-
-.not-logged-in-message {
-	color: $color-red;
 }

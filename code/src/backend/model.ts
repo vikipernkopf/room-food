@@ -49,12 +49,15 @@ export type Room = {
 	name: string,
 };
 
+export type RecipeVisibility = 'public' | 'private';
+
 export type Recipe = {
 	id: number,
 	name: string,
 	description?: string,
 	image?: string,
 	mealTypes: string[],
+	visibility: RecipeVisibility,
 	author: number  // User ID
 }
 
@@ -63,19 +66,22 @@ export type RecipeCreatePayload = {
 	name: string,
 	description?: string,
 	image?: string,
-	mealTypes: string[]
+	mealTypes: string[],
+	visibility: RecipeVisibility
 }
 
 export type RecipeUpdatePayload = {
 	name: string,
 	description?: string,
 	image?: string,
-	mealTypes: string[]
+	mealTypes: string[],
+	visibility: RecipeVisibility
 }
 
 export type Meal = {
 	id?: number,
 	time: Date,
+	endTime: Date,
 	name: string,
 	room: string,
 	responsible: string,

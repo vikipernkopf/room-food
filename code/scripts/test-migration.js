@@ -83,11 +83,16 @@ recipeCols.forEach(col => {
 
 const hasDescription = recipeCols.some(c => c.name === 'description');
 const hasImage = recipeCols.some(c => c.name === 'image');
+const hasVisibility = recipeCols.some(c => c.name === 'visibility');
 const hasAutoIncrement = dbMigrated.prepare(`SELECT sql FROM sqlite_master WHERE type='table' AND name='Recipe'`).get().sql.includes('autoincrement');
 
 console.log(`\n   ✓ Has description column: ${hasDescription ? 'YES' : 'NO'}`);
 console.log(`   ✓ Has image column: ${hasImage ? 'YES' : 'NO'}`);
+console.log(`   ✓ Has visibility column: ${hasVisibility ? 'YES' : 'NO'}`);
 console.log(`   ✓ Has autoincrement id: ${hasAutoIncrement ? 'YES' : 'NO'}`);
+
+const migratedRecipe = dbMigrated.prepare(`SELECT visibility FROM Recipe WHERE id = 12345678`).get();
+console.log(`   ✓ Legacy recipe visibility default: ${migratedRecipe?.visibility || 'MISSING'}`);
 
 // Check if RecipeMealType was created and populated
 const recipeMealTypes = dbMigrated.prepare(`SELECT * FROM RecipeMealType`).all();
