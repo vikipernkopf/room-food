@@ -83,6 +83,7 @@ export type Meal = {
 	time: Date,
 	endTime: Date,
 	name: string,
+	mealType: string,
 	room: string,
 	responsible: string,
 	responsibleUsers?: string[],

@@ -164,6 +164,7 @@ export class MealManagement implements OnChanges {
 
 		const mealTime = new Date(this.mealToEdit.time as unknown as string);
 		this.dish = this.mealToEdit.name;
+		this.selectedValue = this.mealToEdit.mealType || 'breakfast-0';
 		this.selectedDate = mealTime;
 		this.selectedStartTime = new Date(this.mealToEdit.time);
 		this.selectedEndTime = new Date(this.mealToEdit.endTime);
@@ -376,6 +377,7 @@ export class MealManagement implements OnChanges {
 				time: finalDate,
 				endTime: finalEndDate,
 				name: this.dish,
+				mealType: this.selectedValue,
 				responsible: currentUsername,
 				room: this.roomCode,
 				recipeIds: [...this.selectedRecipeIds],

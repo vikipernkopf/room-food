@@ -44,12 +44,13 @@ export class MealManagementService extends ServiceBase {
 
 		[success, id] = this.executeStmt(
 			this.unit.prepare(`
-				insert into Meal(time, endTime, name, responsible, roomCode)
-				values (:t, :et, :n, :rs, :rc)
+				insert into Meal(time, endTime, name, mealType, responsible, roomCode)
+				values (:t, :et, :n, :mt, :rs, :rc)
 			`, {
 				t: meal.time.toISOString(),
 				et: meal.endTime.toISOString(),
 				n: meal.name,
+				mt: meal.mealType,
 				rs: meal.responsible,
 				rc: meal.room
 			})
@@ -129,6 +130,7 @@ export class MealManagementService extends ServiceBase {
 				 set time=:newTime,
 				     endTime=:newEndTime,
 				     name=:newName,
+				     mealType=:newMealType,
 				     responsible=:newResponsible,
 				     roomCode=:newRoom
 				 where id = :mealId`,
@@ -136,6 +138,7 @@ export class MealManagementService extends ServiceBase {
 					newTime: updatedMeal.time.toISOString(),
 					newEndTime: updatedMeal.endTime.toISOString(),
 					newName: updatedMeal.name,
+					newMealType: updatedMeal.mealType,
 					newResponsible: updatedMeal.responsible,
 					newRoom: updatedMeal.room,
 					mealId
@@ -166,7 +169,13 @@ export class MealManagementService extends ServiceBase {
 	 */
 	public getMealsForUser(username: string): Meal[] {
 		const fetch = this.unit.prepare(`
-			select m.id, m.time, m.endTime, m.name, m.roomCode, m.responsible
+			select m.id,
+			       m.time,
+			       m.endTime,
+			       m.name,
+			       coalesce(m.mealType, 'breakfast-0') as mealType,
+			       m.roomCode,
+			       m.responsible
 			from Meal m
 			where m.responsible = :n
 		`, { n: username }).all() as {
@@ -174,6 +183,7 @@ export class MealManagementService extends ServiceBase {
 			endTime: string,
 			id: number,
 			name: string,
+			mealType: string,
 			roomCode: string,
 			responsible: string
 		}[];
@@ -191,6 +201,7 @@ export class MealManagementService extends ServiceBase {
 				time: date,
 				endTime: new Date(Date.parse(e.endTime)),
 				name: e.name,
+				mealType: e.mealType,
 				responsible: e.responsible,
 				room: e.roomCode,
 				recipeIds: this.getRecipeIdsForMeal(e.id),
@@ -228,7 +239,13 @@ export class MealManagementService extends ServiceBase {
 	 */
 	public getMealsForRoom(roomCode: string): Meal[] {
 		const fetch = this.unit.prepare(`
-			select m.id, m.time, m.endTime, m.name, m.roomCode, m.responsible
+			select m.id,
+			       m.time,
+			       m.endTime,
+			       m.name,
+			       coalesce(m.mealType, 'breakfast-0') as mealType,
+			       m.roomCode,
+			       m.responsible
 			from Meal m
 			where m.roomCode = :c
 		`, { c: roomCode }).all() as {
@@ -236,6 +253,7 @@ export class MealManagementService extends ServiceBase {
 			endTime: string,
 			id: number,
 			name: string,
+			mealType: string,
 			roomCode: string,
 			responsible: string
 		}[];
@@ -253,6 +271,7 @@ export class MealManagementService extends ServiceBase {
 				time: date,
 				endTime: new Date(Date.parse(e.endTime)),
 				name: e.name,
+				mealType: e.mealType,
 				responsible: e.responsible,
 				room: e.roomCode,
 				recipeIds: this.getRecipeIdsForMeal(e.id),
