@@ -304,14 +304,14 @@ class DB {
 			const recipeHasAuthorColumn = recipeColumnNames.has('author');
 			const recipeHasLegacyIdDefault = recipeSql.includes('default (abs(random())');
 			const recipeHasLegacyUqRecipe = recipeSql.includes('uq_recipe');
-			const recipeNeedsMigration =
+			const recipeNeedsFullMigration =
 				recipeHasMealTypeColumn ||
 				!recipeHasDescriptionColumn ||
 				!recipeHasImageColumn ||
-				!recipeHasVisibilityColumn ||
 				!recipeHasAuthorColumn ||
 				recipeHasLegacyIdDefault ||
 				recipeHasLegacyUqRecipe;
+			const recipeNeedsVisibilityOnlyMigration = !recipeHasVisibilityColumn && !recipeNeedsFullMigration;
 
 			if (mealHasLegacyUniqueTime) {
 				console.log('Migrating Meal table: removing legacy unique constraint on time...');
@@ -338,9 +338,30 @@ class DB {
 				console.log('✓ Meal migration completed');
 			}
 
-			if (recipeNeedsMigration) {
+			if (recipeNeedsVisibilityOnlyMigration) {
+				console.log('Migrating Recipe table: adding missing visibility column...');
+				connection.exec(`alter table Recipe
+					add column visibility text not null default 'private'
+						constraint ck_recipe_visibility check (visibility in ('public', 'private'));`);
+				console.log('✓ Recipe visibility migration completed');
+			}
+
+			if (recipeNeedsFullMigration) {
 				console.log(
 					'Migrating Recipe table: converting mealType to new schema with RecipeMealType junction table...');
+
+				const hasStaleRecipeLegacyTable = connection.prepare(
+					`select name
+					 from sqlite_master
+					 where type = 'table'
+					   and name = 'Recipe_legacy'`
+				).get() !== undefined;
+
+				if (hasStaleRecipeLegacyTable) {
+					console.warn('Detected stale Recipe_legacy table; dropping it before Recipe migration.');
+					connection.exec(`drop table Recipe_legacy;`);
+				}
+
 				connection.exec(`
 				alter table Recipe
 					rename to Recipe_legacy;
@@ -422,7 +443,7 @@ class DB {
 			);
 			const recipeMealTypeNeedsFkRepair = !!recipeMealTypeExists && !recipeMealTypeFkTargetsRecipe;
 
-			if (!recipeMealTypeExists && !recipeNeedsMigration) {
+			if (!recipeMealTypeExists && !recipeNeedsFullMigration) {
 				// Table should have been created in ensureTablesCreated, this is just a safety check
 				connection.exec(`
 				create table if not exists RecipeMealType
