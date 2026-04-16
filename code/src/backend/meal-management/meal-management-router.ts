@@ -37,6 +37,7 @@ mealManagementRouter.post('/meal', async (req, res): Promise<void> => {
 		time,
 		endTime,
 		name,
+		mealType,
 		room,
 		responsible
 	} = req.body;
@@ -55,7 +56,7 @@ mealManagementRouter.post('/meal', async (req, res): Promise<void> => {
 		return;
 	}
 
-	if (!time || !endTime || !name || !room || !responsible) {
+	if (!time || !endTime || !name || !mealType || !room || !responsible) {
 		res.status(StatusCodes.BAD_REQUEST).json();
 		console.log('Missing required fields');
 
@@ -68,6 +69,7 @@ mealManagementRouter.post('/meal', async (req, res): Promise<void> => {
 			time: new Date(time),
 			endTime: new Date(endTime),
 			name,
+			mealType,
 			room,
 			responsible,
 			responsibleUsers,
@@ -159,7 +161,7 @@ mealManagementRouter.put('/meal/:id', async (req, res): Promise<void> => {
 	}
 
 	const requiredUpdated =
-		updatedMeal.time && updatedMeal.endTime && updatedMeal.name && updatedMeal.room && updatedMeal.responsible;
+		updatedMeal.time && updatedMeal.endTime && updatedMeal.name && updatedMeal.mealType && updatedMeal.room && updatedMeal.responsible;
 
 	if (!requiredUpdated) {
 		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Missing required meal fields' });
@@ -175,6 +177,7 @@ mealManagementRouter.put('/meal/:id', async (req, res): Promise<void> => {
 			time: new Date(updatedMeal.time),
 			endTime: new Date(updatedMeal.endTime),
 			name: updatedMeal.name,
+			mealType: updatedMeal.mealType,
 			room: updatedMeal.room,
 			responsible: updatedMeal.responsible,
 			responsibleUsers,
