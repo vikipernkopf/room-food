@@ -7,7 +7,7 @@ import {
 	EventEmitter,
 	Input,
 	OnChanges,
-	Output,
+	Output, signal,
 	SimpleChanges,
 	WritableSignal
 } from '@angular/core';
@@ -24,6 +24,7 @@ import { AuthService } from '../../core/auth-service';
 import { Meal, Recipe, User } from '../../../backend/model';
 import { MealService } from '../../core/meal-service';
 import { RecipeService } from '../../core/recipe-service';
+import {DatePipe, TitleCasePipe} from '@angular/common';
 
 interface MealType {
 	value: string;
@@ -41,7 +42,7 @@ interface MealType {
 		MatInputModule,
 		MatDatepickerModule, MatDatepicker,
 		MatTimepickerModule,
-		MatIconModule, MatButtonModule
+		MatIconModule, MatButtonModule, DatePipe, TitleCasePipe
 	],
 	templateUrl: './meal-management.html',
 	styleUrl: './meal-management.scss',
@@ -63,23 +64,26 @@ export class MealManagement implements OnChanges {
 	initialTime: Date | null = null;
 
 	closePopup() {
+		this.isViewMode.set(false);
 		this.close.emit();
 	}
 
-	dish: string = '';
-	selectedValue: string = 'breakfast-0';
-	selectedDate: Date | null = null;
-	selectedStartTime: Date | null = null;
-	selectedEndTime: Date | null = null;
-	minTime: Date = new Date(new Date().setHours(5, 0, 0, 0));
-	maxTime: Date = new Date(new Date().setHours(23, 0, 0, 0));
-	showError: boolean = false;
-	isSubmitting: boolean = false;
-	selectedRecipeIds: number[] = [];
-	recipeSearchTerm: string = '';
-	availableRecipes: Recipe[] = [];
-	filteredRecipes: Recipe[] = [];
-	recipesLoadError: string = '';
+	protected readonly isViewMode: WritableSignal<boolean> = signal(true);
+
+	protected dish: string = '';
+	protected selectedValue: string = 'breakfast-0';
+	protected selectedDate: Date | null = null;
+	protected selectedStartTime: Date | null = null;
+	protected selectedEndTime: Date | null = null;
+	protected minTime: Date = new Date(new Date().setHours(5, 0, 0, 0));
+	protected maxTime: Date = new Date(new Date().setHours(23, 0, 0, 0));
+	protected showError: boolean = false;
+	protected isSubmitting: boolean = false;
+	protected selectedRecipeIds: number[] = [];
+	protected recipeSearchTerm: string = '';
+	protected availableRecipes: Recipe[] = [];
+	protected filteredRecipes: Recipe[] = [];
+	protected recipesLoadError: string = '';
 
 	mealTypes: MealType[] = [
 		{
@@ -134,8 +138,17 @@ export class MealManagement implements OnChanges {
 		}
 	}
 
+	protected editButton(){
+		this.isViewMode.set(false);
+	}
+
 	protected get isEditMode(): boolean {
-		return this.mealToEdit !== null;
+		return this.mealToEdit !== null && !this.isViewMode();
+	}
+
+	protected get selectedRecipes(): Recipe[] {
+		const idSet: Set<number> = new Set(this.selectedRecipeIds);
+		return this.availableRecipes.filter((recipe: Recipe): boolean => idSet.has(recipe.id));
 	}
 
 	private prefillFormFromInput(): void {
@@ -149,6 +162,7 @@ export class MealManagement implements OnChanges {
 			this.selectedEndTime = null;
 			this.selectedRecipeIds = [];
 			this.recipeSearchTerm = '';
+			this.isViewMode.set(false);
 			this.applyRecipeFilter();
 			this.requestViewUpdate();
 			return;
@@ -163,6 +177,7 @@ export class MealManagement implements OnChanges {
 		this.recipeSearchTerm = '';
 		this.applyRecipeFilter();
 		this.requestViewUpdate();
+		this.isViewMode.set(true);
 	}
 
 	public onRecipeSearchChange(searchTerm: string): void {
@@ -401,7 +416,26 @@ export class MealManagement implements OnChanges {
 
 			this.dish = '';
 			this.selectedValue = 'breakfast-0';
+			this.isViewMode.set(false);
 		}
+	}
+
+	protected get formattedStartTime(): string {
+		if (!this.selectedStartTime) return '';
+		const hours = this.selectedStartTime.getHours();
+		if (hours === 0) return '12am';
+		if (hours === 12) return '12pm';
+		return hours < 12 ? `${hours}am` : `${hours - 12}pm`;
+	}
+
+	protected get formattedEndTime(): string {
+		if (!this.selectedEndTime) return '';
+		const hours: number = this.selectedEndTime.getHours();
+		const minutes: number = this.selectedEndTime.getMinutes();
+		const mins: string = minutes > 0 ? `:${minutes.toString().padStart(2, '0')}` : '';
+		if (hours === 0) return `12${mins}am`;
+		if (hours === 12) return `12${mins}pm`;
+		return hours < 12 ? `${hours}${mins}am` : `${hours - 12}${mins}pm`;
 	}
 }
 
