@@ -1,3 +1,6 @@
+import 'dotenv/config';
+console.log('JWT_SECRET loaded:', process.env['JWT_SECRET'] ?? 'NOT SET - using fallback');
+
 // Lightweight wrapper to start the API when running TypeScript directly (e.g. with tsx)
 import { startServer } from './api-server';
 

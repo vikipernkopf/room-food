@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import {Component, inject, OnInit} from '@angular/core';
 import {RouterOutlet} from '@angular/router';
-import {Navbar} from '../navbar/navbar';
 
+import {Navbar} from '../navbar/navbar';
+import {AuthService} from '../core/auth-service';
 @Component({
 	selector: 'app-root',
 	templateUrl: './app.html',
@@ -11,4 +12,10 @@ import {Navbar} from '../navbar/navbar';
 	],
 	styleUrl: './app.scss'
 })
-export class App { }
+export class App implements OnInit {
+	private authService = inject(AuthService);
+
+	ngOnInit(): void {
+		this.authService.restoreSession();
+	}
+}
