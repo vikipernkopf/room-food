@@ -154,9 +154,11 @@ loginSignUpRouter.post('/signup', async (req, res) => {
 
 loginSignUpRouter.delete('/delete', requireAuth, (req, res) => {
 	const identifierRaw = req.body?.identifier ?? req.body?.username ?? req.body?.email;
+
 	if (!identifierRaw) {
 		console.log('Invalid identifierRaw');
 		res.sendStatus(StatusCodes.BAD_REQUEST);
+		return;
 	}
 
 	const unit = new Unit(false);
@@ -181,7 +183,7 @@ loginSignUpRouter.delete('/delete', requireAuth, (req, res) => {
 		unit.complete(false);
 		res.sendStatus(StatusCodes.INTERNAL_SERVER_ERROR);
 	}
-})
+});
 
 loginSignUpRouter.get('/users/:username', requireAuth, (req, res) => {
 	const username = (req.params['username'] as string ?? '').trim();
