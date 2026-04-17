@@ -254,6 +254,7 @@ export class RoomManagementView implements OnDestroy {
 
 	private async determineRole() {
 		try {
+			await new Promise(f => setTimeout(f, 40));
 			const members = await firstValueFrom(this.roomService.getMembersPerRoom(this.roomCode()));
 			const current = this.currentUser();
 			const found = members?.find(m => m.username === current?.username);
