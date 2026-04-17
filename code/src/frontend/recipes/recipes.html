@@ -1,5 +1,7 @@
 <div class="recipe-header">
-	<h1>My Recipes</h1>
+	<label class="recipe-search-label" for="recipe-search">Search public recipes</label>
+	<input id="recipe-search" class="recipe-search-input" type="search" [value]="searchTerm()"
+		(input)="updateSearchTerm($event)" placeholder="Search public recipes by name">
 </div>
 <div class="recipe-containers">
 	<div class="recipe-container">
@@ -8,16 +10,26 @@
 				<p>You must be logged in to view recipes.</p>
 			</div>
 		} @else {
-			<button class="btn-add recipe-card" type="button" (click)="openCreateRecipe();$event.stopPropagation()">
-				+
-			</button>
+			@if (!isSearchMode()) {
+				<button class="btn-add recipe-card" type="button" (click)="openCreateRecipe();$event.stopPropagation()">
+					+
+				</button>
+			}
 			@for (recipe of recipes(); track recipe.id) {
-				<div class="recipe-card" role="button" tabindex="0" (click)="openEditRecipe(recipe)"
-					(keydown.enter)="openEditRecipe(recipe)"
-					(keydown.space)="$event.preventDefault(); openEditRecipe(recipe)">
+				<div class="recipe-card" [class.readonly-card]="!canEditRecipe(recipe)"
+					[attr.role]="canEditRecipe(recipe) ? 'button' : null"
+					[attr.tabindex]="canEditRecipe(recipe) ? 0 : null"
+					(click)="canEditRecipe(recipe) && openEditRecipe(recipe)"
+					(keydown.enter)="canEditRecipe(recipe) && openEditRecipe(recipe)"
+					(keydown.space)="canEditRecipe(recipe) && $event.preventDefault();
+						canEditRecipe(recipe) && openEditRecipe(recipe)">
 					<img class="recipe-image" [src]="getRecipeImage(recipe)" [alt]="recipe.name">
 					<p class="recipe-name">{{ recipe.name }}</p>
+					<p class="recipe-author">By {{ recipeAuthorLabel(recipe) }}</p>
 					<p class="recipe-visibility">{{ recipe.visibility === 'public' ? 'Public' : 'Private' }}</p>
+					@if (recipe.isSavedByUser && !recipe.isOwnedByUser) {
+						<p class="recipe-saved-badge">Saved</p>
+					}
 					<p class="recipe-description">{{ getRecipeCardDescription(recipe) }}</p>
 					@if (recipe.mealTypes.length) {
 						<div class="recipe-meal-types">
@@ -28,16 +40,29 @@
 					} @else {
 						<p class="recipe-meal-types-empty">No meal types selected.</p>
 					}
-					<div class="recipe-actions">
-						<button type="button" class="btn-edit-tile"
-							(click)="$event.stopPropagation(); openEditRecipe(recipe)">
-							Edit
-						</button>
-						<button type="button" class="btn-delete-tile"
-							(click)="$event.stopPropagation(); deleteRecipe(recipe)">
-							Delete
-						</button>
-					</div>
+					@if (!isSearchMode()) {
+						<div class="recipe-actions">
+							@if (canEditRecipe(recipe)) {
+								<button type="button" class="btn-edit-tile"
+									(click)="$event.stopPropagation(); openEditRecipe(recipe)">
+									Edit
+								</button>
+								<button type="button" class="btn-delete-tile"
+									(click)="$event.stopPropagation(); deleteRecipe(recipe)">
+									Delete
+								</button>
+							}
+						</div>
+					}
+					@if (canSaveRecipe(recipe)) {
+						<div class="recipe-actions">
+							<button type="button" class="btn-save-tile"
+								[disabled]="savingRecipeId === recipe.id"
+								(click)="$event.stopPropagation(); savePublicRecipe(recipe)">
+								{{ savingRecipeId === recipe.id ? 'Saving...' : 'Save' }}
+							</button>
+						</div>
+					}
 				</div>
 			}
 		}
@@ -45,6 +70,9 @@
 </div>
 @if (recipesLoadError()) {
 	<p class="recipes-error">{{ recipesLoadError() }}</p>
+}
+@if (recipeActionError()) {
+	<p class="recipes-error">{{ recipeActionError() }}</p>
 }
 <!--@if (currentUser()?.username) {
 	<section class="recipe-debug-section">
