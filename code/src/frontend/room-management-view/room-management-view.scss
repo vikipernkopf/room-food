@@ -295,8 +295,12 @@
 }
 
 .leave-delete-div {
+	padding-top: 1rem;
 	align-self: flex-end;
 	max-width: 40rem;
+	gap: 1rem;
+	display: flex;
+	flex-direction: row;
 }
 
 .reject-btn:hover {
