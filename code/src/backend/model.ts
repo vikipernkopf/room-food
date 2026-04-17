@@ -58,7 +58,10 @@ export type Recipe = {
 	image?: string,
 	mealTypes: string[],
 	visibility: RecipeVisibility,
-	author: number  // User ID
+	author: number,  // User ID
+	authorUsername?: string,
+	isSavedByUser?: boolean,
+	isOwnedByUser?: boolean
 }
 
 export type RecipeCreatePayload = {

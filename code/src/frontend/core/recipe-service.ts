@@ -35,6 +35,23 @@ export class RecipeService {
 		return this.http.get<Recipe[]>(apiUrl);
 	}
 
+	public getPublicRecipes(searchTerm: string, username?: string): Observable<Recipe[]> {
+		const userQuery = username ? `&username=${encodeURIComponent(username)}` : '';
+		const apiUrl = `${this.apiBase}/recipes/public?search=${encodeURIComponent(searchTerm)}${userQuery}`;
+		return this.http.get<Recipe[]>(apiUrl);
+	}
+
+	public savePublicRecipe(recipeId: number, username: string): Observable<{
+		id: number,
+		saved: boolean
+	}> {
+		const apiUrl = `${this.apiBase}/recipes/${recipeId}/save`;
+		return this.http.post<{
+			id: number,
+			saved: boolean
+		}>(apiUrl, { username });
+	}
+
 	public getRawRecipes(): Observable<RawRecipeRow[]> {
 		const apiUrl = `${this.apiBase}/recipes/raw`;
 		return this.http.get<RawRecipeRow[]>(apiUrl);

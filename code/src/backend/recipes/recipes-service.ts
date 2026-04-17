@@ -12,8 +12,8 @@ export class RecipesService extends ServiceBase {
 	}
 
 	public getRecipesByAuthorUsername(username: string): Recipe[] {
-		const authorId = this.users.getUserIdByUsername(username);
-		if (authorId === undefined) {
+		const viewerId = this.users.getUserIdByUsername(username);
+		if (viewerId === undefined) {
 			return [];
 		}
 
@@ -24,7 +24,10 @@ export class RecipesService extends ServiceBase {
 			image?: string | null;
 			visibility: RecipeVisibility;
 			author: number;
+			authorUsername: string;
 			mealTypes: string | null;
+			isSavedByUser: number;
+			isOwnedByUser: number;
 		}>(`
 			select r.id,
 			       r.name,
@@ -32,23 +35,110 @@ export class RecipesService extends ServiceBase {
 			       r.image,
 			       r.visibility,
 			       r.author,
+			       u.username as authorUsername,
 			       coalesce(group_concat(rmt.meal_type, '||'), '') as mealTypes
+			       ,case when sr.user_id is null then 0 else 1 end as isSavedByUser
+			       ,case when r.author = :viewerId then 1 else 0 end as isOwnedByUser
 			from Recipe r
+			join User u on u.id = r.author
 			left join RecipeMealType rmt on r.id = rmt.recipe_id
-			where r.author = :author
-			group by r.id, r.name, r.description, r.image, r.visibility, r.author
+			left join SavedRecipe sr on sr.recipe_id = r.id and sr.user_id = :viewerId
+			where r.author = :viewerId
+			   or (r.visibility = 'public' and sr.user_id = :viewerId)
+			group by r.id, r.name, r.description, r.image, r.visibility, r.author, u.username,
+			         isSavedByUser, isOwnedByUser
 			order by r.id desc
-		`, { author: authorId }).all();
+		`, { viewerId }).all();
 
-		return recipes.map(recipe => ({
-			id: recipe.id,
-			name: recipe.name,
-			description: recipe.description ?? undefined,
-			image: recipe.image ?? undefined,
-			visibility: RecipesService.normalizeVisibility(recipe.visibility),
-			author: recipe.author,
-			mealTypes: recipe.mealTypes ? recipe.mealTypes.split('||').filter(Boolean) : []
-		}));
+		return RecipesService.mapRowsToRecipes(recipes);
+	}
+
+	public getPublicRecipes(searchTerm: string, viewerUsername?: string): Recipe[] {
+		const normalizedSearch = searchTerm.trim().toLowerCase();
+		if (!normalizedSearch) {
+			return [];
+		}
+
+		const viewerId = viewerUsername ? this.users.getUserIdByUsername(viewerUsername) : undefined;
+
+		const recipes = this.unit.prepare<{
+			id: number;
+			name: string;
+			description?: string | null;
+			image?: string | null;
+			visibility: RecipeVisibility;
+			author: number;
+			authorUsername: string;
+			mealTypes: string | null;
+			isSavedByUser: number;
+			isOwnedByUser: number;
+		}>(`
+			select r.id,
+			       r.name,
+			       r.description,
+			       r.image,
+			       r.visibility,
+			       r.author,
+			       u.username as authorUsername,
+			       coalesce(group_concat(rmt.meal_type, '||'), '') as mealTypes
+			       ,case when sr.user_id is null then 0 else 1 end as isSavedByUser
+			       ,case when r.author = :viewerId then 1 else 0 end as isOwnedByUser
+			from Recipe r
+			join User u on u.id = r.author
+			left join RecipeMealType rmt on r.id = rmt.recipe_id
+			left join SavedRecipe sr on sr.recipe_id = r.id and sr.user_id = :viewerId
+			where r.visibility = 'public'
+			  and lower(r.name) like '%' || :search || '%'
+			group by r.id, r.name, r.description, r.image, r.visibility, r.author, u.username,
+			         isSavedByUser, isOwnedByUser
+			order by r.id desc
+		`, {
+			search: normalizedSearch,
+			viewerId: viewerId ?? -1
+		}).all();
+
+		return RecipesService.mapRowsToRecipes(recipes);
+	}
+
+	public savePublicRecipeForUser(username: string, recipeId: number):
+		true | 'user_not_found' | 'recipe_not_found' | 'forbidden' | 'error' {
+		const userId = this.users.getUserIdByUsername(username);
+		if (userId === undefined) {
+			return 'user_not_found';
+		}
+
+		const recipeRow = this.unit.prepare<{
+			author: number;
+			visibility: RecipeVisibility;
+		}>(
+			`select author, visibility
+			 from Recipe
+			 where id = :recipeId`,
+			{ recipeId }
+		).get();
+
+		if (!recipeRow) {
+			return 'recipe_not_found';
+		}
+
+		if (recipeRow.visibility !== 'public' || recipeRow.author === userId) {
+			return 'forbidden';
+		}
+
+		try {
+			this.unit.prepare(
+				`insert or ignore into SavedRecipe(user_id, recipe_id)
+				 values (:userId, :recipeId)`,
+				{
+					userId,
+					recipeId
+				}
+			).run();
+		} catch {
+			return 'error';
+		}
+
+		return true;
 	}
 
 	public getAllRecipesRaw(): Array<{
@@ -201,6 +291,32 @@ export class RecipesService extends ServiceBase {
 
 	private static normalizeVisibility(visibility: RecipeVisibility | string | undefined): RecipeVisibility {
 		return visibility === 'public' ? 'public' : 'private';
+	}
+
+	private static mapRowsToRecipes(rows: Array<{
+		id: number;
+		name: string;
+		description?: string | null;
+		image?: string | null;
+		visibility: RecipeVisibility;
+		author: number;
+		authorUsername: string;
+		mealTypes: string | null;
+		isSavedByUser: number;
+		isOwnedByUser: number;
+	}>): Recipe[] {
+		return rows.map(recipe => ({
+			id: recipe.id,
+			name: recipe.name,
+			description: recipe.description ?? undefined,
+			image: recipe.image ?? undefined,
+			visibility: RecipesService.normalizeVisibility(recipe.visibility),
+			author: recipe.author,
+			authorUsername: recipe.authorUsername,
+			mealTypes: recipe.mealTypes ? recipe.mealTypes.split('||').filter(Boolean) : [],
+			isSavedByUser: !!recipe.isSavedByUser,
+			isOwnedByUser: !!recipe.isOwnedByUser
+		}));
 	}
 
 	public deleteRecipe(recipeId: number): true | 'not_found' | 'error' {

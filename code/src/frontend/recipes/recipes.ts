@@ -1,4 +1,4 @@
-import { Component, effect, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { AuthService } from '../core/auth-service';
 import { RecipeService } from '../core/recipe-service';
 import { Recipe } from '../../backend/model';
@@ -18,9 +18,13 @@ export class Recipes {
 	protected readonly currentUser = this.authService.currentUser;
 	protected readonly defaultRecipeImage = DEFAULT_RECIPE_IMAGE;
 	protected readonly recipes = signal<Recipe[]>([]);
+	protected readonly searchTerm = signal('');
+	protected readonly isSearchMode = computed(() => this.searchTerm().trim().length > 0);
 	protected readonly recipesLoadError = signal('');
 	protected readonly recipeSaveError = signal('');
+	protected readonly recipeActionError = signal('');
 	protected creating = false;
+	protected savingRecipeId: number | null = null;
 	protected readonly recipeToEdit = signal<Recipe | null>(null);
 	protected readonly mealTypeOptions: RecipeMealType[] = [
 		{
@@ -52,8 +56,14 @@ export class Recipes {
 				return;
 			}
 
-			this.fetchRecipes(username);
+			this.loadRecipesForCurrentMode(username);
 		});
+	}
+
+	protected updateSearchTerm(event: Event): void {
+		const target = event.target as HTMLInputElement | null;
+		this.searchTerm.set(target?.value ?? '');
+		this.recipeActionError.set('');
 	}
 
 	protected openCreateRecipe(): void {
@@ -115,7 +125,7 @@ export class Recipes {
 			next: () => {
 				this.creating = false;
 				this.closePopup();
-				this.fetchRecipes(username);
+				this.loadRecipesForCurrentMode(username);
 			},
 			error: (error: any) => {
 				this.creating = false;
@@ -126,6 +136,11 @@ export class Recipes {
 	}
 
 	protected deleteRecipe(recipe: Recipe): void {
+		if (!this.isOwnedRecipe(recipe)) {
+			this.recipeActionError.set('You can only delete your own recipes.');
+			return;
+		}
+
 		if (!recipe.id) {
 			this.recipeSaveError.set('Unable to delete recipe: missing recipe id');
 			return;
@@ -151,7 +166,78 @@ export class Recipes {
 		});
 	}
 
-	private fetchRecipes(username: string): void {
+	protected savePublicRecipe(recipe: Recipe): void {
+		const username = this.currentUser()?.username?.trim();
+		if (!username) {
+			this.recipeActionError.set('You must be logged in to save recipes.');
+			return;
+		}
+
+		if (!this.canSaveRecipe(recipe)) {
+			return;
+		}
+
+		this.recipeActionError.set('');
+		this.savingRecipeId = recipe.id;
+
+		this.recipeService.savePublicRecipe(recipe.id, username).subscribe({
+			next: () => {
+				this.savingRecipeId = null;
+				this.loadRecipesForCurrentMode(username);
+			},
+			error: (error: any) => {
+				this.savingRecipeId = null;
+				this.recipeActionError.set(
+					'Failed to save recipe: ' + (error?.error?.error || error?.message || 'Unknown error')
+				);
+			}
+		});
+	}
+
+	protected canEditRecipe(recipe: Recipe): boolean {
+		return !this.isSearchMode() && this.isOwnedRecipe(recipe);
+	}
+
+	protected canSaveRecipe(recipe: Recipe): boolean {
+		if (!recipe.id || recipe.visibility !== 'public') {
+			return false;
+		}
+
+		if (this.isOwnedRecipe(recipe)) {
+			return false;
+		}
+
+		return !recipe.isSavedByUser;
+	}
+
+	protected recipeAuthorLabel(recipe: Recipe): string {
+		return recipe.authorUsername ? `@${recipe.authorUsername}` : 'Unknown author';
+	}
+
+	private isOwnedRecipe(recipe: Recipe): boolean {
+		if (recipe.isOwnedByUser !== undefined) {
+			return recipe.isOwnedByUser;
+		}
+
+		const username = this.currentUser()?.username?.trim();
+		if (!username) {
+			return false;
+		}
+
+		return recipe.authorUsername?.toLowerCase() === username.toLowerCase();
+	}
+
+	private loadRecipesForCurrentMode(username: string): void {
+		const search = this.searchTerm().trim();
+		if (search) {
+			this.fetchPublicRecipes(search);
+			return;
+		}
+
+		this.fetchUserRecipes(username);
+	}
+
+	private fetchUserRecipes(username: string): void {
 		this.recipeService.getRecipesByAuthorUsername(username).subscribe({
 			next: (recipes: Recipe[]) => {
 				this.recipes.set(this.sortRecipesByName(recipes || []));
@@ -160,6 +246,20 @@ export class Recipes {
 			error: () => {
 				this.recipes.set([]);
 				this.recipesLoadError.set('Failed to load your recipes.');
+			}
+		});
+	}
+
+	private fetchPublicRecipes(searchTerm: string): void {
+		const username = this.currentUser()?.username?.trim();
+		this.recipeService.getPublicRecipes(searchTerm, username).subscribe({
+			next: (recipes: Recipe[]) => {
+				this.recipes.set(this.sortRecipesByName(recipes || []));
+				this.recipesLoadError.set('');
+			},
+			error: () => {
+				this.recipes.set([]);
+				this.recipesLoadError.set('Failed to load public recipes.');
 			}
 		});
 	}

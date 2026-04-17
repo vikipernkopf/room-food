@@ -45,6 +45,87 @@ recipesRouter.get('/recipes/author/:username', async (req, res): Promise<void> =
 	}
 });
 
+recipesRouter.get('/recipes/public', async (req, res): Promise<void> => {
+	const search = String(req.query['search'] ?? '').trim();
+	const username = String(req.query['username'] ?? '').trim();
+
+	if (!search) {
+		res.status(StatusCodes.OK).json([]);
+		return;
+	}
+
+	const unit = new Unit(true);
+
+	try {
+		const recipesService = new RecipesService(unit);
+		const recipes = recipesService.getPublicRecipes(search, username || undefined);
+
+		unit.complete();
+		res.status(StatusCodes.OK).json(recipes || []);
+	} catch (error) {
+		unit.complete();
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to fetch public recipes' });
+		console.error('Error fetching public recipes:', error);
+	}
+});
+
+recipesRouter.post('/recipes/:id/save', async (req, res): Promise<void> => {
+	const recipeId = Number(req.params.id);
+	const username = String((req.body as {
+		username?: string
+	})?.username ?? '').trim();
+
+	if (!Number.isInteger(recipeId) || recipeId <= 0) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid recipe id' });
+		return;
+	}
+
+	if (!username) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Username is required' });
+		return;
+	}
+
+	const unit = new Unit(false);
+
+	try {
+		const recipesService = new RecipesService(unit);
+		const result = recipesService.savePublicRecipeForUser(username, recipeId);
+
+		if (result === 'user_not_found') {
+			unit.complete(false);
+			res.status(StatusCodes.NOT_FOUND).json({ error: 'User not found' });
+			return;
+		}
+
+		if (result === 'recipe_not_found') {
+			unit.complete(false);
+			res.status(StatusCodes.NOT_FOUND).json({ error: 'Recipe not found' });
+			return;
+		}
+
+		if (result === 'forbidden') {
+			unit.complete(false);
+			res.status(StatusCodes.BAD_REQUEST).json({
+				error: 'Only recipes from other users can be saved and they must be public'
+			});
+			return;
+		}
+
+		if (result === 'error') {
+			unit.complete(false);
+			res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to save recipe' });
+			return;
+		}
+
+		unit.complete(true);
+		res.status(StatusCodes.OK).json({ id: recipeId, saved: true });
+	} catch (error) {
+		unit.complete(false);
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to save recipe' });
+		console.error('Error saving public recipe:', error);
+	}
+});
+
 recipesRouter.post('/recipes', async (req, res): Promise<void> => {
 	const payload = req.body as Partial<RecipeCreatePayload>;
 

@@ -13,7 +13,13 @@ describe('Recipes', () => {
 	let component: Recipes;
 	let fixture: ComponentFixture<Recipes>;
 	let requestedUsername: string | null;
+	let requestedPublicSearch: string | null;
+	let savedRecipeRequest: {
+		recipeId: number;
+		username: string;
+	} | null;
 	let recipesResponse: Recipe[];
+	let publicRecipesResponse: Recipe[];
 	let updatedRecipePayload: unknown;
 	let authServiceMock: {
 		currentUser: ReturnType<typeof signal<User | null>>
@@ -21,12 +27,20 @@ describe('Recipes', () => {
 
 	beforeEach(async () => {
 		requestedUsername = null;
+		requestedPublicSearch = null;
+		savedRecipeRequest = null;
 		recipesResponse = [];
+		publicRecipesResponse = [];
 		updatedRecipePayload = null;
 
 		authServiceMock = { currentUser: signal<User | null>(null) };
 		let recipeServiceMock: {
 			getRecipesByAuthorUsername: (username: string) => Observable<Recipe[]>;
+			getPublicRecipes: (searchTerm: string) => Observable<Recipe[]>;
+			savePublicRecipe: (recipeId: number, username: string) => Observable<{
+				id: number,
+				saved: boolean
+			}>;
 			getRawRecipes: () => Observable<Array<{
 				id: number;
 				name: string;
@@ -49,6 +63,14 @@ describe('Recipes', () => {
 			getRecipesByAuthorUsername: (username: string) => {
 				requestedUsername = username;
 				return of(recipesResponse);
+			},
+			getPublicRecipes: (searchTerm: string) => {
+				requestedPublicSearch = searchTerm;
+				return of(publicRecipesResponse);
+			},
+			savePublicRecipe: (recipeId: number, username: string) => {
+				savedRecipeRequest = { recipeId, username };
+				return of({ id: recipeId, saved: true });
 			},
 			getRawRecipes: () => of([]),
 			createRecipe: () => of({ id: 1 }),
@@ -95,7 +117,8 @@ describe('Recipes', () => {
 				image: undefined,
 				mealTypes: ['dinner'],
 				visibility: 'private',
-				author: 1
+				author: 1,
+				isOwnedByUser: true
 			}
 		];
 
@@ -103,7 +126,76 @@ describe('Recipes', () => {
 		fixture.detectChanges();
 
 		expect(requestedUsername).toBe('alice');
+		expect(requestedPublicSearch).toBeNull();
 		expect(fixture.nativeElement.textContent).toContain('Pasta');
+	});
+
+	it('searches public recipes when search input has text', () => {
+		recipesResponse = [
+			{
+				id: 1,
+				name: 'My Pasta',
+				description: 'Private one',
+				image: undefined,
+				mealTypes: ['dinner'],
+				visibility: 'private',
+				author: 1
+			}
+		];
+		publicRecipesResponse = [
+			{
+				id: 2,
+				name: 'Public Pasta Salad',
+				description: 'Fresh',
+				image: undefined,
+				mealTypes: ['lunch'],
+				visibility: 'public',
+				author: 2
+			}
+		];
+
+		authServiceMock.currentUser.set({ username: 'alice' });
+		fixture.detectChanges();
+
+		const searchInput = fixture.nativeElement.querySelector('#recipe-search') as HTMLInputElement;
+		searchInput.value = 'pasta';
+		searchInput.dispatchEvent(new Event('input'));
+		fixture.detectChanges();
+
+		expect(requestedPublicSearch).toBe('pasta');
+		expect(fixture.nativeElement.textContent).toContain('Public Pasta Salad');
+		expect(fixture.nativeElement.textContent).not.toContain('My Pasta');
+	});
+
+	it('saves a public recipe from search results', () => {
+		publicRecipesResponse = [
+			{
+				id: 2,
+				name: 'Public Pasta Salad',
+				description: 'Fresh',
+				image: undefined,
+				mealTypes: ['lunch'],
+				visibility: 'public',
+				author: 2,
+				authorUsername: 'bob',
+				isOwnedByUser: false,
+				isSavedByUser: false
+			}
+		];
+
+		authServiceMock.currentUser.set({ username: 'alice' });
+		fixture.detectChanges();
+
+		const searchInput = fixture.nativeElement.querySelector('#recipe-search') as HTMLInputElement;
+		searchInput.value = 'pasta';
+		searchInput.dispatchEvent(new Event('input'));
+		fixture.detectChanges();
+
+		const saveButton = fixture.nativeElement.querySelector('.btn-save-tile') as HTMLButtonElement;
+		saveButton.click();
+		fixture.detectChanges();
+
+		expect(savedRecipeRequest).toEqual({ recipeId: 2, username: 'alice' });
 	});
 
 	it('opens the edit popup when a recipe is clicked', () => {
@@ -115,7 +207,8 @@ describe('Recipes', () => {
 				image: undefined,
 				mealTypes: ['dinner'],
 				visibility: 'private',
-				author: 1
+				author: 1,
+				isOwnedByUser: true
 			}
 		];
 
@@ -143,7 +236,8 @@ describe('Recipes', () => {
 				image: undefined,
 				mealTypes: ['dinner'],
 				visibility: 'private',
-				author: 1
+				author: 1,
+				isOwnedByUser: true
 			}
 		];
 

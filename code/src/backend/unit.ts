@@ -182,6 +182,18 @@ class DB {
 		);
 
 		connection.exec(
+			`create table if not exists SavedRecipe
+			 (
+				 user_id   integer not null,
+				 recipe_id integer not null,
+
+				 constraint pk_saved_recipe primary key (user_id, recipe_id),
+				 constraint fk_saved_recipe_user_id foreign key (user_id) references User (id) ON DELETE CASCADE,
+				 constraint fk_saved_recipe_recipe_id foreign key (recipe_id) references Recipe (id) ON DELETE CASCADE
+			 ) strict`
+		);
+
+		connection.exec(
 			`create table if not exists Meal
 			 (
 				 id          integer primary key autoincrement,
@@ -543,6 +555,24 @@ class DB {
 					constraint pk_meal_responsible_user primary key (meal_id, username),
 					constraint fk_meal_id foreign key (meal_id) references Meal (id) ON DELETE CASCADE,
 					constraint fk_username foreign key (username) references User (username) ON DELETE CASCADE
+				) strict
+			`);
+			}
+
+			const savedRecipeExists = connection.prepare(
+				`select name from sqlite_master where type = 'table' and name = 'SavedRecipe'`
+			).get();
+
+			if (!savedRecipeExists) {
+				connection.exec(`
+				create table if not exists SavedRecipe
+				(
+					user_id   integer not null,
+					recipe_id integer not null,
+
+					constraint pk_saved_recipe primary key (user_id, recipe_id),
+					constraint fk_saved_recipe_user_id foreign key (user_id) references User (id) ON DELETE CASCADE,
+					constraint fk_saved_recipe_recipe_id foreign key (recipe_id) references Recipe (id) ON DELETE CASCADE
 				) strict
 			`);
 			}
