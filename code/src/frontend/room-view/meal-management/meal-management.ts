@@ -70,7 +70,7 @@ export class MealManagement implements OnChanges {
 	protected readonly isViewMode: WritableSignal<boolean> = signal(true);
 
 	protected dish: string = '';
-	protected selectedValue: string = 'breakfast-0';
+	public selectedValue: string = 'breakfast-0';
 	protected selectedDate: Date | null = null;
 	protected selectedStartTime: Date | null = null;
 	protected selectedEndTime: Date | null = null;
@@ -83,23 +83,9 @@ export class MealManagement implements OnChanges {
 	protected availableRecipes: Recipe[] = [];
 	protected filteredRecipes: Recipe[] = [];
 	protected recipesLoadError: string = '';
-	dish: string = '';
-	selectedValue: string = 'breakfast-0';
-	selectedDate: Date | null = null;
-	selectedStartTime: Date | null = null;
-	selectedEndTime: Date | null = null;
-	minTime: Date = new Date(new Date().setHours(5, 0, 0, 0));
-	maxTime: Date = new Date(new Date().setHours(23, 0, 0, 0));
-	showError: boolean = false;
-	isSubmitting: boolean = false;
-	selectedRecipeIds: number[] = [];
-	recipeSearchTerm: string = '';
-	availableRecipes: Recipe[] = [];
-	filteredRecipes: Recipe[] = [];
-	recipesLoadError: string = '';
-	selectedResponsibleUsers: string[] = [];
-	availableRoomMembers: string[] = [];
-	roomMembersLoadError: string = '';
+	protected selectedResponsibleUsers: string[] = [];
+	protected availableRoomMembers: string[] = [];
+	protected roomMembersLoadError: string = '';
 
 	mealTypes: MealType[] = [
 		{
@@ -495,20 +481,40 @@ export class MealManagement implements OnChanges {
 	}
 
 	protected get formattedStartTime(): string {
-		if (!this.selectedStartTime) return '';
+		if (!this.selectedStartTime) {
+			return '';
+		}
+
 		const hours = this.selectedStartTime.getHours();
-		if (hours === 0) return '12am';
-		if (hours === 12) return '12pm';
+
+		if (hours === 0) {
+			return '12am';
+		}
+
+		if (hours === 12) {
+			return '12pm';
+		}
+
 		return hours < 12 ? `${hours}am` : `${hours - 12}pm`;
 	}
 
 	protected get formattedEndTime(): string {
-		if (!this.selectedEndTime) return '';
+		if (!this.selectedEndTime) {
+			return '';
+		}
+
 		const hours: number = this.selectedEndTime.getHours();
 		const minutes: number = this.selectedEndTime.getMinutes();
 		const mins: string = minutes > 0 ? `:${minutes.toString().padStart(2, '0')}` : '';
-		if (hours === 0) return `12${mins}am`;
-		if (hours === 12) return `12${mins}pm`;
+
+		if (hours === 0) {
+			return `12${mins}am`;
+		}
+
+		if (hours === 12) {
+			return `12${mins}pm`;
+		}
+
 		return hours < 12 ? `${hours}${mins}am` : `${hours - 12}${mins}pm`;
 	}
 }
