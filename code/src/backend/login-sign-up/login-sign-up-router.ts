@@ -97,9 +97,9 @@ loginSignUpRouter.get('/me', requireAuth, (req: AuthenticatedRequest, res) => {
 
 loginSignUpRouter.post('/logout', (req, res) => {
 	res.clearCookie('session', {
-		httpOnly: true,
-		secure: process.env['NODE_ENV'] === 'production',
-		sameSite: 'lax'
+		httpOnly: COOKIE_OPTIONS.httpOnly,
+		secure: COOKIE_OPTIONS.secure,
+		sameSite: COOKIE_OPTIONS.sameSite
 	});
 	return res.sendStatus(StatusCodes.OK);
 });
@@ -131,6 +131,9 @@ loginSignUpRouter.post('/signup', async (req, res) => {
 		if (!createdUser) {
 			return res.sendStatus(StatusCodes.INTERNAL_SERVER_ERROR);
 		}
+
+		const token = jwt.sign({ username: createdUser.username }, JWT_SECRET, { expiresIn: '7d' });
+		res.cookie('session', token, COOKIE_OPTIONS);
 
 		return res.status(StatusCodes.OK).json(publicUserFrom(createdUser));
 	} catch (e) {

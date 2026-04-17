@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import { loginSignUpRouter } from './login-sign-up/login-sign-up-router';
 import { roomViewRouter } from './room-view/room-view-router';
 import { mealManagementRouter } from './meal-management/meal-management-router';
@@ -30,6 +31,27 @@ export function createApiRouter() {
 
 export function createApiApp() {
 	const app = express();
+
+	app.use(cors({
+		origin: (origin, callback) => {
+			const allowedOrigins = [
+				'http://localhost:4200',
+				'http://localhost:3000',
+				'https://roomfood.onrender.com'
+			];
+
+			if (!origin || allowedOrigins.includes(origin)) {
+				callback(null, true);
+				return;
+			}
+
+			callback(new Error('Not allowed by CORS'));
+		},
+		credentials: true,
+		methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+		allowedHeaders: ['Content-Type', 'Authorization']
+	}));
+
 	app.use(express.json());
 	app.use(cookieParser());
 	// mount router under /api for standalone app
