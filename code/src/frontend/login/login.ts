@@ -23,7 +23,7 @@ export class Login {
 	public loginError: WritableSignal<String>= signal('');
 	private returnUrl = '/homepage';
 	protected signUpQueryParams: { returnUrl: string } | null = null;
-	public cookieService= inject(CookieService);
+	//public cookieService= inject(CookieService);
 
 	/*ngOnInit(): void {
 		const token = this.cookieService.get('auth_token');
@@ -47,7 +47,7 @@ export class Login {
 			const credentials: LoginCredentials = { identifier, password };
 			this.authService.login(credentials, this.returnUrl);
 			this.loginError = this.authService.loginError;
-			this.cookieService.set('auth_token', this.title, 7, '/');
+			//this.cookieService.set('auth_token', this.title, 7, '/');
 		} else {
 			this.loginForm.markAllAsTouched();
 			console.log('Form is invalid');

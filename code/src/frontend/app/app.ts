@@ -12,12 +12,10 @@ import {AuthService} from '../core/auth-service';
 	],
 	styleUrl: './app.scss'
 })
-export class App /*implements OnInit*/ {
-	// UNCOMMENT IN CASE EVERYTHING BROKE
-	//
-	/*private authService = inject(AuthService);
+export class App implements OnInit {
+	private authService = inject(AuthService);
 
 	ngOnInit(): void {
 		this.authService.restoreSession();
-	}*/
+	}
 }

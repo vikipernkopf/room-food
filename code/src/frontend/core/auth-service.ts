@@ -1,55 +1,41 @@
-// noinspection GrazieInspection
-
-import {inject, Injectable, signal, WritableSignal} from '@angular/core';
+import { inject, Injectable, signal, WritableSignal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
 import { LoginCredentials, PublicProfile, SignUpCredentials, UpdateProfilePayload, User } from '../../backend/model';
 import { Observable, tap } from 'rxjs';
-import {CookieService} from 'ngx-cookie-service';
 
 function getApiBase(): string {
-  // Runtime override: window.__API_URL can be injected into the page (e.g. by a script
-  // in index.html) so the deployed static site can point to any backend without rebuild.
-  const win = typeof window !== 'undefined' ? (window as any) : undefined;
-  const runtime = win && (win.__API_URL || win.API_URL);
-  return runtime || environment.apiUrl || '/api';
+	const win = typeof window !== 'undefined' ? (window as any) : undefined;
+	const runtime = win && (win.__API_URL || win.API_URL);
+	return runtime || environment.apiUrl || '/api';
 }
 
 @Injectable({
-  providedIn: 'root',
+	providedIn: 'root',
 })
-// IN CASE OF EXTREME PANIC AND SCARYNESS UNCOMMENT ALL THE COMMENTS AND LIE TO THE CUSTOMER
 export class AuthService {
 	private apiBase = getApiBase();
-	constructor(private http: HttpClient, private router: Router) {}
+	private http = inject(HttpClient);
+	private router = inject(Router);
+
 	public readonly currentUser: WritableSignal<User | null> = signal(null);
 	public readonly loginError: WritableSignal<string> = signal('');
 	public readonly signUpError: WritableSignal<string> = signal('');
 
-	/*public cookieService= inject(CookieService);
-
+	// Called once on app startup — reads the httpOnly cookie via /me
 	restoreSession(): void {
-		const username = this.cookieService.get('auth_token');
-		console.log('restoring session for:', username); // check this prints the username
-		if (username) {
-			this.http.get<User>(`${this.apiBase}/me`, { params: { username } }).subscribe({
-				next: (user) => this.currentUser.set(user),
-				error: () => this.cookieService.delete('auth_token', '/')
-			});
-		}
-	}*/
+		this.http.get<User>(`${this.apiBase}/me`, { withCredentials: true }).subscribe({
+			next: (user) => this.currentUser.set(user),
+			error: () => this.currentUser.set(null) // no valid session, that's fine
+		});
+	}
 
 	login(credentials: LoginCredentials, returnUrl: string = '/homepage') {
-		console.log("Logging in at endpoint:", `${this.apiBase}/login`);
-
-		this.http.post<User>(`${this.apiBase}/login`, credentials).subscribe({
+		this.http.post<User>(`${this.apiBase}/login`, credentials, { withCredentials: true }).subscribe({
 			next: (user) => {
-				console.log('Login successful for:', user.username);
 				this.currentUser.set(user);
 				this.loginError.set('');
-				//this.cookieService.set('auth_token', user.username, 7, '/');
-				// noinspection JSIgnoredPromiseFromCall
 				this.router.navigateByUrl(returnUrl);
 			},
 			error: (err) => {
@@ -61,21 +47,12 @@ export class AuthService {
 			}
 		});
 	}
-	deleteUser(credentials: LoginCredentials): Observable<User> {
-		return this.http.delete<User>(`${this.apiBase}/delete`, { body: credentials }).pipe(
-			tap((user) => {
-				console.log(`User ${user.username} deleted successfully`);
-				this.logout();
-			})
-		);
-	}
+
 	signUp(credentials: SignUpCredentials, returnUrl: string = '/homepage') {
-		this.http.post<User>(`${this.apiBase}/signup`, credentials).subscribe({
+		this.http.post<User>(`${this.apiBase}/signup`, credentials, { withCredentials: true }).subscribe({
 			next: (user) => {
-				console.log('Sign up successful for:', user);
 				this.currentUser.set(user);
 				this.signUpError.set('');
-				// noinspection JSIgnoredPromiseFromCall
 				this.router.navigateByUrl(returnUrl);
 			},
 			error: (err) => {
@@ -96,18 +73,37 @@ export class AuthService {
 	}
 
 	logout() {
-		this.currentUser.set(null);
-		console.log("User logged out");
-		//this.cookieService.delete('auth_token', '/');
-		this.router.navigate(['/homepage']);
+		this.http.post(`${this.apiBase}/logout`, {}, { withCredentials: true }).subscribe({
+			next: () => {
+				this.currentUser.set(null);
+				this.router.navigate(['/homepage']);
+			},
+			error: () => {
+				// Clear local state even if the request fails
+				this.currentUser.set(null);
+				this.router.navigate(['/homepage']);
+			}
+		});
+	}
+
+	deleteUser(credentials: LoginCredentials): Observable<User> {
+		return this.http.delete<User>(`${this.apiBase}/delete`, {
+			body: credentials,
+			withCredentials: true
+		}).pipe(
+			tap((user) => {
+				console.log(`User ${user.username} deleted successfully`);
+				this.logout();
+			})
+		);
 	}
 
 	getPublicProfile(username: string): Observable<PublicProfile> {
-		return this.http.get<PublicProfile>(`${this.apiBase}/users/${username}`);
+		return this.http.get<PublicProfile>(`${this.apiBase}/users/${username}`, { withCredentials: true });
 	}
 
 	updateProfile(username: string, payload: UpdateProfilePayload): Observable<User> {
-		return this.http.put<User>(`${this.apiBase}/users/${username}`, payload).pipe(
+		return this.http.put<User>(`${this.apiBase}/users/${username}`, payload, { withCredentials: true }).pipe(
 			tap((updatedUser) => {
 				const existing = this.currentUser();
 				if (existing?.username === updatedUser.username) {
