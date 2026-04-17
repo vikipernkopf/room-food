@@ -110,7 +110,8 @@ export class Calendar implements OnInit {
 		this.renderWeek();
 	}
 
-	protected loadMeals() {
+	async loadMeals() {
+		await new Promise(f => setTimeout(f, 40));
 		const user = this.authService.currentUser();
 
 		if (!user) {
