@@ -25,6 +25,17 @@
 
 			@if (userRole()===Role.Owner || userRole()===Role.Admin) {
 				<button mat-stroked-button class="accept-btn" (click)="editRoom()">Edit Room</button>
+				@if (isPopupVisible()) {
+					<div class="popup-overlay">
+						<div class="popup-content">
+							<app-edit-room
+								[roomCode]="roomCode()"
+								[initialName]="roomName()"
+								(close)="closePopup($event)">
+							</app-edit-room>
+						</div>
+					</div>
+				}
 			}
 
 		</div>
@@ -42,7 +53,26 @@
 					<div class="member-item">
 						<div class="member-info">
 							<span class="member-username">{{member.username}}</span>
-							<span class="member-role">{{member.role}}</span>
+							@if (userRole() === Role.Owner && member.username !== currentUser()?.username) {
+								<button mat-button [matMenuTriggerFor]="roleMenu" class="role-dropdown-btn">
+									{{member.role}} <span class="arrow-down">▼</span>
+								</button>
+
+								<mat-menu #roleMenu="matMenu" class="custom-role-menu">
+									<button mat-menu-item
+											(click)="updateRole(member.username, Role.Member)"
+											[disabled]="member.role === Role.Member">
+										<span>Member</span>
+									</button>
+									<button mat-menu-item
+											(click)="updateRole(member.username, Role.Admin)"
+											[disabled]="member.role === Role.Admin">
+										<span>Admin</span>
+									</button>
+								</mat-menu>
+							} @else {
+								<span class="member-role">{{member.role}}</span>
+							}
 						</div>
 						@if (userRole()===Role.Admin && member.role===Role.Member ||
 							userRole()===Role.Owner && member.role!==Role.Owner)

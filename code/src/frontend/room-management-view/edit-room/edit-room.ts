@@ -1,4 +1,4 @@
-import {Component, inject, OnInit, DestroyRef} from '@angular/core';
+import {Component, inject, OnInit, DestroyRef, input, output} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {ReactiveFormsModule, FormControl, FormGroup, Validators} from '@angular/forms';
 import {ActivatedRoute, Router} from '@angular/router';
@@ -24,15 +24,19 @@ export class EditRoom implements OnInit {
 	private route = inject(ActivatedRoute);
 	private router = inject(Router);
 	private destroyRef = inject(DestroyRef);
-
 	private hasRedirected = false;
 	private lastProcessedCode: string = '';
+	public roomCodeInput = input.required<string>({ alias: 'roomCode' });
+	public initialName = input<string>('');
+	protected close = output<boolean>();
 
 	constructor() {
 		this.editForm = new FormGroup({
 			roomName: new FormControl('', [Validators.required, Validators.maxLength(100)]),
 			pfp: new FormControl('', [Validators.maxLength(1000)])
 		});
+
+		this.editForm.patchValue({ roomName: this.initialName() });
 	}
 
 	ngOnInit(): void {
@@ -160,8 +164,7 @@ export class EditRoom implements OnInit {
 		try {
 			const result = await firstValueFrom(this.roomService.editRoom(this.roomCode, current.username, roomName, pfp));
 			if (result?.success) {
-				// navigate back to room management
-				this.router.navigate([`/manage/${this.roomCode}`]);
+				this.close.emit(true);
 			} else {
 				this.submitError = result?.message ?? 'Failed to save changes';
 			}
@@ -180,6 +183,6 @@ export class EditRoom implements OnInit {
 	}
 
 	onCancel() {
-		this.router.navigate([`/room/${this.roomCode}/manage`]);
+		this.close.emit(false);
 	}
 }
