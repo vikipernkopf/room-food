@@ -4,6 +4,9 @@ import {LoginSignUpService} from "./login-sign-up-service";
 import {StatusCodes} from "http-status-codes";
 import {PublicProfile, SignUpCredentials, UpdateProfilePayload, User} from "../model";
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import { requireAuth, AuthenticatedRequest } from '../auth-middleware';
+import { JWT_SECRET, COOKIE_OPTIONS } from '../../config'
 
 const SALT_ROUNDS = 12;
 
@@ -13,7 +16,7 @@ const DEFAULT_PROFILE_PICTURE =
 export const loginSignUpRouter = express.Router();
 
 // Admin endpoint to list users (returns usernames only). No token required per request.
-loginSignUpRouter.get('/admin/users', (req, res) => {
+loginSignUpRouter.get('/admin/users', requireAuth, (req, res) => {
 	const unit = new Unit(true);
 	try {
 		const svc = new LoginSignUpService(unit);
@@ -59,8 +62,11 @@ loginSignUpRouter.post('/login', async (req, res) => {
 			unit.complete(false);
 			return res.sendStatus(StatusCodes.UNAUTHORIZED);
 		}
+		// Remove the top-level const, and inside /login and /me handlers use:
+		const token = jwt.sign({ username: user.username }, JWT_SECRET, { expiresIn: '7d' });
 
 		unit.complete(true);
+		res.cookie('session', token, COOKIE_OPTIONS);
 		return res.status(StatusCodes.OK).json(publicUserFrom(user));
 	} catch (e) {
 		console.error(e);
@@ -68,6 +74,36 @@ loginSignUpRouter.post('/login', async (req, res) => {
 		return res.sendStatus(StatusCodes.INTERNAL_SERVER_ERROR);
 	}
 });
+
+loginSignUpRouter.get('/me', requireAuth, (req: AuthenticatedRequest, res) => {
+	const username = req.authenticatedUsername; // already verified by requireAuth
+
+	if (!username) {
+		return res.sendStatus(StatusCodes.UNAUTHORIZED);
+	}
+
+	const unit = new Unit(true);
+	try {
+		const svc = new LoginSignUpService(unit);
+		const user = svc.getUserByUsername(username);
+		unit.complete();
+		if (!user) return res.sendStatus(StatusCodes.NOT_FOUND);
+		return res.status(StatusCodes.OK).json(publicUserFrom(user));
+	} catch (e) {
+		unit.complete(false);
+		return res.sendStatus(StatusCodes.INTERNAL_SERVER_ERROR);
+	}
+});
+
+loginSignUpRouter.post('/logout', (req, res) => {
+	res.clearCookie('session', {
+		httpOnly: true,
+		secure: process.env['NODE_ENV'] === 'production',
+		sameSite: 'lax'
+	});
+	return res.sendStatus(StatusCodes.OK);
+});
+
 loginSignUpRouter.post('/signup', async (req, res) => {
 	const signUpPayload = parseSignUpPayload(req.body);
 	if (!signUpPayload) {
@@ -113,7 +149,7 @@ loginSignUpRouter.post('/signup', async (req, res) => {
 	}
 })
 
-loginSignUpRouter.delete('/delete', (req, res) => {
+loginSignUpRouter.delete('/delete', requireAuth, (req, res) => {
 	const identifierRaw = req.body?.identifier ?? req.body?.username ?? req.body?.email;
 	if (!identifierRaw) {
 		console.log('Invalid identifierRaw');
@@ -144,8 +180,8 @@ loginSignUpRouter.delete('/delete', (req, res) => {
 	}
 })
 
-loginSignUpRouter.get('/users/:username', (req, res) => {
-	const username = (req.params.username ?? '').trim();
+loginSignUpRouter.get('/users/:username', requireAuth, (req, res) => {
+	const username = (req.params['username'] as string ?? '').trim();
 	if (!username) {
 		return res.sendStatus(StatusCodes.BAD_REQUEST);
 	}
@@ -168,8 +204,8 @@ loginSignUpRouter.get('/users/:username', (req, res) => {
 	}
 });
 
-loginSignUpRouter.put('/users/:username', async (req, res) => {
-	const username = (req.params.username ?? '').trim();
+loginSignUpRouter.put('/users/:username', requireAuth, async (req, res) => {
+	const username = (req.params['username'] as string ?? '').trim();
 	console.log('Profile update requested for:', username);
 	if (!username) {
 		console.log('Profile update failed: missing username');

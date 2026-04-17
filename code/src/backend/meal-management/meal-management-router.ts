@@ -19,15 +19,30 @@ function normalizeRecipeIds(recipeIds: unknown): number[] | null {
 	return Array.from(new Set(filteredRecipeIds));
 }
 
+function normalizeResponsibleUsers(responsibleUsers: unknown): string[] | null {
+	if (responsibleUsers === undefined) {
+		return [];
+	}
+
+	if (!Array.isArray(responsibleUsers)) {
+		return null;
+	}
+
+	const filteredUsers = responsibleUsers.filter(user => typeof user === 'string' && user.trim().length > 0) as string[];
+	return Array.from(new Set(filteredUsers));
+}
+
 mealManagementRouter.post('/meal', async (req, res): Promise<void> => {
 	const {
 		time,
 		endTime,
 		name,
+		mealType,
 		room,
 		responsible
 	} = req.body;
 	const recipeIds = normalizeRecipeIds(req.body?.recipeIds);
+	const responsibleUsers = normalizeResponsibleUsers(req.body?.responsibleUsers);
 
 	if (recipeIds === null) {
 		res.status(StatusCodes.BAD_REQUEST).json({ error: 'recipeIds must be an array of numeric ids' });
@@ -35,7 +50,13 @@ mealManagementRouter.post('/meal', async (req, res): Promise<void> => {
 		return;
 	}
 
-	if (!time || !endTime || !name || !room || !responsible) {
+	if (responsibleUsers === null) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'responsibleUsers must be an array of usernames' });
+
+		return;
+	}
+
+	if (!time || !endTime || !name || !mealType || !room || !responsible) {
 		res.status(StatusCodes.BAD_REQUEST).json();
 		console.log('Missing required fields');
 
@@ -48,8 +69,10 @@ mealManagementRouter.post('/meal', async (req, res): Promise<void> => {
 			time: new Date(time),
 			endTime: new Date(endTime),
 			name,
+			mealType,
 			room,
 			responsible,
+			responsibleUsers,
 			recipeIds
 		} as Meal;
 
@@ -130,8 +153,15 @@ mealManagementRouter.put('/meal/:id', async (req, res): Promise<void> => {
 		return;
 	}
 
+	const responsibleUsers = normalizeResponsibleUsers(updatedMeal?.responsibleUsers);
+	if (responsibleUsers === null) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'updatedMeal.responsibleUsers must be an array of usernames' });
+
+		return;
+	}
+
 	const requiredUpdated =
-		updatedMeal.time && updatedMeal.endTime && updatedMeal.name && updatedMeal.room && updatedMeal.responsible;
+		updatedMeal.time && updatedMeal.endTime && updatedMeal.name && updatedMeal.mealType && updatedMeal.room && updatedMeal.responsible;
 
 	if (!requiredUpdated) {
 		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Missing required meal fields' });
@@ -147,8 +177,10 @@ mealManagementRouter.put('/meal/:id', async (req, res): Promise<void> => {
 			time: new Date(updatedMeal.time),
 			endTime: new Date(updatedMeal.endTime),
 			name: updatedMeal.name,
+			mealType: updatedMeal.mealType,
 			room: updatedMeal.room,
 			responsible: updatedMeal.responsible,
+			responsibleUsers,
 			recipeIds
 		} as Meal;
 

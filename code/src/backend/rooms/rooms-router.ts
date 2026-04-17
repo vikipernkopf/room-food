@@ -373,3 +373,35 @@ roomsRouter.delete('/room/:code', async (req, res): Promise<void> => {
 		console.error('Error deleting room:', error);
 	}
 });
+
+roomsRouter.put('/room/:code/update-role', async (req, res): Promise<void> => {
+	const { code } = req.params;
+	const { member, newRole, enacter } = req.body;
+
+	if(!code || !member || !newRole || !enacter) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Missing required fields' });
+		return;
+	}
+
+	const unit = new Unit(false);
+	try {
+		const roomsService = new RoomsService(unit);
+		const result = roomsService.updateMemberRole(code, member, newRole, enacter);
+
+		if(result === true){
+			unit.complete(true);
+			res.status(StatusCodes.OK).json({ success: true });
+			console.log(`Role updated: ${member} is now ${newRole} (by ${enacter})`);
+		} else if(result === 'unauthorized'){
+			unit.complete(false);
+			res.status(StatusCodes.FORBIDDEN).json({ error: 'Only owners can change roles' });
+		} else {
+			unit.complete(false);
+			res.status(StatusCodes.NOT_FOUND).json({ error: 'User or Room not found' });
+		}
+	} catch (error){
+		unit.complete(false);
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to update role' });
+		console.error('Error updating role:', error);
+	}
+})

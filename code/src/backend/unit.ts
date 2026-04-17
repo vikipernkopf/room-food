@@ -188,10 +188,23 @@ class DB {
 				 time        text not null,
 				 endTime	 text not null,
 				 name        text,
+				 mealType    text not null default 'breakfast-0',
 				 responsible text,
 				 roomCode    text not null,
 				 constraint fk_responsible foreign key (responsible) REFERENCES User (username) ON DELETE CASCADE
 
+			 ) strict`
+		);
+
+		connection.exec(
+			`create table if not exists MealResponsibleUser
+			 (
+				 meal_id  integer not null,
+				 username text    not null,
+
+				 constraint pk_meal_responsible_user primary key (meal_id, username),
+				 constraint fk_meal_id foreign key (meal_id) references Meal (id) ON DELETE CASCADE,
+				 constraint fk_username foreign key (username) references User (username) ON DELETE CASCADE
 			 ) strict`
 		);
 
@@ -263,6 +276,10 @@ class DB {
 		if (!existingColumns.has('endTime')) {
 			connection.exec(`alter table Meal add column endTime text;`);
 		}
+
+		if (!existingColumns.has('mealType')) {
+			connection.exec(`alter table Meal add column mealType text not null default 'breakfast-0';`);
+		}
 	}
 
 	private static migrateRecipeAndMealTables(connection: BetterSqlite3.Database): void {
@@ -323,14 +340,20 @@ class DB {
 				(
 					id          integer primary key autoincrement,
 					time        text not null,
+					endTime     text,
 					name        text,
+					mealType    text not null default 'breakfast-0',
 					responsible text,
 					roomCode    text not null,
 					constraint fk_responsible foreign key (responsible) REFERENCES User (username) ON DELETE CASCADE
 				) strict;
 
 				insert into Meal(id, time, name, responsible, roomCode)
-				select id, time, name, responsible, roomCode
+				select id,
+				       time,
+				       name,
+				       responsible,
+				       roomCode
 				from Meal_legacy;
 
 				drop table Meal_legacy;
@@ -504,6 +527,26 @@ class DB {
 				) strict
 			`);
 			}
+
+			// Ensure MealResponsibleUser table exists
+			const mealResponsibleUserExists = connection.prepare(
+				`select name from sqlite_master where type = 'table' and name = 'MealResponsibleUser'`
+			).get();
+
+			if (!mealResponsibleUserExists) {
+				connection.exec(`
+				create table if not exists MealResponsibleUser
+				(
+					meal_id  integer not null,
+					username text    not null,
+
+					constraint pk_meal_responsible_user primary key (meal_id, username),
+					constraint fk_meal_id foreign key (meal_id) references Meal (id) ON DELETE CASCADE,
+					constraint fk_username foreign key (username) references User (username) ON DELETE CASCADE
+				) strict
+			`);
+			}
+
 			console.log('Database schema migration check completed');
 		} finally {
 			connection.pragma('foreign_keys = ON');

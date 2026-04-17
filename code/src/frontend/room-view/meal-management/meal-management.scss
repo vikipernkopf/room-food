@@ -355,6 +355,11 @@ section {
 		margin-left: -0.9rem !important;
 	}
 
+	.responsible-panel {
+		margin-top: 0.8rem !important;
+		margin-left: -0.9rem !important;
+	}
+
 	.mat-mdc-select-panel .mdc-list {
 		border-radius: inherit;
 		overflow: hidden;
@@ -494,6 +499,34 @@ section {
 
 	.recipe-panel .recipe-empty-option .mat-pseudo-checkbox {
 		display: none !important;
+	}
+
+	/* Responsible users selector: checkbox style matching recipes. */
+	.responsible-panel .mat-mdc-option.mdc-list-item--selected:not(.mdc-list-item--disabled),
+	.responsible-panel .mat-mdc-option[aria-selected="true"]:not(.mdc-list-item--disabled) {
+		background-color: $color-white !important;
+		color: $color-text-main !important;
+	}
+
+	.responsible-panel .mat-pseudo-checkbox {
+		border: 1px solid $color-light-gray !important;
+		border-radius: 4px;
+		background-color: $color-white !important;
+	}
+
+	.responsible-panel .mat-pseudo-checkbox.mat-pseudo-checkbox-checked,
+	.responsible-panel .mat-pseudo-checkbox.mat-pseudo-checkbox-indeterminate {
+		background-color: $color-orange-2 !important;
+		border-color: $color-orange-2 !important;
+		color: $color-white !important;
+	}
+
+	/* Keep hover row color consistent between recipe and responsible selectors. */
+	.recipe-panel .mat-mdc-option.mat-mdc-option-active:not(.mdc-list-item--disabled),
+	.recipe-panel .mat-mdc-option:hover:not(.mdc-list-item--disabled),
+	.responsible-panel .mat-mdc-option.mat-mdc-option-active:not(.mdc-list-item--disabled),
+	.responsible-panel .mat-mdc-option:hover:not(.mdc-list-item--disabled) {
+		background-color: $color-orange-2-overlay-12 !important;
 	}
 
 	.mat-mdc-option.mat-mdc-option-active:not(.mdc-list-item--disabled),

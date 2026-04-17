@@ -44,12 +44,13 @@ export class MealManagementService extends ServiceBase {
 
 		[success, id] = this.executeStmt(
 			this.unit.prepare(`
-				insert into Meal(time, endTime, name, responsible, roomCode)
-				values (:t, :et, :n, :rs, :rc)
+				insert into Meal(time, endTime, name, mealType, responsible, roomCode)
+				values (:t, :et, :n, :mt, :rs, :rc)
 			`, {
 				t: meal.time.toISOString(),
 				et: meal.endTime.toISOString(),
 				n: meal.name,
+				mt: meal.mealType,
 				rs: meal.responsible,
 				rc: meal.room
 			})
@@ -60,6 +61,10 @@ export class MealManagementService extends ServiceBase {
 		}
 
 		if (!this.replaceMealRecipes(id, recipeIds)) {
+			return 'error';
+		}
+
+		if (!this.replaceMealResponsibleUsers(id, meal.responsibleUsers)) {
 			return 'error';
 		}
 
@@ -125,6 +130,7 @@ export class MealManagementService extends ServiceBase {
 				 set time=:newTime,
 				     endTime=:newEndTime,
 				     name=:newName,
+				     mealType=:newMealType,
 				     responsible=:newResponsible,
 				     roomCode=:newRoom
 				 where id = :mealId`,
@@ -132,9 +138,10 @@ export class MealManagementService extends ServiceBase {
 					newTime: updatedMeal.time.toISOString(),
 					newEndTime: updatedMeal.endTime.toISOString(),
 					newName: updatedMeal.name,
+					newMealType: updatedMeal.mealType,
 					newResponsible: updatedMeal.responsible,
 					newRoom: updatedMeal.room,
-					mealId: mealId
+					mealId
 				}
 			)
 		);
@@ -144,6 +151,10 @@ export class MealManagementService extends ServiceBase {
 		}
 
 		if (!this.replaceMealRecipes(mealId, recipeIds)) {
+			return 'error';
+		}
+
+		if (!this.replaceMealResponsibleUsers(mealId, updatedMeal.responsibleUsers)) {
 			return 'error';
 		}
 
@@ -158,7 +169,13 @@ export class MealManagementService extends ServiceBase {
 	 */
 	public getMealsForUser(username: string): Meal[] {
 		const fetch = this.unit.prepare(`
-			select m.id, m.time, m.endTime, m.name, m.roomCode, m.responsible
+			select m.id,
+			       m.time,
+			       m.endTime,
+			       m.name,
+			       coalesce(m.mealType, 'breakfast-0') as mealType,
+			       m.roomCode,
+			       m.responsible
 			from Meal m
 			where m.responsible = :n
 		`, { n: username }).all() as {
@@ -166,6 +183,7 @@ export class MealManagementService extends ServiceBase {
 			endTime: string,
 			id: number,
 			name: string,
+			mealType: string,
 			roomCode: string,
 			responsible: string
 		}[];
@@ -183,9 +201,11 @@ export class MealManagementService extends ServiceBase {
 				time: date,
 				endTime: new Date(Date.parse(e.endTime)),
 				name: e.name,
+				mealType: e.mealType,
 				responsible: e.responsible,
 				room: e.roomCode,
-				recipeIds: this.getRecipeIdsForMeal(e.id)
+				recipeIds: this.getRecipeIdsForMeal(e.id),
+				responsibleUsers: this.getResponsibleUsersForMeal(e.id)
 			});
 		});
 
@@ -219,7 +239,13 @@ export class MealManagementService extends ServiceBase {
 	 */
 	public getMealsForRoom(roomCode: string): Meal[] {
 		const fetch = this.unit.prepare(`
-			select m.id, m.time, m.endTime, m.name, m.roomCode, m.responsible
+			select m.id,
+			       m.time,
+			       m.endTime,
+			       m.name,
+			       coalesce(m.mealType, 'breakfast-0') as mealType,
+			       m.roomCode,
+			       m.responsible
 			from Meal m
 			where m.roomCode = :c
 		`, { c: roomCode }).all() as {
@@ -227,6 +253,7 @@ export class MealManagementService extends ServiceBase {
 			endTime: string,
 			id: number,
 			name: string,
+			mealType: string,
 			roomCode: string,
 			responsible: string
 		}[];
@@ -244,9 +271,11 @@ export class MealManagementService extends ServiceBase {
 				time: date,
 				endTime: new Date(Date.parse(e.endTime)),
 				name: e.name,
+				mealType: e.mealType,
 				responsible: e.responsible,
 				room: e.roomCode,
-				recipeIds: this.getRecipeIdsForMeal(e.id)
+				recipeIds: this.getRecipeIdsForMeal(e.id),
+				responsibleUsers: this.getResponsibleUsersForMeal(e.id)
 			});
 		});
 
@@ -370,5 +399,61 @@ export class MealManagementService extends ServiceBase {
 		}
 
 		return id;
+	}
+
+	private replaceMealResponsibleUsers(mealId: number, responsibleUsers?: string[]): boolean {
+		try {
+			this.unit.prepare(
+				`delete
+				 from MealResponsibleUser
+				 where meal_id = :mealId`,
+				{ mealId }
+			).run();
+
+			const normalizedUsers = responsibleUsers
+			?.filter(username => typeof username === 'string' && username.trim().length > 0)
+			?.map(username => username.trim()) ?? [];
+			const uniqueUsers = Array.from(new Set(normalizedUsers));
+
+			for (const username of uniqueUsers) {
+				try {
+					const result = this.unit.prepare(
+						`insert into MealResponsibleUser(meal_id, username)
+						 values (:mealId, :username)`,
+						{
+							mealId,
+							username
+						}
+					).run();
+
+					if (result.changes !== 1) {
+						console.warn(`Warning: Failed to insert responsible user ${username} for meal ${mealId}`);
+						// Continue with other users even if one fails
+					}
+				} catch (error) {
+					console.warn(`Warning: Error inserting responsible user ${username}:`, error);
+					// Continue with other users even if one fails
+				}
+			}
+
+			return true;
+		} catch (error) {
+			console.error('Error in replaceMealResponsibleUsers:', error);
+			return false;
+		}
+	}
+
+	private getResponsibleUsersForMeal(mealId: number): string[] {
+		const rows = this.unit.prepare<{
+			username: string
+		}>(
+			`select username
+			 from MealResponsibleUser
+			 where meal_id = :mealId
+			 order by username`,
+			{ mealId }
+		).all();
+
+		return rows.map(row => row.username);
 	}
 }

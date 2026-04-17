@@ -1,6 +1,6 @@
-import { ServiceBase } from '../service-base';
-import { Unit } from '../unit';
-import { LoginSignUpService } from '../login-sign-up/login-sign-up-service';
+import {ServiceBase} from '../service-base';
+import {Unit} from '../unit';
+import {LoginSignUpService} from '../login-sign-up/login-sign-up-service';
 import {Role} from '../model';
 
 export class RoomsService extends ServiceBase {
@@ -476,6 +476,32 @@ export class RoomsService extends ServiceBase {
 			if(!s) return false;
 			success = success && s;
 		}
+
+		return success;
+	}
+
+	public updateMemberRole(code: string, member: string, newRole: Role, enacter: string){
+		if (!this.checkRoomExists(code) || !this.checkUserRoomMember(member, code)) {
+			return false;
+		}
+
+		const enacterRole = this.checkRole(enacter, code);
+		if(enacterRole !== Role.Owner && enacterRole !== Role.Admin){
+			return 'unauthorized';
+		}
+
+		if(newRole === Role.Owner){
+			return 'unauthorized';
+		}
+
+		let success: boolean = true;
+		[success] = this.executeStmt(this.unit.prepare(
+			`UPDATE RoomUserMember SET role = :r WHERE username = :u AND room_code = :rc`, {
+				r: newRole.toString().toLowerCase(),
+				u: member,
+				rc: code
+			})
+		);
 
 		return success;
 	}

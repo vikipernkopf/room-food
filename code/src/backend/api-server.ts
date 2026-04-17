@@ -4,6 +4,8 @@ import { roomViewRouter } from './room-view/room-view-router';
 import { mealManagementRouter } from './meal-management/meal-management-router';
 import { roomsRouter } from './rooms/rooms-router';
 import { recipesRouter } from './recipes/recipes-router';
+import cookieParser from 'cookie-parser';
+import 'dotenv/config';
 
 declare global {
 	// noinspection ES6ConvertVarToLetConst,JSUnusedGlobalSymbols
@@ -29,7 +31,7 @@ export function createApiRouter() {
 export function createApiApp() {
 	const app = express();
 	app.use(express.json());
-
+	app.use(cookieParser());
 	// mount router under /api for standalone app
 	app.use('/api', createApiRouter());
 

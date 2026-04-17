@@ -1,5 +1,3 @@
-// noinspection GrazieInspection
-
 import {
 	ChangeDetectionStrategy,
 	ChangeDetectorRef,
@@ -25,6 +23,7 @@ import { Meal, Recipe, User } from '../../../backend/model';
 import { MealService } from '../../core/meal-service';
 import { RecipeService } from '../../core/recipe-service';
 import {DatePipe, TitleCasePipe} from '@angular/common';
+import { RoomService } from '../../core/room-service';
 
 interface MealType {
 	value: string;
@@ -84,6 +83,23 @@ export class MealManagement implements OnChanges {
 	protected availableRecipes: Recipe[] = [];
 	protected filteredRecipes: Recipe[] = [];
 	protected recipesLoadError: string = '';
+	dish: string = '';
+	selectedValue: string = 'breakfast-0';
+	selectedDate: Date | null = null;
+	selectedStartTime: Date | null = null;
+	selectedEndTime: Date | null = null;
+	minTime: Date = new Date(new Date().setHours(5, 0, 0, 0));
+	maxTime: Date = new Date(new Date().setHours(23, 0, 0, 0));
+	showError: boolean = false;
+	isSubmitting: boolean = false;
+	selectedRecipeIds: number[] = [];
+	recipeSearchTerm: string = '';
+	availableRecipes: Recipe[] = [];
+	filteredRecipes: Recipe[] = [];
+	recipesLoadError: string = '';
+	selectedResponsibleUsers: string[] = [];
+	availableRoomMembers: string[] = [];
+	roomMembersLoadError: string = '';
 
 	mealTypes: MealType[] = [
 		{
@@ -111,6 +127,7 @@ export class MealManagement implements OnChanges {
 		private authService: AuthService,
 		private mealService: MealService,
 		private recipeService: RecipeService,
+		private roomService: RoomService,
 		cdr?: ChangeDetectorRef
 	) {
 		this.currentUser = this.authService.currentUser;
@@ -120,8 +137,12 @@ export class MealManagement implements OnChanges {
 	ngOnChanges(changes: SimpleChanges): void {
 		if (changes['mealToEdit'] && this.mealToEdit) {
 			this.prefillFormFromInput();
-		} else if(changes['initialDate'] || changes['initialTime']) {
+		} else if (changes['initialDate'] || changes['initialTime']) {
 			this.applyInitialDateTime();
+		}
+
+		if (changes['roomCode'] && this.roomCode) {
+			this.loadRoomMembers();
 		}
 
 		this.loadRecipesForCurrentUser();
@@ -161,6 +182,7 @@ export class MealManagement implements OnChanges {
 			this.selectedStartTime = null;
 			this.selectedEndTime = null;
 			this.selectedRecipeIds = [];
+			this.selectedResponsibleUsers = [];
 			this.recipeSearchTerm = '';
 			this.isViewMode.set(false);
 			this.applyRecipeFilter();
@@ -170,10 +192,12 @@ export class MealManagement implements OnChanges {
 
 		const mealTime = new Date(this.mealToEdit.time as unknown as string);
 		this.dish = this.mealToEdit.name;
+		this.selectedValue = this.mealToEdit.mealType || 'breakfast-0';
 		this.selectedDate = mealTime;
 		this.selectedStartTime = new Date(this.mealToEdit.time);
 		this.selectedEndTime = new Date(this.mealToEdit.endTime);
 		this.selectedRecipeIds = this.normalizeRecipeIds(this.mealToEdit.recipeIds);
+		this.selectedResponsibleUsers = this.normalizeResponsibleUsers(this.mealToEdit.responsibleUsers);
 		this.recipeSearchTerm = '';
 		this.applyRecipeFilter();
 		this.requestViewUpdate();
@@ -195,6 +219,20 @@ export class MealManagement implements OnChanges {
 
 	public onRecipeSearchKeydown(event: KeyboardEvent): void {
 		event.stopPropagation();
+	}
+
+	public onResponsibleUsersChange(usernames: string[]): void {
+		this.selectedResponsibleUsers = this.normalizeResponsibleUsers(usernames);
+		this.clearErrors();
+		this.requestViewUpdate();
+	}
+
+	public getSelectedResponsibleUsersLabel(): string {
+		if (this.selectedResponsibleUsers.length === 0) {
+			return '';
+		}
+
+		return this.selectedResponsibleUsers.join(', ');
 	}
 
 	public getSelectedRecipeLabel(): string {
@@ -223,9 +261,9 @@ export class MealManagement implements OnChanges {
 
 		if (!normalizedSearchTerm) {
 			const selectedRecipes = this.availableRecipes
-				.filter(recipe => selectedRecipeIdSet.has(recipe.id));
+			.filter(recipe => selectedRecipeIdSet.has(recipe.id));
 			const unselectedRecipes = this.availableRecipes
-				.filter(recipe => !selectedRecipeIdSet.has(recipe.id));
+			.filter(recipe => !selectedRecipeIdSet.has(recipe.id));
 
 			this.filteredRecipes = [...selectedRecipes, ...unselectedRecipes];
 			return;
@@ -270,7 +308,7 @@ export class MealManagement implements OnChanges {
 				if (this.selectedRecipeIds.length > 0) {
 					const validRecipeIds = new Set(this.availableRecipes.map(recipe => recipe.id));
 					this.selectedRecipeIds = this.selectedRecipeIds
-						.filter(recipeId => validRecipeIds.has(recipeId));
+					.filter(recipeId => validRecipeIds.has(recipeId));
 				}
 				this.requestViewUpdate();
 			},
@@ -294,10 +332,44 @@ export class MealManagement implements OnChanges {
 		}
 
 		const normalizedRecipeIds = recipeIds
-			.map(recipeId => Number(recipeId))
-			.filter(recipeId => Number.isInteger(recipeId) && recipeId > 0);
+		.map(recipeId => Number(recipeId))
+		.filter(recipeId => Number.isInteger(recipeId) && recipeId > 0);
 
 		return Array.from(new Set(normalizedRecipeIds));
+	}
+
+	private normalizeResponsibleUsers(usernames: string[] | undefined): string[] {
+		if (!Array.isArray(usernames)) {
+			return [];
+		}
+
+		const normalizedUsernames = usernames
+		.map(username => String(username).trim())
+		.filter(username => username.length > 0);
+
+		return Array.from(new Set(normalizedUsernames));
+	}
+
+	private loadRoomMembers(): void {
+		if (!this.roomCode) {
+			this.availableRoomMembers = [];
+			this.roomMembersLoadError = '';
+			this.requestViewUpdate();
+			return;
+		}
+
+		this.roomService.getMembersPerRoom(this.roomCode).subscribe({
+			next: members => {
+				this.availableRoomMembers = members.map(m => m.username) || [];
+				this.roomMembersLoadError = '';
+				this.requestViewUpdate();
+			},
+			error: () => {
+				this.availableRoomMembers = [];
+				this.roomMembersLoadError = 'Failed to load room members.';
+				this.requestViewUpdate();
+			}
+		});
 	}
 
 	protected saveMeal(): void {
@@ -327,16 +399,18 @@ export class MealManagement implements OnChanges {
 			finalEndDate.setSeconds(0);
 			finalEndDate.setMilliseconds(0);
 
-			console.log("START STRING:", finalDate.toISOString());
-			console.log("END STRING:", finalEndDate.toISOString());
+			console.log('START STRING:', finalDate.toISOString());
+			console.log('END STRING:', finalEndDate.toISOString());
 
 			const newMeal: Meal = {
 				time: finalDate,
 				endTime: finalEndDate,
 				name: this.dish,
+				mealType: this.selectedValue,
 				responsible: currentUsername,
 				room: this.roomCode,
-				recipeIds: [...this.selectedRecipeIds]
+				recipeIds: [...this.selectedRecipeIds],
+				responsibleUsers: [...this.selectedResponsibleUsers]
 			};
 
 			const editMealId = this.mealToEdit?.id;
@@ -404,7 +478,7 @@ export class MealManagement implements OnChanges {
 	private applyInitialDateTime() {
 		this.clearErrors();
 
-		if(!this.isEditMode){
+		if (!this.isEditMode) {
 			this.selectedDate = this.initialDate;
 			this.selectedStartTime = this.initialTime;
 

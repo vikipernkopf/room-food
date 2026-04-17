@@ -2,6 +2,7 @@ import { Injectable, signal, WritableSignal } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import {Role} from '../../backend/model';
 
 function getApiBase(): string {
 	// Runtime override: window.__API_URL can be injected into the page (e.g. by a script
@@ -146,5 +147,23 @@ export class RoomService {
 		success: boolean
 	}> {
 		return this.removeMember(code, username, username);
+	}
+
+	public editRoom(code: string, enacter: string, roomName?: string | null, pfp?: string | null): Observable<{
+		success: boolean,
+		message?: string
+	}> {
+		const apiUrl = `${this.apiBase}/room/${code}`;
+		const payload: any = { enacter };
+		if (roomName !== undefined && roomName !== null) payload.roomName = roomName;
+		if (pfp !== undefined && pfp !== null) payload.pfp = pfp;
+		return this.http.put<{ success: boolean, message?: string }>(apiUrl, payload);
+	}
+
+	public updateMemberRole(code: string, member: string, newRole: Role, enacter: string): Observable<{
+		success: boolean
+	}> {
+		const apiUrl = `${this.apiBase}/room/${code}/update-role`;
+		return this.http.put<{success: boolean}>(apiUrl, { member, newRole, enacter });
 	}
 }

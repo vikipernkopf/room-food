@@ -12,7 +12,9 @@ import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
 import cors from 'cors';
 import { createApiRouter } from './api-server';
-
+import cookieParser from 'cookie-parser';
+import 'dotenv/config';
+console.log('JWT_SECRET from env:', process.env['JWT_SECRET']);
 if (typeof globalThis.__filename === 'undefined') {
   globalThis.__filename = fileURLToPath(import.meta.url);
 }
@@ -49,6 +51,8 @@ app.use(cors({
 	methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 	allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+app.use(cookieParser());
 
 // Don't apply express.json() globally — it consumes the request stream and prevents
 // the Angular SSR handler from constructing a fresh Request from the raw incoming
