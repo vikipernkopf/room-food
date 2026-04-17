@@ -183,7 +183,7 @@ loginSignUpRouter.delete('/delete', requireAuth, (req, res) => {
 	}
 })
 
-loginSignUpRouter.get('/users/:username', requireAuth, (req, res) => {
+loginSignUpRouter.get('/users/:username', (req, res) => {
 	const username = (req.params['username'] as string ?? '').trim();
 	if (!username) {
 		return res.sendStatus(StatusCodes.BAD_REQUEST);
