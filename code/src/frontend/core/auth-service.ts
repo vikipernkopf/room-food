@@ -86,13 +86,13 @@ export class AuthService {
 		});
 	}
 
-	deleteUser(credentials: LoginCredentials): Observable<User> {
-		return this.http.delete<User>(`${this.apiBase}/delete`, {
-			body: credentials,
+	deleteUser(credentials: LoginCredentials): Observable<void> {  // Backend returns 200, no body
+		return this.http.delete<void>(`${this.apiBase}/delete`, {
+			body: { identifier: credentials.identifier },  // Send only what's needed
 			withCredentials: true
 		}).pipe(
-			tap((user) => {
-				console.log(`User ${user.username} deleted successfully`);
+			tap(() => {
+				console.log(`User ${credentials.identifier} deleted successfully`);
 				this.logout();
 			})
 		);
