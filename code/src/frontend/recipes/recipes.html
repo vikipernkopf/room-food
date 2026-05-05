@@ -30,7 +30,7 @@
 					@if (recipe.isSavedByUser && !recipe.isOwnedByUser) {
 						<p class="recipe-saved-badge">Saved</p>
 					}
-					<p class="recipe-description">{{ getRecipeCardDescription(recipe) }}</p>
+					<!--<p class="recipe-description">{{ getRecipeCardDescription(recipe) }}</p>-->
 					@if (recipe.mealTypes.length) {
 						<div class="recipe-meal-types">
 							@for (mealType of recipe.mealTypes; track mealType) {
