@@ -15,10 +15,6 @@
 		<div id="navContent" class="navbar-menu" [class.is-collapsed]="isCollapsed()"
 			[class.is-open]="!isCollapsed() || isMenuOpen()">
 			<ul class="navbar-links">
-				<li class="nav-item">
-					<a class="nav-link" routerLink="/homepage" routerLinkActive="active"
-						[routerLinkActiveOptions]="{exact: true}" (click)="handleMenuItemClick()">Home</a>
-				</li>
 				@if (!isLoggedIn()) {
 					<li class="nav-item">
 						<a class="nav-link" routerLink="/login" routerLinkActive="active"
@@ -34,16 +30,20 @@
 					</li>
 				}
 				<li class="nav-item">
-					<a class="nav-link" [routerLink]="profileLink()" [queryParams]="profileQueryParams()"
-						routerLinkActive="active" (click)="handleMenuItemClick()">Profile</a>
-				</li>
-				<li class="nav-item">
 					<a class="nav-link" [routerLink]="myRoomsLink()" [queryParams]="myRoomsQueryParams()"
 						routerLinkActive="active" (click)="handleMenuItemClick()">My Rooms</a>
 				</li>
 				<li class="nav-item">
 					<a class="nav-link" [routerLink]="myRecipesLink()" [queryParams]="myRecipesQueryParams()"
-						routerLinkActive="active" (click)="handleMenuItemClick()">Recipes</a>
+						routerLinkActive="active" (click)="handleMenuItemClick()">My Recipes</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link" [routerLink]="overviewLink()" [queryParams]="overviewQueryParams()"
+						routerLinkActive="active" (click)="handleMenuItemClick()">Overview</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link" [routerLink]="profileLink()" [queryParams]="profileQueryParams()"
+						routerLinkActive="active" (click)="handleMenuItemClick()">Profile</a>
 				</li>
 			</ul>
 		</div>
@@ -58,10 +58,6 @@
 
 			<div class="navbar-menu is-open">
 				<ul class="navbar-links">
-					<li class="nav-item">
-						<a class="nav-link" routerLink="/homepage" routerLinkActive="active"
-							[routerLinkActiveOptions]="{exact: true}">Home</a>
-					</li>
 					@if (!isLoggedIn()) {
 						<li class="nav-item">
 							<a class="nav-link" routerLink="/login" routerLinkActive="active">Log in</a>
@@ -75,16 +71,20 @@
 						</li>
 					}
 					<li class="nav-item">
-						<a class="nav-link" [routerLink]="profileLink()" [queryParams]="profileQueryParams()"
-							routerLinkActive="active">Profile</a>
-					</li>
-					<li class="nav-item">
 						<a class="nav-link" [routerLink]="myRoomsLink()" [queryParams]="myRoomsQueryParams()"
 							routerLinkActive="active">My Rooms</a>
 					</li>
 					<li class="nav-item">
 						<a class="nav-link" [routerLink]="myRecipesLink()" [queryParams]="myRecipesQueryParams()"
-							routerLinkActive="active">Recipes</a>
+							routerLinkActive="active">My Recipes</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" [routerLink]="overviewLink()" [queryParams]="overviewQueryParams()"
+							routerLinkActive="active">Overview</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" [routerLink]="profileLink()" [queryParams]="profileQueryParams()"
+							routerLinkActive="active">Profile</a>
 					</li>
 				</ul>
 			</div>

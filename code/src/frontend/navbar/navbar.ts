@@ -39,6 +39,8 @@ export class Navbar implements AfterViewInit, OnDestroy {
 	protected readonly myRoomsQueryParams;
 	protected readonly myRecipesLink;
 	protected readonly myRecipesQueryParams;
+	protected readonly overviewLink;
+	protected readonly overviewQueryParams;
 	protected readonly isLoggedIn;
 	protected readonly isCollapsed = signal(false);
 	protected readonly isMenuOpen = signal(false);
@@ -82,6 +84,16 @@ export class Navbar implements AfterViewInit, OnDestroy {
 		this.myRecipesQueryParams = computed(() => {
 			const user = this.authService.currentUser();
 			return user ? null : { returnUrl: '/recipes' };
+		});
+
+		this.overviewLink = computed(() => {
+			const user = this.authService.currentUser();
+			return user ? ['/overview'] : ['/login'];
+		});
+
+		this.overviewQueryParams = computed(() => {
+			const user = this.authService.currentUser();
+			return user ? null : { returnUrl: '/overview' };
 		});
 
 		this.isLoggedIn = computed(() => this.authService.currentUser() !== null);
@@ -173,5 +185,4 @@ export class Navbar implements AfterViewInit, OnDestroy {
 			this.isMenuOpen.set(false);
 		}
 	}
-
 }

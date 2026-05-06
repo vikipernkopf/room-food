@@ -100,6 +100,7 @@ section {
 	}
 
 	input,
+	select,
 	::ng-deep mat-select {
 		padding: 0.65rem 0.85rem;
 		border: 1px solid $color-light-gray;
@@ -539,7 +540,8 @@ section {
 		color: $color-white !important;
 	}
 
-	.mat-calendar-body-cell:not(.mat-calendar-body-disabled):hover .mat-calendar-body-cell-content:not(.mat-calendar-body-selected),
+	.mat-calendar-body-cell:not(.mat-calendar-body-disabled):hover,
+	.mat-calendar-body-cell-content:not(.mat-calendar-body-selected),
 	.mat-calendar-body-cell.cdk-focused .mat-calendar-body-cell-content:not(.mat-calendar-body-selected),
 	.mat-calendar-body-cell.cdk-keyboard-focused .mat-calendar-body-cell-content:not(.mat-calendar-body-selected),
 	.mat-calendar-body-active .mat-calendar-body-cell-content:not(.mat-calendar-body-selected) {
@@ -624,7 +626,8 @@ section {
 
 	&__who,
 	&__date,
-	&__time {
+	&__time,
+	&__room {
 		font-size: 0.92rem;
 		color: $color-text-main;
 		display: flex;
@@ -646,7 +649,8 @@ section {
 	}
 
 	&__date,
-	&__time {
+	&__time,
+	&__room {
 		color: $color-label-gray;
 	}
 }

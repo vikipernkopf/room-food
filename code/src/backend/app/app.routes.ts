@@ -10,7 +10,8 @@ import { Recipes } from '../../frontend/recipes/recipes';
 import { RoomManagementView } from '../../frontend/room-management-view/room-management-view';
 import { ErrorPage } from '../../frontend/error-page/error-page';
 import { Calendar } from '../../frontend/room-view/calendar/calendar';
-import {EditRoom} from '../../frontend/room-management-view/edit-room/edit-room';
+import { Overview } from '../../frontend/overview/overview';
+import { EditRoom } from '../../frontend/room-management-view/edit-room/edit-room';
 
 export const routes: Routes = [
 	{
@@ -53,6 +54,10 @@ export const routes: Routes = [
 	{
 		path: 'profile',
 		component: Profile
+	},
+	{
+		path: 'overview',
+		component: Overview
 	},
 	{
 		path: 'profile/:username',
