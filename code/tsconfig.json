@@ -26,12 +26,6 @@
     },
     {
       "path": "./tsconfig.spec.json"
-    },
-    {
-      "path": "./projects/ingredient/tsconfig.app.json"
-    },
-    {
-      "path": "./projects/ingredient/tsconfig.spec.json"
     }
   ]
 }
