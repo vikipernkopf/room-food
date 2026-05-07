@@ -13,7 +13,6 @@ import {
 	validate,
 	validateTree
 } from '@angular/forms/signals';
-import { MatButton } from '@angular/material/button';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthService } from '../core/auth-service';
 import { SignUpCredentials } from '../../backend/model';
@@ -34,8 +33,7 @@ function requiredTrimmed(field: any, message: string): void {
 	imports: [
 		FormField,
 		FormRoot,
-		RouterLink,
-		MatButton
+		RouterLink
 	],
 	templateUrl: './sign-up.html',
 	styleUrl: './sign-up.scss',
