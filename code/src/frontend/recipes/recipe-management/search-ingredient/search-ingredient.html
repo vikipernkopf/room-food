@@ -1,0 +1,31 @@
+<div class="search-container">
+	<input
+		type="text"
+		[value]="query()"
+		(input)="onInput($any($event.target).value)"
+		(focus)="isOpen.set(true)"
+		placeholder="Search..."
+	/>
+
+	<form>
+		<mat-form-field>
+
+		</mat-form-field>
+	</form>
+
+	@if (isOpen() && filteredOptions().length > 0) {
+		<div class="dropdown">
+			@for (option of filteredOptions(); track option) {
+				<button
+					class="dropdown-item"
+					(click)="selectOption(option)"
+				>
+					{{ option }}
+				</button>
+			}
+		</div>
+	}
+
+	hello
+
+</div>
