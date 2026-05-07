@@ -1,0 +1,15 @@
+{
+	"name": "room-food-proxy",
+	"version": "1.0.0",
+	"type": "module",
+	"description": "Tiny CORS proxy that forwards /api/* to the real RoomFood backend.",
+	"main": "proxy-server.js",
+	"scripts": {
+		"start": "node proxy-server.js"
+	},
+	"dependencies": {
+		"cors": "^2.8.6",
+		"express": "^5.1.0",
+		"http-proxy-middleware": "^3.0.5"
+	}
+}

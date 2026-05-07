@@ -11,9 +11,10 @@ import { RoomManagementView } from '../../frontend/room-management-view/room-man
 import { ErrorPage } from '../../frontend/error-page/error-page';
 import { Calendar } from '../../frontend/room-view/calendar/calendar';
 import { Overview } from '../../frontend/overview/overview';
-import { EditRoom } from '../../frontend/room-management-view/edit-room/edit-room';
 import {JoinRoom} from '../../frontend/rooms/join-room/join-room';
 import {JoinRoomLink} from '../../frontend/rooms/join-room-link/join-room-link';
+import {EditRoom} from '../../frontend/room-management-view/edit-room/edit-room';
+import {SearchDropdownComponent} from '../../frontend/recipes/recipe-management/search-ingredient/search-ingredient';
 
 export const routes: Routes = [
 	{
@@ -46,9 +47,9 @@ export const routes: Routes = [
 		component: Recipes
 	},
 	{
-		path: 'bla/:code',
-		component: RoomView
-	}, //delete this later, only for testing right now
+		path: 'test',
+		component: SearchDropdownComponent
+	},
 	{
 		path: 'calendar/:code',
 		component: Calendar
@@ -56,10 +57,6 @@ export const routes: Routes = [
 	{
 		path: 'profile',
 		component: Profile
-	},
-	{
-		path: 'overview',
-		component: Overview
 	},
 	{
 		path: 'profile/:username',
