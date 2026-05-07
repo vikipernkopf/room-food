@@ -67,5 +67,10 @@ export class IngredientsFrontendService {
 			measurement: string
 		}>(apiUrl);
 	}
+
+	public getIngredientsForUser(username: string): Observable<Ingredient[]> {
+		const apiUrl = `${this.apiBase}/ingredients/${username}`;
+		return this.http.get<Ingredient[]>(apiUrl);
+	}
 }
 

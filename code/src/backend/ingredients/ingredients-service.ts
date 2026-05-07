@@ -1,3 +1,4 @@
+import { Observable } from 'rxjs';
 import {ServiceBase} from '../service-base';
 import {Unit} from '../unit';
 import {LoginSignUpService} from '../login-sign-up/login-sign-up-service';
@@ -64,5 +65,22 @@ export class IngredientsService extends ServiceBase {
 		`, {name}).get() as { default_measurement: string } | undefined;
 
 		return result?.default_measurement || '';
+	}
+
+	public getIngredientsToBuyForUser(username: string): Ingredient[] {
+		return this.unit.prepare(`
+		select
+			ri.ingredient_name as name,
+			ri.measurement,
+			sum(cast(ri.amount as real)) as amount
+		from MealResponsibleUser mru
+		join MealRecipe mr
+			on mr.meal_id = mru.meal_id
+		join RecipeIngredient ri
+			on ri.recipe_id = mr.recipe_id
+		where mru.username = :username
+		group by ri.ingredient_name, ri.measurement
+		order by ri.ingredient_name
+	`, { username }).all() as unknown as Ingredient[];
 	}
 }

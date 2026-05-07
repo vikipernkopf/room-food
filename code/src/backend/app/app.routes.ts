@@ -1,9 +1,9 @@
 import { Routes } from '@angular/router';
 import { Login } from '../../frontend/login/login';
 import { Homepage } from '../../frontend/homepage/homepage';
+import { Overview } from '../../frontend/overview/overview';
 import { SignUp } from '../../frontend/sign-up/sign-up';
 import { MealManagement } from '../../frontend/room-view/meal-management/meal-management';
-import { RoomView } from '../../frontend/room-view/room-view';
 import { Profile } from '../../frontend/profile/profile';
 import { Rooms } from '../../frontend/rooms/rooms';
 import { Recipes } from '../../frontend/recipes/recipes';
@@ -66,6 +66,10 @@ export const routes: Routes = [
 	{
 		path: 'manage/:code/edit',
 		component: EditRoom
+	},
+	{
+		path: 'overview',
+		component: Overview
 	},
 	{
 		path: '**',

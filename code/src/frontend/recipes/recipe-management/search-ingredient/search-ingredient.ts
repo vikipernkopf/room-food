@@ -1,14 +1,10 @@
 import { Component, signal, computed } from '@angular/core';
 import {form, required} from '@angular/forms/signals';
-import { MatFormField } from '@angular/material/input';
 
 @Component({
 	selector: 'app-search-ingredient',
 	standalone: true,
-	templateUrl: './search-ingredient.html',
-	imports: [
-		MatFormField
-	]
+	templateUrl: './search-ingredient.html'
 })
 export class SearchDropdownComponent {
 	private static DEFAULT_FORM:formModel = {name:'', amount:0, measurement:''}
