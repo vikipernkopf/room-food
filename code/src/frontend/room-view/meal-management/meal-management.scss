@@ -316,14 +316,13 @@ section {
 }
 
 .field-error {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	min-height: 1.25rem;
+	display: block;
+	width: 100%;
 	color: $color-red;
 	font-size: 0.85rem;
 	font-weight: 500;
 	margin-top: 0.4rem;
+	text-align: left;    /* Changed from center to left */
 }
 
 ::ng-deep .cdk-overlay-container {

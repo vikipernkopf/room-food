@@ -1,5 +1,5 @@
 import { Component, signal, computed } from '@angular/core';
-import { form } from '@angular/forms/signals';
+import { form, required } from '@angular/forms/signals';
 import { MatButton } from '@angular/material/button';
 import { MatFormField } from '@angular/material/input';
 
@@ -8,7 +8,6 @@ import { MatFormField } from '@angular/material/input';
 	standalone: true,
 	templateUrl: './search-ingredient.html',
 	imports: [
-		MatButton,
 		MatFormField
 	]
 })
