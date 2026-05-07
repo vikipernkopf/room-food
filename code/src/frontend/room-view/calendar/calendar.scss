@@ -62,7 +62,7 @@ $hour-height: 65px;
 	padding-bottom: 10px;
 
 	.time-spacer {
-		width: 45px;
+		width: 75px;
 	}
 
 	.day-label {
@@ -99,7 +99,7 @@ $hour-height: 65px;
 }
 
 .time-column {
-	width: 45px;
+	width: 75px;
 	border-top: 1px solid $color-transparent;
 
 	.time-slot {
@@ -107,8 +107,9 @@ $hour-height: 65px;
 		font-size: 11px;
 		color: $color-gray;
 		text-align: right;
-		padding-right: 8px;
+		padding-right: 12px; // Slightly more padding for breathing room
 		line-height: $hour-height;
+		white-space: nowrap; // CRITICAL: Prevents the AM/PM from dropping to a new line
 	}
 }
 
