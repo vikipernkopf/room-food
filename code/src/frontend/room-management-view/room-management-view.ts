@@ -2,8 +2,8 @@ import {Component, effect, inject, OnDestroy, signal, WritableSignal, DestroyRef
 import {ActivatedRoute, Router} from '@angular/router';
 import {MatDivider} from '@angular/material/divider';
 import {MatCard} from '@angular/material/card';
-import {MatLabel} from '@angular/material/input';
 import {MatButton, MatIconButton} from '@angular/material/button';
+import {MatLabel} from '@angular/material/form-field';
 import {RoomService} from '../core/room-service';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {CommonModule} from '@angular/common';

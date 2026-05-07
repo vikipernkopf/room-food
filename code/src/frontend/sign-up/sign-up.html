@@ -1,164 +1,169 @@
 <section>
-	<form class="signup-container" [formGroup]="signUpForm" (ngSubmit)="onFormSubmit()" autocomplete="on">
+	<form class="signup-container" [formRoot]="signUpForm" autocomplete="on">
 		<header>
-			<h4>
-				Sign up
-			</h4>
+			<h4>Sign up</h4>
 		</header>
 
 		<div class="form-grid">
 			<div class="field-group">
 				<label for="username">Username</label>
-				<input formControlName="username" id="username" type="text" placeholder="e.g. AlexJohnson" autocomplete="username">
+				<input [formField]="signUpForm.username" id="username" type="text" placeholder="e.g. AlexJohnson"
+					autocomplete="username">
 
-				@if (signUpForm.get('username'); as usernameControl) {
-					@if (usernameControl.touched && usernameControl.invalid) {
-						<aside>
-							@if (usernameControl.hasError('required')) {
-								<span>Username is required</span>
-							}
-							@if (usernameControl.hasError('pattern')) {
-								<span>No spaces or special characters allowed</span>
-							}
-						</aside>
-					}
+				@if (fieldTouchedAndInvalid(signUpForm.username)) {
+					<aside>
+						@if (fieldHasError(signUpForm.username, 'required')) {
+							<span>Username is required</span>
+						}
+						@if (fieldHasError(signUpForm.username, 'pattern')) {
+							<span>No spaces or special characters allowed</span>
+						}
+					</aside>
 				}
 			</div>
 
 			<div class="field-group">
 				<label for="email">E-mail</label>
-				<input formControlName="email" id="email" type="email" placeholder="e.g. alex@example.com" autocomplete="email">
+				<input [formField]="signUpForm.email" id="email" type="email" placeholder="e.g. alex@example.com"
+					autocomplete="email">
 
-				@if (signUpForm.get('email'); as emailControl) {
-					@if (emailControl.touched && emailControl.invalid) {
-						<aside>
-							@if (emailControl.hasError('required')) {
-								<span>E-mail is required</span>
-							}
-							@if (emailControl.hasError('email')) {
-								<span>Enter a valid e-mail address</span>
-							}
-						</aside>
-					}
+				@if (fieldTouchedAndInvalid(signUpForm.email)) {
+					<aside>
+						@if (fieldHasError(signUpForm.email, 'required')) {
+							<span>E-mail is required</span>
+						}
+						@if (fieldHasError(signUpForm.email, 'email') || fieldHasError(signUpForm.email, 'pattern')) {
+							<span>Enter a valid e-mail address</span>
+						}
+					</aside>
 				}
 			</div>
 
 			<div class="field-group">
 				<label for="firstName">First name</label>
-				<input formControlName="firstName" id="firstName" type="text" placeholder="First name" autocomplete="given-name">
+				<input [formField]="signUpForm.firstName" id="firstName" type="text" placeholder="First name"
+					autocomplete="given-name">
 
-				@if (signUpForm.get('firstName'); as firstNameControl) {
-					@if (firstNameControl.touched && firstNameControl.invalid) {
-						<aside>
-							@if (firstNameControl.hasError('required')) {
-								<span>First name is required</span>
-							}
-						</aside>
-					}
+				@if (fieldTouchedAndInvalid(signUpForm.firstName)) {
+					<aside>
+						@if (fieldHasError(signUpForm.firstName, 'required') ||
+						fieldHasError(signUpForm.firstName, 'requiredTrimmed')) {
+							<span>First name is required</span>
+						}
+						@if (fieldHasError(signUpForm.firstName, 'maxLength')) {
+							<span>First name must be at most 50 characters</span>
+						}
+					</aside>
 				}
 			</div>
 
 			<div class="field-group">
 				<label for="lastName">Last name</label>
-				<input formControlName="lastName" id="lastName" type="text" placeholder="Last name" autocomplete="family-name">
+				<input [formField]="signUpForm.lastName" id="lastName" type="text" placeholder="Last name"
+					autocomplete="family-name">
 
-				@if (signUpForm.get('lastName'); as lastNameControl) {
-					@if (lastNameControl.touched && lastNameControl.invalid) {
-						<aside>
-							@if (lastNameControl.hasError('required')) {
-								<span>Last name is required</span>
-							}
-						</aside>
-					}
+				@if (fieldTouchedAndInvalid(signUpForm.lastName)) {
+					<aside>
+						@if (fieldHasError(signUpForm.lastName, 'required') ||
+						fieldHasError(signUpForm.lastName, 'requiredTrimmed')) {
+							<span>Last name is required</span>
+						}
+						@if (fieldHasError(signUpForm.lastName, 'maxLength')) {
+							<span>Last name must be at most 50 characters</span>
+						}
+					</aside>
 				}
 			</div>
 
 			<div class="field-group">
 				<label for="dob">Date of birth</label>
-				<input formControlName="dob" id="dob" type="date" autocomplete="bday">
+				<input [formField]="signUpForm.dob" id="dob" type="date" autocomplete="bday">
 
-				@if (signUpForm.get('dob'); as dobControl) {
-					@if (dobControl.touched && dobControl.invalid) {
-						<aside>
-							@if (dobControl.hasError('required')) {
-								<span>Date of birth is required</span>
-							}
-						</aside>
-					}
+				@if (fieldTouchedAndInvalid(signUpForm.dob)) {
+					<aside>
+						@if (fieldHasError(signUpForm.dob, 'required') ||
+						fieldHasError(signUpForm.dob, 'requiredTrimmed')) {
+							<span>Date of birth is required</span>
+						}
+					</aside>
 				}
 			</div>
 
 			<div class="field-group">
 				<label for="profilePicture">Profile picture URL</label>
-				<input formControlName="profilePicture" id="profilePicture" type="url" placeholder="https://..." autocomplete="photo">
+				<input [formField]="signUpForm.profilePicture" id="profilePicture" type="url" placeholder="https://..."
+					autocomplete="photo">
 			</div>
 
 			<div class="field-group field-group--full">
-			<label for="bio">Bio</label>
-			<textarea formControlName="bio" id="bio" rows="3" placeholder="Tell others a bit about yourself" autocomplete="off" maxlength="100"></textarea>
-			@if (signUpForm.get('bio'); as bioControl) {
-				@if (bioControl.touched && bioControl.invalid) {
+				<label for="bio">Bio</label>
+				<textarea [formField]="signUpForm.bio" id="bio" rows="3" placeholder="Tell others a bit about yourself"
+					autocomplete="off"></textarea>
+				@if (fieldTouchedAndInvalid(signUpForm.bio)) {
 					<aside>
-						@if (bioControl.hasError('maxlength')) {
+						@if (fieldHasError(signUpForm.bio, 'maxLength')) {
 							<span>Bio must be at most 100 characters</span>
 						}
 					</aside>
 				}
-			}
-		</div>
-
-		<div class="field-group field-group--full">
-			<label for="password">Password</label>
-			<div class="password-input-wrap">
-				<input formControlName="password" id="password" [type]="showPassword ? 'text' : 'password'" placeholder="Password" autocomplete="new-password">
-				<button class="password-toggle" type="button" (click)="togglePasswordVisibility()" [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'">
-					<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-						<path d="M12 5c-5.5 0-9.8 4.3-10.9 6 1.1 1.7 5.4 6 10.9 6s9.8-4.3 10.9-6c-1.1-1.7-5.4-6-10.9-6zm0 10a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/>
-					</svg>
-				</button>
 			</div>
-			@if (signUpForm.get('password'); as passwordControl) {
-				@if (passwordControl.touched && passwordControl.invalid) {
+
+			<div class="field-group field-group--full">
+				<label for="password">Password</label>
+				<div class="password-input-wrap">
+					<input [formField]="signUpForm.password" id="password" [type]="showPassword ? 'text' : 'password'"
+						placeholder="Password" autocomplete="new-password">
+					<button class="password-toggle" type="button" (click)="togglePasswordVisibility()"
+						[attr.aria-label]="showPassword ? 'Hide password' : 'Show password'">
+						<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+							<path
+								d="M12 5c-5.5 0-9.8 4.3-10.9 6 1.1 1.7 5.4 6 10.9 6s9.8-4.3 10.9-6c-1.1-1.7-5.4-6-10.9-6zm0 10a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/>
+						</svg>
+					</button>
+				</div>
+				@if (fieldTouchedAndInvalid(signUpForm.password)) {
 					<aside>
-						@if (passwordControl.hasError('required')) {
+						@if (fieldHasError(signUpForm.password, 'required')) {
 							<span>Password is required</span>
 						}
-						@if (passwordControl.hasError('minlength')) {
+						@if (fieldHasError(signUpForm.password, 'minLength')) {
 							<span>Password must be at least 8 characters</span>
 						}
-						@if (passwordControl.hasError('pattern')) {
-							<span>Password must contain at least one number and one special character (!&#64;#$%^&*)</span>
+						@if (fieldHasError(signUpForm.password, 'pattern')) {
+							<span>
+								Password must contain at least one number and one special character
+								(!&#64;#$%^&*)
+							</span>
 						}
 					</aside>
 				}
-			}
-		</div>
-
-		<div class="field-group field-group--full">
-			<label for="repeatPassword">Repeat password</label>
-			<div class="password-input-wrap">
-				<input formControlName="repeatPassword" id="repeatPassword" [type]="showRepeatPassword ? 'text' : 'password'" placeholder="Repeat password" autocomplete="new-password">
-				<button class="password-toggle" type="button" (click)="toggleRepeatPasswordVisibility()" [attr.aria-label]="showRepeatPassword ? 'Hide repeated password' : 'Show repeated password'">
-					<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-						<path d="M12 5c-5.5 0-9.8 4.3-10.9 6 1.1 1.7 5.4 6 10.9 6s9.8-4.3 10.9-6c-1.1-1.7-5.4-6-10.9-6zm0 10a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/>
-					</svg>
-				</button>
 			</div>
-			@if (signUpForm.get('repeatPassword'); as repeatPasswordControl) {
-				@if (repeatPasswordControl.touched && repeatPasswordControl.invalid) {
+
+			<div class="field-group field-group--full">
+				<label for="repeatPassword">Repeat password</label>
+				<div class="password-input-wrap">
+					<input [formField]="signUpForm.repeatPassword" id="repeatPassword"
+						[type]="showRepeatPassword ? 'text' : 'password'" placeholder="Repeat password"
+						autocomplete="new-password">
+					<button class="password-toggle" type="button" (click)="toggleRepeatPasswordVisibility()"
+						[attr.aria-label]="showRepeatPassword ? 'Hide repeated password' : 'Show repeated password'">
+						<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+							<path
+								d="M12 5c-5.5 0-9.8 4.3-10.9 6 1.1 1.7 5.4 6 10.9 6s9.8-4.3 10.9-6c-1.1-1.7-5.4-6-10.9-6zm0 10a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/>
+						</svg>
+					</button>
+				</div>
+				@if (fieldTouchedAndInvalid(signUpForm.repeatPassword)) {
 					<aside>
-						@if (repeatPasswordControl.hasError('required')) {
+						@if (fieldHasError(signUpForm.repeatPassword, 'required')) {
 							<span>Please repeat your password</span>
 						}
+						@if (fieldHasError(signUpForm.repeatPassword, 'passwordMismatch')) {
+							<span>Passwords do not match</span>
+						}
 					</aside>
 				}
-			}
-			@if (signUpForm.hasError('passwordMismatch') && (signUpForm.get('password')?.touched || signUpForm.get('repeatPassword')?.touched)) {
-				<aside>
-					<span>Passwords do not match</span>
-				</aside>
-			}
-		</div>
+			</div>
 		</div>
 
 		<div class="error-msg">

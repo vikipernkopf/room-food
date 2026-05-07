@@ -57,9 +57,9 @@
 					@if (canSaveRecipe(recipe)) {
 						<div class="recipe-actions">
 							<button type="button" class="btn-save-tile"
-								[disabled]="savingRecipeId === recipe.id"
+								[disabled]="savingRecipeId() === recipe.id"
 								(click)="$event.stopPropagation(); savePublicRecipe(recipe)">
-								{{ savingRecipeId === recipe.id ? 'Saving...' : 'Save' }}
+								{{ savingRecipeId() === recipe.id ? 'Saving...' : 'Save' }}
 							</button>
 						</div>
 					}
@@ -84,8 +84,8 @@
 		}
 	</section>
 }-->
-@if (activePopup) {
-	<app-recipe-management [recipe]="recipeToEdit()" [creating]="creating" [defaultRecipeImage]="defaultRecipeImage"
+@if (activePopup()) {
+	<app-recipe-management [recipe]="recipeToEdit()" [creating]="creating()" [defaultRecipeImage]="defaultRecipeImage"
 		[saveError]="recipeSaveError()" [mealTypeOptions]="mealTypeOptions" (closed)="closePopup()"
 		(saved)="saveRecipe($event)" (deleteRequested)="deleteRecipe($event)"></app-recipe-management>
 }

@@ -8,9 +8,10 @@ import {
 	ViewChild,
 	computed,
 	effect,
-	signal,
+	signal
 } from '@angular/core';
 import { isPlatformBrowser, NgOptimizedImage } from '@angular/common';
+import { MatButton } from '@angular/material/button';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../core/auth-service';
 
@@ -19,10 +20,11 @@ import { AuthService } from '../core/auth-service';
 	imports: [
 		NgOptimizedImage,
 		RouterLink,
-		RouterLinkActive
+		RouterLinkActive,
+		MatButton
 	],
 	templateUrl: './navbar.html',
-	styleUrl: './navbar.scss',
+	styleUrl: './navbar.scss'
 })
 export class Navbar implements AfterViewInit, OnDestroy {
 	// Collapse slightly early to avoid edge-case visual crowding from sub-pixel/font differences.

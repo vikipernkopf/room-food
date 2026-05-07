@@ -14,7 +14,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { FormsModule } from '@angular/forms';
-import { MatDatepicker, MatDatepickerModule } from '@angular/material/datepicker';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatTimepickerModule } from '@angular/material/timepicker';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -40,7 +40,7 @@ interface MealType {
 		MatFormFieldModule,
 		MatSelectModule,
 		MatInputModule,
-		MatDatepickerModule, MatDatepicker,
+		MatDatepickerModule,
 		MatTimepickerModule,
 		MatIconModule, MatButtonModule
 	],
