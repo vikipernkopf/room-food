@@ -348,7 +348,7 @@ export class MealManagement implements OnChanges {
 		});
 	}
 
-	private requestViewUpdate(): void {
+	protected requestViewUpdate(): void {
 		this.cdr?.markForCheck?.();
 	}
 
@@ -567,6 +567,36 @@ export class MealManagement implements OnChanges {
 		}
 
 		return hours < 12 ? `${hours}${mins}am` : `${hours - 12}${mins}pm`;
+	}
+
+	protected get timeErrors() {
+		const start = this.selectedStartTime;
+		const end = this.selectedEndTime;
+
+		// If times aren't picked yet, no errors
+		if (!start || !end) return { start: null, end: null };
+
+		const errors = {
+			start: null as string | null,
+			end: null as string | null
+		};
+
+		// 1. Check Range (5 AM - 11 PM) using standard .getHours()
+		const startHours = start.getHours();
+		const endHours = end.getHours();
+		if (startHours < 5 || startHours >= 24) {
+			errors.start = "Time must be between 5 AM and 11 PM";
+		}
+		if (endHours < 5 || endHours >= 24) {
+			errors.end = "Time must be between 5 AM and 11 PM";
+		}
+
+		// 2. Check Relationship (End > Start)
+		if (end <= start) {
+			errors.end = "End time must be after start time";
+		}
+
+		return errors;
 	}
 }
 

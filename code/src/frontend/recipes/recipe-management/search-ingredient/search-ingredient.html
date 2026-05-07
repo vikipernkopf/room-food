@@ -7,12 +7,6 @@
 		placeholder="Search..."
 	/>
 
-	<form>
-		<mat-form-field>
-
-		</mat-form-field>
-	</form>
-
 	@if (isOpen() && filteredOptions().length > 0) {
 		<div class="dropdown">
 			@for (option of filteredOptions(); track option) {
