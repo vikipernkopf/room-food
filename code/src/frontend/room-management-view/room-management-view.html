@@ -21,6 +21,7 @@
 			<div class="info-row">
 				<span class="info-label">Room code:</span>
 				<span class="info-value code-value">{{roomCode()}}</span>
+				<button mat-button (click)="copyShareLink()">Copy Invite Link</button>
 			</div>
 
 			@if (userRole()===Role.Owner || userRole()===Role.Admin) {

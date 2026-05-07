@@ -13,6 +13,7 @@ import {firstValueFrom} from 'rxjs';
 import { DEFAULT_ROOM_PICTURE } from '../core/user-form-validation';
 import {MatMenu, MatMenuItem, MatMenuTrigger} from '@angular/material/menu';
 import {EditRoom} from './edit-room/edit-room';
+import {MatSnackBar} from '@angular/material/snack-bar';
 
 interface Member {
 	username: string;
@@ -48,12 +49,14 @@ export class RoomManagementView implements OnDestroy {
 	protected readonly members: WritableSignal<Member[]> = signal([]);
 	protected readonly requests: WritableSignal<Request[]> = signal([]);
 	protected readonly currentUser: WritableSignal<User | null>;
+	protected readonly sharedLink: WritableSignal<string> = signal("");
 	protected readonly userRole: WritableSignal<Role> = signal(Role.Member);
 	public readonly isPopupVisible = signal<boolean>(false);
 	private authService: AuthService = inject(AuthService);
 	private destroyRef = inject(DestroyRef);
 	private hasRedirected = false;
 	private lastProcessedCode: string = '';
+	private snackBar: MatSnackBar = inject(MatSnackBar);
 
 	constructor(private route: ActivatedRoute,
 		private router: Router,
@@ -390,5 +393,16 @@ export class RoomManagementView implements OnDestroy {
 				console.error('Error updating role:', err);
 			}
 		})
+	}
+
+	copyShareLink() {
+		const link = `${window.location.origin}/join/${this.roomCode()}`;
+		navigator.clipboard.writeText(link);
+		this.snackBar.open("Link Copied!", '', {
+			duration: 2000,
+			horizontalPosition: 'center',
+			verticalPosition: 'bottom',
+			panelClass: 'my-snackbar'
+		});
 	}
 }

@@ -1,407 +1,407 @@
-import {StatusCodes} from 'http-status-codes';
-import {Unit} from '../unit';
-import express from 'express';
-import {RoomsService} from './rooms-service';
-import {Role} from '../model';
+	import {StatusCodes} from 'http-status-codes';
+	import {Unit} from '../unit';
+	import express from 'express';
+	import {RoomsService} from './rooms-service';
+	import {Role} from '../model';
 
-export const roomsRouter = express.Router();
+	export const roomsRouter = express.Router();
 
-roomsRouter.get('/rooms/member/:username', async (req, res): Promise<void> => {
-	const { username } = req.params;
+	roomsRouter.get('/rooms/member/:username', async (req, res): Promise<void> => {
+		const { username } = req.params;
 
-	if (!username) {
-		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Username is required' });
-		return;
-	}
-
-	const unit = new Unit(true);
-	try {
-		const roomsService = new RoomsService(unit);
-		const rooms = roomsService.getRoomsPerMember(username);
-
-		unit.complete();
-		res.status(StatusCodes.OK).json(rooms || []);
-	} catch (error) {
-		unit.complete();
-		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to fetch user rooms' });
-		console.error('Error fetching rooms for user:', username, error);
-	}
-});
-
-// More specific routes first
-roomsRouter.get('/room/:code/members', async (req, res): Promise<void> => {
-	const { code } = req.params;
-
-	if (!code) {
-		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Room code is required' });
-		return;
-	}
-
-	const unit = new Unit(true);
-	try {
-		const roomsService = new RoomsService(unit);
-		const members = roomsService.getMembersPerRoom(code);
-
-		unit.complete();
-		res.status(StatusCodes.OK).json(members || []);
-		console.log('Fetched members for room:', code, 'Count:', members.length);
-	} catch (error) {
-		unit.complete();
-		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to fetch members' });
-		console.error('Error fetching members for room:', error);
-	}
-});
-
-roomsRouter.get('/room/:code/requests', async (req, res): Promise<void> => {
-	const { code } = req.params;
-
-	if (!code) {
-		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Room code is required' });
-		return;
-	}
-
-	const unit = new Unit(true);
-	try {
-		const roomsService = new RoomsService(unit);
-		const requests = roomsService.getRequestsPerRoom(code);
-
-		unit.complete();
-		res.status(StatusCodes.OK).json(requests || []);
-		console.log('Fetched requests for room:', code, 'Count:', requests.length);
-	} catch (error) {
-		unit.complete();
-		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to fetch requests' });
-		console.error('Error fetching requests for room:', error);
-	}
-});
-
-roomsRouter.post('/room/:code/accept-request', async (req, res): Promise<void> => {
-	const { code } = req.params;
-	const { username } = req.body;
-
-	if (!code || !username) {
-		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Room code and username are required' });
-		return;
-	}
-
-	const unit = new Unit(false);
-	try {
-		const roomsService = new RoomsService(unit);
-		const success = roomsService.addMember(username, code, Role.Member);
-
-		unit.complete(success);
-		if (success) {
-			res.status(StatusCodes.OK).json({
-				success: true,
-				message: 'Request accepted'
-			});
-			console.log('Accepted request for user:', username, 'in room:', code);
-		} else {
-			res.status(StatusCodes.BAD_REQUEST).json({ error: 'Failed to accept request' });
-			console.log('Failed to accept request for user:', username, 'in room:', code);
+		if (!username) {
+			res.status(StatusCodes.BAD_REQUEST).json({ error: 'Username is required' });
+			return;
 		}
-	} catch (error) {
-		unit.complete(false);
-		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to accept request' });
-		console.error('Error accepting request:', error);
-	}
-});
 
-roomsRouter.post('/room/:code/reject-request', async (req, res): Promise<void> => {
-	const { code } = req.params;
-	const { username } = req.body;
+		const unit = new Unit(true);
+		try {
+			const roomsService = new RoomsService(unit);
+			const rooms = roomsService.getRoomsPerMember(username);
 
-	if (!code || !username) {
-		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Room code and username are required' });
-		return;
-	}
-
-	const unit = new Unit(false);
-	try {
-		const roomsService = new RoomsService(unit);
-		const success = roomsService.removeFromRequestQueue(username, code);
-
-		unit.complete(success);
-		if (success) {
-			res.status(StatusCodes.OK).json({
-				success: true,
-				message: 'Request rejected'
-			});
-			console.log('Rejected request for user:', username, 'in room:', code);
-		} else {
-			res.status(StatusCodes.BAD_REQUEST).json({ error: 'Failed to reject request' });
-			console.log('Failed to reject request for user:', username, 'in room:', code);
-		}
-	} catch (error) {
-		unit.complete(false);
-		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to reject request' });
-		console.error('Error rejecting request:', error);
-	}
-});
-
-// Less specific routes after
-roomsRouter.get('/room/exists/:code', async (req, res): Promise<void> => {
-	const { code } = req.params;
-
-	if (!code) {
-		res.status(StatusCodes.BAD_REQUEST).json({ exists: false });
-		console.log('Missing room code');
-		return;
-	}
-
-	const unit = new Unit(true);
-	try {
-		const roomsService = new RoomsService(unit);
-		const exists = roomsService.checkRoomExists(code);
-
-		unit.complete();
-		res.status(StatusCodes.OK).json({ exists });
-		console.log('Room exists check for code:', code, 'Result:', exists);
-	} catch (error) {
-		unit.complete();
-		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ exists: false });
-		console.error('Error checking if room exists:', error);
-	}
-});
-
-roomsRouter.get('/room/name/:code', async (req, res): Promise<void> => {
-	const { code } = req.params;
-
-	if (!code) {
-		res.status(StatusCodes.BAD_REQUEST).json({ exists: false });
-		console.log('Missing room code');
-		return;
-	}
-
-	const unit = new Unit(true);
-	try {
-		const roomsService = new RoomsService(unit);
-		const name = roomsService.getNameForRoom(code);
-
-		if (name === '') {
 			unit.complete();
-			res.status(StatusCodes.NOT_FOUND);
+			res.status(StatusCodes.OK).json(rooms || []);
+		} catch (error) {
+			unit.complete();
+			res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to fetch user rooms' });
+			console.error('Error fetching rooms for user:', username, error);
+		}
+	});
+
+	// More specific routes first
+	roomsRouter.get('/room/:code/members', async (req, res): Promise<void> => {
+		const { code } = req.params;
+
+		if (!code) {
+			res.status(StatusCodes.BAD_REQUEST).json({ error: 'Room code is required' });
 			return;
 		}
 
-		unit.complete();
-		res.status(StatusCodes.OK).json({ roomName: name });
-	} catch (error) {
-		unit.complete();
-		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ exists: false });
-		console.error('Error checking for name of room:', error);
-	}
-});
+		const unit = new Unit(true);
+		try {
+			const roomsService = new RoomsService(unit);
+			const members = roomsService.getMembersPerRoom(code);
 
-roomsRouter.post('/room', async (req, res): Promise<void> => {
-	const {
-		owner,
-		roomName,
-		pfp
-	} = req.body;
+			unit.complete();
+			res.status(StatusCodes.OK).json(members || []);
+			console.log('Fetched members for room:', code, 'Count:', members.length);
+		} catch (error) {
+			unit.complete();
+			res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to fetch members' });
+			console.error('Error fetching members for room:', error);
+		}
+	});
 
-	if (!owner || !roomName) {
-		res.status(StatusCodes.BAD_REQUEST).json();
-		console.log('Missing required fields');
+	roomsRouter.get('/room/:code/requests', async (req, res): Promise<void> => {
+		const { code } = req.params;
 
-		return;
-	}
+		if (!code) {
+			res.status(StatusCodes.BAD_REQUEST).json({ error: 'Room code is required' });
+			return;
+		}
 
-	const unit = new Unit(false);
-	try {
-		const roomsService = new RoomsService(unit);
-		const result = roomsService.createRoom(owner, roomName, pfp ?? null);
+		const unit = new Unit(true);
+		try {
+			const roomsService = new RoomsService(unit);
+			const requests = roomsService.getRequestsPerRoom(code);
 
-		if (result === 'error') {
+			unit.complete();
+			res.status(StatusCodes.OK).json(requests || []);
+			console.log('Fetched requests for room:', code, 'Count:', requests.length);
+		} catch (error) {
+			unit.complete();
+			res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to fetch requests' });
+			console.error('Error fetching requests for room:', error);
+		}
+	});
+
+	roomsRouter.post('/room/:code/accept-request', async (req, res): Promise<void> => {
+		const { code } = req.params;
+		const { username } = req.body;
+
+		if (!code || !username) {
+			res.status(StatusCodes.BAD_REQUEST).json({ error: 'Room code and username are required' });
+			return;
+		}
+
+		const unit = new Unit(false);
+		try {
+			const roomsService = new RoomsService(unit);
+			const success = roomsService.addMember(username, code, Role.Member);
+
+			unit.complete(success);
+			if (success) {
+				res.status(StatusCodes.OK).json({
+					success: true,
+					message: 'Request accepted'
+				});
+				console.log('Accepted request for user:', username, 'in room:', code);
+			} else {
+				res.status(StatusCodes.BAD_REQUEST).json({ error: 'Failed to accept request' });
+				console.log('Failed to accept request for user:', username, 'in room:', code);
+			}
+		} catch (error) {
 			unit.complete(false);
-			res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to create room' });
-			console.log('Failed to create room');
+			res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to accept request' });
+			console.error('Error accepting request:', error);
+		}
+	});
 
+	roomsRouter.post('/room/:code/reject-request', async (req, res): Promise<void> => {
+		const { code } = req.params;
+		const { username } = req.body;
+
+		if (!code || !username) {
+			res.status(StatusCodes.BAD_REQUEST).json({ error: 'Room code and username are required' });
 			return;
 		}
 
-		unit.complete(true);
-		res.status(StatusCodes.CREATED).json({ result });
-		console.log('Created room: ', result);
-	} catch (error) {
-		unit.complete(false);
-		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json();
-		console.log('Failed to create room');
-		console.error(error);
-	}
-});
+		const unit = new Unit(false);
+		try {
+			const roomsService = new RoomsService(unit);
+			const success = roomsService.removeFromRequestQueue(username, code);
 
-roomsRouter.post('/room/join', async (req, res): Promise<void> => {
-	const { user } = req.body;
-	const roomCode = req.body.roomCode;
-
-	if (!user || !roomCode) {
-		res.status(StatusCodes.BAD_REQUEST).json();
-		console.log('Missing required fields');
-
-		return;
-	}
-
-	const unit = new Unit(false);
-	try {
-		const roomsService = new RoomsService(unit);
-		const result = roomsService.requestToJoin(user, roomCode);
-
-		if (result === 'exists') {
+			unit.complete(success);
+			if (success) {
+				res.status(StatusCodes.OK).json({
+					success: true,
+					message: 'Request rejected'
+				});
+				console.log('Rejected request for user:', username, 'in room:', code);
+			} else {
+				res.status(StatusCodes.BAD_REQUEST).json({ error: 'Failed to reject request' });
+				console.log('Failed to reject request for user:', username, 'in room:', code);
+			}
+		} catch (error) {
 			unit.complete(false);
-			res.status(StatusCodes.CONFLICT).json({ error: 'Already a member or requesting to join the room' });
-			console.log('Failed to request to join room (already a member)');
+			res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to reject request' });
+			console.error('Error rejecting request:', error);
+		}
+	});
+
+	// Less specific routes after
+	roomsRouter.get('/room/exists/:code', async (req, res): Promise<void> => {
+		const { code } = req.params;
+
+		if (!code) {
+			res.status(StatusCodes.BAD_REQUEST).json({ exists: false });
+			console.log('Missing room code');
+			return;
+		}
+
+		const unit = new Unit(true);
+		try {
+			const roomsService = new RoomsService(unit);
+			const exists = roomsService.checkRoomExists(code);
+
+			unit.complete();
+			res.status(StatusCodes.OK).json({ exists });
+			console.log('Room exists check for code:', code, 'Result:', exists);
+		} catch (error) {
+			unit.complete();
+			res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ exists: false });
+			console.error('Error checking if room exists:', error);
+		}
+	});
+
+	roomsRouter.get('/room/name/:code', async (req, res): Promise<void> => {
+		const { code } = req.params;
+
+		if (!code) {
+			res.status(StatusCodes.BAD_REQUEST).json({ exists: false });
+			console.log('Missing room code');
+			return;
+		}
+
+		const unit = new Unit(true);
+		try {
+			const roomsService = new RoomsService(unit);
+			const name = roomsService.getNameForRoom(code);
+
+			if (name === '') {
+				unit.complete();
+				res.status(StatusCodes.NOT_FOUND);
+				return;
+			}
+
+			unit.complete();
+			res.status(StatusCodes.OK).json({ roomName: name });
+		} catch (error) {
+			unit.complete();
+			res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ exists: false });
+			console.error('Error checking for name of room:', error);
+		}
+	});
+
+	roomsRouter.post('/room', async (req, res): Promise<void> => {
+		const {
+			owner,
+			roomName,
+			pfp
+		} = req.body;
+
+		if (!owner || !roomName) {
+			res.status(StatusCodes.BAD_REQUEST).json();
+			console.log('Missing required fields');
 
 			return;
 		}
 
-		if (!result) {
-			unit.complete(false);
-			res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to request to join room' });
-			console.log('Failed to request to join room');
+		const unit = new Unit(false);
+		try {
+			const roomsService = new RoomsService(unit);
+			const result = roomsService.createRoom(owner, roomName, pfp ?? null);
 
-			return;
-		}
+			if (result === 'error') {
+				unit.complete(false);
+				res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to create room' });
+				console.log('Failed to create room');
 
-		unit.complete(true);
-		res.status(StatusCodes.CREATED).json({ result });
-		console.log('Requested to join room: ', result);
-	} catch (error) {
-		unit.complete(false);
-		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json();
-		console.log('Failed to create room');
-	}
-});
+				return;
+			}
 
-roomsRouter.post('/room/:code/remove-member', async (req, res): Promise<void> => {
-	const { code } = req.params;
-	const { username, enacter } = req.body;
-
-	if (!code || !username || !enacter) {
-		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Room code, username and enacter are required' });
-		return;
-	}
-
-	const unit = new Unit(false);
-	try {
-		const roomsService = new RoomsService(unit);
-		const result = roomsService.removeMember(username, code, enacter);
-
-		unit.complete(result === true);
-		if (result === true) {
-			res.status(StatusCodes.OK).json({ success: true, message: 'Member removed' });
-			console.log('Removed member', username, 'from room', code, 'by', enacter);
-			return;
-		}
-
-		if (result === 'role_conflict') {
-			res.status(StatusCodes.FORBIDDEN).json({ error: 'Insufficient privileges to remove this member' });
-			console.log('Role conflict when', enacter, 'tried to remove', username, 'from', code);
-			return;
-		}
-
-		// otherwise failure
-		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Failed to remove member' });
-		console.log('Failed to remove member', username, 'from room', code, 'by', enacter);
-	} catch (error) {
-		unit.complete(false);
-		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to remove member' });
-		console.error('Error removing member:', error);
-	}
-});
-
-roomsRouter.put('/room/:code', async (req, res): Promise<void> => {
-	const { code } = req.params;
-	const { enacter, roomName, pfp } = req.body;
-
-	if (!code || !enacter) {
-		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Room code and enacter are required' });
-		return;
-	}
-
-	// at least one field to update should be provided
-	if (roomName === undefined && pfp === undefined) {
-		res.status(StatusCodes.BAD_REQUEST).json({ error: 'No update fields provided' });
-		return;
-	}
-
-	const unit = new Unit(false);
-	try {
-		const roomsService = new RoomsService(unit);
-		const success = roomsService.editRoom(code, enacter, roomName ?? null, pfp ?? null);
-
-		unit.complete(success);
-		if (success) {
-			res.status(StatusCodes.OK).json({ success: true, message: 'Room updated' });
-			console.log('Updated room', code, 'by', enacter);
-		} else {
-			res.status(StatusCodes.FORBIDDEN).json({ error: 'Not allowed to edit room or room does not exist' });
-			console.log('Failed to update room', code, 'by', enacter);
-		}
-	} catch (error) {
-		unit.complete(false);
-		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to edit room' });
-		console.error('Error editing room:', error);
-	}
-});
-
-roomsRouter.delete('/room/:code', async (req, res): Promise<void> => {
-	const { code } = req.params;
-	const { enacter } = req.body;
-
-	if (!code || !enacter) {
-		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Room code and enacter are required' });
-		return;
-	}
-
-	const unit = new Unit(false);
-	try {
-		const roomsService = new RoomsService(unit);
-		const success = roomsService.deleteRoom(code, enacter);
-
-		unit.complete(success);
-		if (success) {
-			res.status(StatusCodes.OK).json({ success: true, message: 'Room deleted' });
-			console.log('Deleted room', code, 'by', enacter);
-		} else {
-			res.status(StatusCodes.FORBIDDEN).json({ error: 'Not allowed to delete room or room does not exist' });
-			console.log('Failed to delete room', code, 'by', enacter);
-		}
-	} catch (error) {
-		unit.complete(false);
-		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to delete room' });
-		console.error('Error deleting room:', error);
-	}
-});
-
-roomsRouter.put('/room/:code/update-role', async (req, res): Promise<void> => {
-	const { code } = req.params;
-	const { member, newRole, enacter } = req.body;
-
-	if(!code || !member || !newRole || !enacter) {
-		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Missing required fields' });
-		return;
-	}
-
-	const unit = new Unit(false);
-	try {
-		const roomsService = new RoomsService(unit);
-		const result = roomsService.updateMemberRole(code, member, newRole, enacter);
-
-		if(result === true){
 			unit.complete(true);
-			res.status(StatusCodes.OK).json({ success: true });
-			console.log(`Role updated: ${member} is now ${newRole} (by ${enacter})`);
-		} else if(result === 'unauthorized'){
+			res.status(StatusCodes.CREATED).json({ result });
+			console.log('Created room: ', result);
+		} catch (error) {
 			unit.complete(false);
-			res.status(StatusCodes.FORBIDDEN).json({ error: 'Only owners can change roles' });
-		} else {
-			unit.complete(false);
-			res.status(StatusCodes.NOT_FOUND).json({ error: 'User or Room not found' });
+			res.status(StatusCodes.INTERNAL_SERVER_ERROR).json();
+			console.log('Failed to create room');
+			console.error(error);
 		}
-	} catch (error){
-		unit.complete(false);
-		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to update role' });
-		console.error('Error updating role:', error);
-	}
-})
+	});
+
+	roomsRouter.post('/room/join', async (req, res): Promise<void> => {
+		const { user } = req.body;
+		const roomCode = req.body.roomCode;
+
+		if (!user || !roomCode) {
+			res.status(StatusCodes.BAD_REQUEST).json();
+			console.log('Missing required fields');
+
+			return;
+		}
+
+		const unit = new Unit(false);
+		try {
+			const roomsService = new RoomsService(unit);
+			const result = roomsService.requestToJoin(user, roomCode);
+
+			if (result === 'exists') {
+				unit.complete(false);
+				res.status(StatusCodes.CONFLICT).json({ error: 'Already a member or requesting to join the room' });
+				console.log('Failed to request to join room (already a member)');
+
+				return;
+			}
+
+			if (!result) {
+				unit.complete(false);
+				res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to request to join room' });
+				console.log('Failed to request to join room');
+
+				return;
+			}
+
+			unit.complete(true);
+			res.status(StatusCodes.CREATED).json({ result });
+			console.log('Requested to join room: ', result);
+		} catch (error) {
+			unit.complete(false);
+			res.status(StatusCodes.INTERNAL_SERVER_ERROR).json();
+			console.log('Failed to create room');
+		}
+	});
+
+	roomsRouter.post('/room/:code/remove-member', async (req, res): Promise<void> => {
+		const { code } = req.params;
+		const { username, enacter } = req.body;
+
+		if (!code || !username || !enacter) {
+			res.status(StatusCodes.BAD_REQUEST).json({ error: 'Room code, username and enacter are required' });
+			return;
+		}
+
+		const unit = new Unit(false);
+		try {
+			const roomsService = new RoomsService(unit);
+			const result = roomsService.removeMember(username, code, enacter);
+
+			unit.complete(result === true);
+			if (result === true) {
+				res.status(StatusCodes.OK).json({ success: true, message: 'Member removed' });
+				console.log('Removed member', username, 'from room', code, 'by', enacter);
+				return;
+			}
+
+			if (result === 'role_conflict') {
+				res.status(StatusCodes.FORBIDDEN).json({ error: 'Insufficient privileges to remove this member' });
+				console.log('Role conflict when', enacter, 'tried to remove', username, 'from', code);
+				return;
+			}
+
+			// otherwise failure
+			res.status(StatusCodes.BAD_REQUEST).json({ error: 'Failed to remove member' });
+			console.log('Failed to remove member', username, 'from room', code, 'by', enacter);
+		} catch (error) {
+			unit.complete(false);
+			res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to remove member' });
+			console.error('Error removing member:', error);
+		}
+	});
+
+	roomsRouter.put('/room/:code', async (req, res): Promise<void> => {
+		const { code } = req.params;
+		const { enacter, roomName, pfp } = req.body;
+
+		if (!code || !enacter) {
+			res.status(StatusCodes.BAD_REQUEST).json({ error: 'Room code and enacter are required' });
+			return;
+		}
+
+		// at least one field to update should be provided
+		if (roomName === undefined && pfp === undefined) {
+			res.status(StatusCodes.BAD_REQUEST).json({ error: 'No update fields provided' });
+			return;
+		}
+
+		const unit = new Unit(false);
+		try {
+			const roomsService = new RoomsService(unit);
+			const success = roomsService.editRoom(code, enacter, roomName ?? null, pfp ?? null);
+
+			unit.complete(success);
+			if (success) {
+				res.status(StatusCodes.OK).json({ success: true, message: 'Room updated' });
+				console.log('Updated room', code, 'by', enacter);
+			} else {
+				res.status(StatusCodes.FORBIDDEN).json({ error: 'Not allowed to edit room or room does not exist' });
+				console.log('Failed to update room', code, 'by', enacter);
+			}
+		} catch (error) {
+			unit.complete(false);
+			res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to edit room' });
+			console.error('Error editing room:', error);
+		}
+	});
+
+	roomsRouter.delete('/room/:code', async (req, res): Promise<void> => {
+		const { code } = req.params;
+		const { enacter } = req.body;
+
+		if (!code || !enacter) {
+			res.status(StatusCodes.BAD_REQUEST).json({ error: 'Room code and enacter are required' });
+			return;
+		}
+
+		const unit = new Unit(false);
+		try {
+			const roomsService = new RoomsService(unit);
+			const success = roomsService.deleteRoom(code, enacter);
+
+			unit.complete(success);
+			if (success) {
+				res.status(StatusCodes.OK).json({ success: true, message: 'Room deleted' });
+				console.log('Deleted room', code, 'by', enacter);
+			} else {
+				res.status(StatusCodes.FORBIDDEN).json({ error: 'Not allowed to delete room or room does not exist' });
+				console.log('Failed to delete room', code, 'by', enacter);
+			}
+		} catch (error) {
+			unit.complete(false);
+			res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to delete room' });
+			console.error('Error deleting room:', error);
+		}
+	});
+
+	roomsRouter.put('/room/:code/update-role', async (req, res): Promise<void> => {
+		const { code } = req.params;
+		const { member, newRole, enacter } = req.body;
+
+		if(!code || !member || !newRole || !enacter) {
+			res.status(StatusCodes.BAD_REQUEST).json({ error: 'Missing required fields' });
+			return;
+		}
+
+		const unit = new Unit(false);
+		try {
+			const roomsService = new RoomsService(unit);
+			const result = roomsService.updateMemberRole(code, member, newRole, enacter);
+
+			if(result === true){
+				unit.complete(true);
+				res.status(StatusCodes.OK).json({ success: true });
+				console.log(`Role updated: ${member} is now ${newRole} (by ${enacter})`);
+			} else if(result === 'unauthorized'){
+				unit.complete(false);
+				res.status(StatusCodes.FORBIDDEN).json({ error: 'Only owners can change roles' });
+			} else {
+				unit.complete(false);
+				res.status(StatusCodes.NOT_FOUND).json({ error: 'User or Room not found' });
+			}
+		} catch (error){
+			unit.complete(false);
+			res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to update role' });
+			console.error('Error updating role:', error);
+		}
+	});
