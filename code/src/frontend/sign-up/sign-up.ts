@@ -35,7 +35,6 @@ function requiredTrimmed(field: any, message: string): void {
 		FormField,
 		FormRoot,
 		RouterLink,
-		MatButton
 	],
 	templateUrl: './sign-up.html',
 	styleUrl: './sign-up.scss',

@@ -98,3 +98,9 @@ export enum Role {
 	Admin='admin',
 	Owner='owner'
 }
+
+export type Ingredient = {
+	name:string,
+	measurement:string,
+	amount:number;
+}

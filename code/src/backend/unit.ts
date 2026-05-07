@@ -220,6 +220,32 @@ class DB {
 			 ) strict`
 		);
 
+		connection.exec(
+			`create table if not exists Ingredient
+			 (
+				 id              integer primary key autoincrement,
+				 name	         text not null,
+				 default_measurement text,
+				 user text,
+
+				 constraint uq_name unique (name)
+
+			 ) strict`
+		);
+
+		connection.exec(
+			`create table if not exists RecipeIngredient
+			 (
+				 recipe_id		 text not null,
+				 ingredient_name text not null,
+				 measurement text not null,
+				 amount text not null,
+
+				 constraint fk_recipe foreign key (recipe_id) references Recipe(id)
+
+			 ) strict`
+		);
+
 		DB.migrateMealTableToIncludeEndTime(connection);
 		DB.migrateRecipeAndMealTables(connection);
 	}

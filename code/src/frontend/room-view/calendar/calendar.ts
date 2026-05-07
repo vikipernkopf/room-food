@@ -25,7 +25,7 @@ export class Calendar implements OnInit {
 	currMonth: string = '';
 	currYear: number = 0;
 	dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-	hours: number[] = Array.from({ length: 18 }, (_, i) => i + 5);
+	hours: number[] = Array.from({ length: 19 }, (_, i) => i + 5);
 	weekdays: {
 		name: string;
 		date: number;
