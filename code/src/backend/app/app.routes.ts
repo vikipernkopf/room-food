@@ -1,7 +1,6 @@
 import { Routes } from '@angular/router';
 import { Login } from '../../frontend/login/login';
 import { Homepage } from '../../frontend/homepage/homepage';
-import { Overview } from '../../frontend/overview/overview';
 import { SignUp } from '../../frontend/sign-up/sign-up';
 import { MealManagement } from '../../frontend/room-view/meal-management/meal-management';
 import { Profile } from '../../frontend/profile/profile';
@@ -11,10 +10,9 @@ import { RoomManagementView } from '../../frontend/room-management-view/room-man
 import { ErrorPage } from '../../frontend/error-page/error-page';
 import { Calendar } from '../../frontend/room-view/calendar/calendar';
 import { Overview } from '../../frontend/overview/overview';
-import {JoinRoom} from '../../frontend/rooms/join-room/join-room';
-import {JoinRoomLink} from '../../frontend/rooms/join-room-link/join-room-link';
-import {EditRoom} from '../../frontend/room-management-view/edit-room/edit-room';
-import {SearchDropdownComponent} from '../../frontend/recipes/recipe-management/search-ingredient/search-ingredient';
+import { JoinRoomLink } from '../../frontend/rooms/join-room-link/join-room-link';
+import { EditRoom } from '../../frontend/room-management-view/edit-room/edit-room';
+import { SearchDropdownComponent } from '../../frontend/recipes/recipe-management/search-ingredient/search-ingredient';
 
 export const routes: Routes = [
 	{
@@ -73,8 +71,8 @@ export const routes: Routes = [
 	{
 		path: 'overview',
 		component: Overview
-  },
-  {
+	},
+	{
 		path: 'join/:code',
 		component: JoinRoomLink
 	},
