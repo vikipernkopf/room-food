@@ -220,34 +220,9 @@ class DB {
 			 ) strict`
 		);
 
-		connection.exec(
-			`create table if not exists Ingredient
-			 (
-				 id              integer primary key autoincrement,
-				 name	         text not null,
-				 default_measurement text,
-				 user text,
-
-				 constraint uq_name unique (name)
-
-			 ) strict`
-		);
-
-		connection.exec(
-			`create table if not exists RecipeIngredient
-			 (
-				 recipe_id		 text not null,
-				 ingredient_name text not null,
-				 measurement text not null,
-				 amount text not null,
-
-				 constraint fk_recipe foreign key (recipe_id) references Recipe(id)
-
-			 ) strict`
-		);
-
 		DB.migrateMealTableToIncludeEndTime(connection);
 		DB.migrateRecipeAndMealTables(connection);
+		DB.migrateIngredients(connection);
 	}
 
 	private static migrateRoomTableToProfilePicture(connection: BetterSqlite3.Database): void {
@@ -607,6 +582,38 @@ class DB {
 		} finally {
 			connection.pragma('foreign_keys = ON');
 		}
+	}
+
+	private static migrateIngredients(connection: BetterSqlite3.Database) {
+		console.log('Migrating Ingredients and RecipeIngredient tables...');
+
+		connection.exec(
+			`create table if not exists Ingredient
+           (
+              id                  integer primary key autoincrement,
+              name                text not null,
+              default_measurement text,
+              user                text,
+
+              constraint uq_name unique (name)
+           ) strict`
+		);
+
+		connection.exec(
+			`create table if not exists RecipeIngredient
+           (
+              recipe_id       integer not null,
+              ingredient_name text not null,
+              measurement     text not null,
+              amount          text not null,
+
+              constraint pk_recipe_ingredient primary key (recipe_id, ingredient_name),
+              constraint fk_recipe foreign key (recipe_id) references Recipe(id) ON DELETE CASCADE,
+              constraint fk_ingredient foreign key (ingredient_name) references Ingredient(name) ON DELETE CASCADE
+           ) strict`
+		);
+
+		console.log('✓ Ingredient migration completed');
 	}
 
 	private static getLegacyRecipeAuthorExpr(
