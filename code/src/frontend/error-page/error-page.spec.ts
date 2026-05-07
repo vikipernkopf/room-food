@@ -4,22 +4,29 @@ import { provideRouter } from '@angular/router';
 import { ErrorPage } from './error-page';
 
 describe('ErrorPage', () => {
-  let component: ErrorPage;
-  let fixture: ComponentFixture<ErrorPage>;
+	let component: ErrorPage;
+	let fixture: ComponentFixture<ErrorPage>;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [ErrorPage],
-      providers: [provideRouter([])]
-    })
-    .compileComponents();
+	beforeEach(async () => {
+		await TestBed.configureTestingModule({
+			imports: [ErrorPage],
+			providers: [provideRouter([])]
+		})
+		.compileComponents();
 
-    fixture = TestBed.createComponent(ErrorPage);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
+		fixture = TestBed.createComponent(ErrorPage);
+		component = fixture.componentInstance;
+		fixture.detectChanges();
+	});
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
+	it('should create', () => expect(component).toBeTruthy());
+
+	it('renders a link back to the homepage', () => {
+		const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+		const link = fixture.nativeElement.querySelector('a[routerLink="/homepage"]');
+
+		expect(text).toContain('Oops!');
+		expect(text).toContain('Go to Homepage');
+		expect(link).not.toBeNull();
+	});
 });

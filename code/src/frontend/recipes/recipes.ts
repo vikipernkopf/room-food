@@ -12,7 +12,7 @@ import { RecipeFormValue, RecipeManagement, RecipeMealType } from './recipe-mana
 	styleUrl: './recipes.scss'
 })
 export class Recipes {
-	protected activePopup: 'create' | 'edit' | null = null;
+	protected readonly activePopup = signal<'create' | 'edit' | null>(null);
 	private readonly recipeService = inject(RecipeService);
 	private readonly authService = inject(AuthService);
 	protected readonly currentUser = this.authService.currentUser;
@@ -23,8 +23,8 @@ export class Recipes {
 	protected readonly recipesLoadError = signal('');
 	protected readonly recipeSaveError = signal('');
 	protected readonly recipeActionError = signal('');
-	protected creating = false;
-	protected savingRecipeId: number | null = null;
+	protected readonly creating = signal(false);
+	protected readonly savingRecipeId = signal<number | null>(null);
 	protected readonly recipeToEdit = signal<Recipe | null>(null);
 	protected readonly mealTypeOptions: RecipeMealType[] = [
 		{
@@ -67,24 +67,24 @@ export class Recipes {
 	}
 
 	protected openCreateRecipe(): void {
-		this.activePopup = 'create';
+		this.activePopup.set('create');
 		this.recipeToEdit.set(null);
 		this.recipeSaveError.set('');
-		this.creating = false;
+		this.creating.set(false);
 	}
 
 	protected openEditRecipe(recipe: Recipe): void {
 		this.recipeToEdit.set(recipe);
-		this.activePopup = 'edit';
+		this.activePopup.set('edit');
 		this.recipeSaveError.set('');
-		this.creating = false;
+		this.creating.set(false);
 	}
 
 	protected closePopup(): void {
-		this.activePopup = null;
+		this.activePopup.set(null);
 		this.recipeToEdit.set(null);
 		this.recipeSaveError.set('');
-		this.creating = false;
+		this.creating.set(false);
 	}
 
 	protected saveRecipe(payload: RecipeFormValue): void {
@@ -102,7 +102,7 @@ export class Recipes {
 		}
 
 		const editRecipeId = this.recipeToEdit()?.id;
-		this.creating = true;
+		this.creating.set(true);
 
 		const request = editRecipeId
 			? this.recipeService.updateRecipe(editRecipeId, {
@@ -123,12 +123,12 @@ export class Recipes {
 
 		request.subscribe({
 			next: () => {
-				this.creating = false;
+				this.creating.set(false);
 				this.closePopup();
 				this.loadRecipesForCurrentMode(username);
 			},
 			error: (error: any) => {
-				this.creating = false;
+				this.creating.set(false);
 				this.recipeSaveError.set(
 					'Failed to save recipe: ' + (error?.error?.error || error?.message || 'Unknown error'));
 			}
@@ -147,10 +147,10 @@ export class Recipes {
 		}
 
 		this.recipeSaveError.set('');
-		this.creating = true;
+		this.creating.set(true);
 		this.recipeService.deleteRecipe(recipe.id).subscribe({
 			next: () => {
-				this.creating = false;
+				this.creating.set(false);
 				this.recipes.update(currentRecipes =>
 					currentRecipes.filter(currentRecipe => currentRecipe.id !== recipe.id)
 				);
@@ -159,7 +159,7 @@ export class Recipes {
 				}
 			},
 			error: (error: any) => {
-				this.creating = false;
+				this.creating.set(false);
 				this.recipeSaveError.set(
 					'Failed to delete recipe: ' + (error?.error?.error || error?.message || 'Unknown error'));
 			}
@@ -178,15 +178,15 @@ export class Recipes {
 		}
 
 		this.recipeActionError.set('');
-		this.savingRecipeId = recipe.id;
+		this.savingRecipeId.set(recipe.id);
 
 		this.recipeService.savePublicRecipe(recipe.id, username).subscribe({
 			next: () => {
-				this.savingRecipeId = null;
+				this.savingRecipeId.set(null);
 				this.loadRecipesForCurrentMode(username);
 			},
 			error: (error: any) => {
-				this.savingRecipeId = null;
+				this.savingRecipeId.set(null);
 				this.recipeActionError.set(
 					'Failed to save recipe: ' + (error?.error?.error || error?.message || 'Unknown error')
 				);
@@ -270,9 +270,9 @@ export class Recipes {
 		}));
 	}
 
-	protected getRecipeCardDescription(recipe: Recipe): string {
+	/*protected getRecipeCardDescription(recipe: Recipe): string {
 		return recipe.description || 'No description provided.';
-	}
+	}*/
 
 	protected getRecipeImage(recipe: Recipe): string {
 		return recipe.image || this.defaultRecipeImage;

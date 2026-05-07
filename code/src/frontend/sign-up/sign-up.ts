@@ -1,52 +1,137 @@
-import {Component, WritableSignal} from '@angular/core';
-import {AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, Validators} from '@angular/forms';
-import {ActivatedRoute, RouterLink} from '@angular/router';
-import {AuthService} from '../core/auth-service';
+import { Component, WritableSignal, signal } from '@angular/core';
+import {
+	FormField,
+	FormRoot,
+	FormSubmitOptions,
+	email,
+	form,
+	maxLength,
+	minLength,
+	pattern,
+	required,
+	submit,
+	validate,
+	validateTree
+} from '@angular/forms/signals';
+import { MatButton } from '@angular/material/button';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { AuthService } from '../core/auth-service';
 import { SignUpCredentials } from '../../backend/model';
-import { DEFAULT_PROFILE_PICTURE, profileFieldValidators } from '../core/user-form-validation';
+import { BACKEND_EMAIL_PATTERN, DEFAULT_PROFILE_PICTURE } from '../core/user-form-validation';
 
-function passwordsMatchValidator(control: AbstractControl): ValidationErrors | null {
-	const password = control.get('password')?.value ?? '';
-	const repeatPassword = control.get('repeatPassword')?.value ?? '';
-	if (!password || !repeatPassword) {
-		return null;
-	}
-	return password === repeatPassword ? null : {passwordMismatch: true};
+const PASSWORD_STRENGTH_PATTERN = /^(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/;
+
+function requiredTrimmed(field: any, message: string): void {
+	validate(field, ({ value }: any) => value().trim().length > 0 ? null : {
+		kind: 'requiredTrimmed',
+		message
+	});
 }
 
 @Component({
-  selector: 'app-signup',
+	selector: 'app-signup',
+	standalone: true,
 	imports: [
-		ReactiveFormsModule,
-		RouterLink
+		FormField,
+		FormRoot,
+		RouterLink,
+		MatButton
 	],
-  templateUrl: './sign-up.html',
-  styleUrl: './sign-up.scss',
+	templateUrl: './sign-up.html',
+	styleUrl: './sign-up.scss',
 })
 export class SignUp {
-// Form controls using FormGroup
-	private readonly sharedValidators = profileFieldValidators(true);
-	protected loginQueryParams: { returnUrl: string } | null = null;
+	protected readonly signUpModel = signal({
+		username: '',
+		email: '',
+		firstName: '',
+		lastName: '',
+		bio: '',
+		dob: '',
+		profilePicture: '',
+		password: '',
+		repeatPassword: ''
+	});
 
-	signUpForm = new FormGroup({
-		username: new FormControl('', [Validators.required,
-			Validators.pattern('^[a-zA-Z0-9]*$')]),
-		email: new FormControl('', this.sharedValidators.email),
-		firstName: new FormControl('', this.sharedValidators.firstName),
-		lastName: new FormControl('', this.sharedValidators.lastName),
-		bio: new FormControl('', this.sharedValidators.bio),
-		dob: new FormControl('', this.sharedValidators.dob),
-		profilePicture: new FormControl('', this.sharedValidators.profilePicture),
-		password: new FormControl('', this.sharedValidators.password),
-		repeatPassword: new FormControl('', [Validators.required])
-	}, {validators: passwordsMatchValidator});
+	protected loginQueryParams: {
+		returnUrl: string
+	} | null = null;
 
-	public showPassword = false;
-	public showRepeatPassword = false;
+	private readonly formSubmission: FormSubmitOptions<any, any> = {
+		action: async () => {
+			const model = this.signUpModel();
+			const profilePicture = model.profilePicture.trim();
+			const payload: SignUpCredentials = {
+				username: model.username,
+				password: model.password,
+				email: model.email,
+				firstName: model.firstName,
+				lastName: model.lastName,
+				bio: model.bio,
+				dob: model.dob,
+				profilePicture: profilePicture || DEFAULT_PROFILE_PICTURE
+			};
+			this.authService.signUp(payload, this.returnUrl);
+		},
+		onInvalid: () => console.log('Form is invalid')
+	};
+
+	protected readonly signUpForm: any = form(this.signUpModel, (signUp: any) => {
+		required(signUp.username);
+		pattern(signUp.username, /^[a-zA-Z0-9]*$/);
+
+		required(signUp.email);
+		email(signUp.email);
+		pattern(signUp.email, BACKEND_EMAIL_PATTERN);
+
+		required(signUp.firstName);
+		requiredTrimmed(signUp.firstName, 'First name is required');
+		maxLength(signUp.firstName, 50);
+
+		required(signUp.lastName);
+		requiredTrimmed(signUp.lastName, 'Last name is required');
+		maxLength(signUp.lastName, 50);
+
+		maxLength(signUp.bio, 100);
+
+		required(signUp.dob);
+		requiredTrimmed(signUp.dob, 'Date of birth is required');
+
+		maxLength(signUp.profilePicture, 1000);
+
+		required(signUp.password);
+		minLength(signUp.password, 8);
+		pattern(signUp.password, PASSWORD_STRENGTH_PATTERN);
+
+		required(signUp.repeatPassword);
+
+		validateTree(signUp, ({
+			value,
+			fieldTree
+		}: any) => {
+			const {
+				password,
+				repeatPassword
+			} = value();
+			if (!password || !repeatPassword || password === repeatPassword) {
+				return null;
+			}
+
+			return [
+				{
+					kind: 'passwordMismatch',
+					message: 'Passwords do not match',
+					fieldTree: fieldTree.repeatPassword
+				}
+			];
+		});
+	}, { submission: this.formSubmission });
 
 	// Expose the service signal directly so template updates when service sets errors
 	public signUpError: WritableSignal<string>;
 	private returnUrl = '/homepage';
+	public showPassword = false;
+	public showRepeatPassword = false;
 
 	constructor(private authService: AuthService, private route: ActivatedRoute) {
 		this.signUpError = this.authService.signUpError;
@@ -57,6 +142,16 @@ export class SignUp {
 		}
 	}
 
+	protected fieldTouchedAndInvalid(field: any): boolean {
+		return field().touched() && field().invalid();
+	}
+
+	protected fieldHasError(field: any, kind: string): boolean {
+		return field().errors().some((error: {
+			kind: string
+		}) => error.kind === kind);
+	}
+
 	togglePasswordVisibility() {
 		this.showPassword = !this.showPassword;
 	}
@@ -65,24 +160,7 @@ export class SignUp {
 		this.showRepeatPassword = !this.showRepeatPassword;
 	}
 
-
 	onFormSubmit() {
-		if (this.signUpForm.valid) {
-			const profilePicture = (this.signUpForm.value.profilePicture ?? '').trim();
-			const payload: SignUpCredentials = {
-				username: this.signUpForm.value.username ?? '',
-				password: this.signUpForm.value.password ?? '',
-				email: this.signUpForm.value.email ?? '',
-				firstName: this.signUpForm.value.firstName ?? '',
-				lastName: this.signUpForm.value.lastName ?? '',
-				bio: this.signUpForm.value.bio ?? '',
-				dob: this.signUpForm.value.dob ?? '',
-				profilePicture: profilePicture || DEFAULT_PROFILE_PICTURE
-			};
-			this.authService.signUp(payload, this.returnUrl);
-		} else {
-			this.signUpForm.markAllAsTouched();
-			console.log('Form is invalid');
-		}
+		return submit(this.signUpForm, this.formSubmission);
 	}
 }

@@ -9,11 +9,12 @@ import {
 	SimpleChanges,
 	WritableSignal
 } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { FormsModule } from '@angular/forms';
-import { MatDatepicker, MatDatepickerModule } from '@angular/material/datepicker';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatTimepickerModule } from '@angular/material/timepicker';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -22,7 +23,6 @@ import { AuthService } from '../../core/auth-service';
 import { Meal, Recipe, User } from '../../../backend/model';
 import { MealService } from '../../core/meal-service';
 import { RecipeService } from '../../core/recipe-service';
-import {DatePipe, TitleCasePipe} from '@angular/common';
 import { RoomService } from '../../core/room-service';
 
 interface MealType {
@@ -35,13 +35,14 @@ interface MealType {
 	standalone: true,
 	providers: [provideNativeDateAdapter()],
 	imports: [
+		CommonModule,
 		FormsModule,
 		MatFormFieldModule,
 		MatSelectModule,
 		MatInputModule,
-		MatDatepickerModule, MatDatepicker,
+		MatDatepickerModule,
 		MatTimepickerModule,
-		MatIconModule, MatButtonModule, DatePipe, TitleCasePipe
+		MatIconModule, MatButtonModule
 	],
 	templateUrl: './meal-management.html',
 	styleUrl: './meal-management.scss',
@@ -61,6 +62,10 @@ export class MealManagement implements OnChanges {
 	initialDate: Date | null = null;
 	@Input()
 	initialTime: Date | null = null;
+	@Input()
+	overviewMode: boolean = false;
+	@Input()
+	availableRooms: { code: string; roomName: string; role: string; profilePicture?: string }[] = [];
 
 	closePopup() {
 		this.isViewMode.set(false);
@@ -86,6 +91,7 @@ export class MealManagement implements OnChanges {
 	protected selectedResponsibleUsers: string[] = [];
 	protected availableRoomMembers: string[] = [];
 	protected roomMembersLoadError: string = '';
+	protected selectedRoomCode: string = '';
 
 	mealTypes: MealType[] = [
 		{
@@ -131,11 +137,47 @@ export class MealManagement implements OnChanges {
 			this.loadRoomMembers();
 		}
 
+		if (this.overviewMode) {
+			this.selectedRoomCode = this.mealToEdit?.room ?? this.roomCode ?? this.availableRooms[0]?.code ?? '';
+			this.loadRoomMembersForRoom(this.selectedRoomCode);
+		} else {
+			this.selectedRoomCode = this.roomCode;
+		}
+
 		this.loadRecipesForCurrentUser();
 	}
 
 	protected get backendError(): string {
 		return this.mealService.saveError();
+	}
+
+	protected get selectedRoomName(): string {
+		return this.getRoomName(this.selectedRoomCode);
+	}
+
+	protected getRoomName(roomCode: string | null | undefined): string {
+		if (!roomCode) {
+			return '';
+		}
+
+		return this.availableRooms.find(room => room.code === roomCode)?.roomName ?? roomCode;
+	}
+
+	protected formatMealType(value: string): string {
+		const trimmed = value.slice(0, Math.max(0, value.length - 2));
+		return trimmed ? trimmed.charAt(0).toUpperCase() + trimmed.slice(1) : '';
+	}
+
+	protected formatDateValue(date: Date | null): string {
+		if (!date) {
+			return '';
+		}
+
+		return new Intl.DateTimeFormat('en-US', {
+			weekday: 'long',
+			month: 'short',
+			day: 'numeric'
+		}).format(date);
 	}
 
 	protected clearErrors(): void {
@@ -260,14 +302,12 @@ export class MealManagement implements OnChanges {
 
 		for (const recipe of this.availableRecipes) {
 			const normalizedRecipeName = recipe.name.toLowerCase();
-			if (!normalizedRecipeName.includes(normalizedSearchTerm)) {
-				continue;
-			}
-
-			if (normalizedRecipeName.startsWith(normalizedSearchTerm)) {
-				startsWithMatches.push(recipe);
-			} else {
-				containsMatches.push(recipe);
+			if (normalizedRecipeName.includes(normalizedSearchTerm)) {
+				if (normalizedRecipeName.startsWith(normalizedSearchTerm)) {
+					startsWithMatches.push(recipe);
+				} else {
+					containsMatches.push(recipe);
+				}
 			}
 		}
 
@@ -337,14 +377,18 @@ export class MealManagement implements OnChanges {
 	}
 
 	private loadRoomMembers(): void {
-		if (!this.roomCode) {
+		this.loadRoomMembersForRoom(this.roomCode);
+	}
+
+	private loadRoomMembersForRoom(roomCode: string): void {
+		if (!roomCode) {
 			this.availableRoomMembers = [];
 			this.roomMembersLoadError = '';
 			this.requestViewUpdate();
 			return;
 		}
 
-		this.roomService.getMembersPerRoom(this.roomCode).subscribe({
+		this.roomService.getMembersPerRoom(roomCode).subscribe({
 			next: members => {
 				this.availableRoomMembers = members.map(m => m.username) || [];
 				this.roomMembersLoadError = '';
@@ -358,11 +402,18 @@ export class MealManagement implements OnChanges {
 		});
 	}
 
+	protected onRoomSelectionChange(roomCode: string): void {
+		this.selectedRoomCode = roomCode;
+		this.loadRoomMembersForRoom(roomCode);
+		this.requestViewUpdate();
+	}
+
 	protected saveMeal(): void {
 		this.clearErrors();
 
 		const user = this.authService.currentUser();
 		const currentUsername = user?.username;
+		const effectiveRoomCode = this.overviewMode ? this.selectedRoomCode : this.roomCode;
 
 		if (this.dish
 			&& this.selectedValue
@@ -370,7 +421,7 @@ export class MealManagement implements OnChanges {
 			&& this.selectedStartTime
 			&& this.selectedEndTime
 			&& currentUsername
-			&& this.roomCode) {
+			&& effectiveRoomCode) {
 
 			// 1. Create a fresh Date object for Start from the selected Date
 			const finalDate = new Date(this.selectedDate);
@@ -394,7 +445,7 @@ export class MealManagement implements OnChanges {
 				name: this.dish,
 				mealType: this.selectedValue,
 				responsible: currentUsername,
-				room: this.roomCode,
+				room: effectiveRoomCode,
 				recipeIds: [...this.selectedRecipeIds],
 				responsibleUsers: [...this.selectedResponsibleUsers]
 			};

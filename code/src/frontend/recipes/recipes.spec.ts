@@ -222,7 +222,7 @@ describe('Recipes', () => {
 		const popupDebugElement = fixture.debugElement.query(By.directive(RecipeManagement));
 		expect(popupDebugElement).toBeTruthy();
 		const popupComponent = popupDebugElement.componentInstance as any;
-		expect((component as any).activePopup).toBe('edit');
+		expect((component as any).activePopup()).toBe('edit');
 		expect((component as any).recipeToEdit().name).toBe('Pasta');
 		expect(popupComponent.recipeNameControl.value).toBe('Pasta');
 	});
