@@ -1,19 +1,21 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, effect, signal, WritableSignal } from '@angular/core';
+import { Component, computed, effect, signal, ViewChild, WritableSignal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../core/auth-service';
 import { PublicProfile, UpdateProfilePayload, User } from '../../backend/model';
 import { DEFAULT_PROFILE_PICTURE, profileFieldValidators } from '../core/user-form-validation';
+import { ConfirmationDialog } from '../core/confirmation-dialog';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, ConfirmationDialog],
   templateUrl: './profile.html',
   styleUrl: './profile.scss'
 })
 export class Profile {
+  @ViewChild(ConfirmationDialog) confirmDialog!: ConfirmationDialog;
   private readonly sharedValidators = profileFieldValidators(false);
 
   protected readonly profile: WritableSignal<PublicProfile | null> = signal(null);
@@ -226,18 +228,24 @@ export class Profile {
 		  return;
 	  }
 
-	  if (!confirm('Are you sure you want to permanently delete your profile? This cannot be undone.')) {
+	  this.confirmDialog.open();
+  }
+
+  protected onDeleteConfirmed(): void {
+	  this.deleteError.set('');
+	  const currentUser = this.currentUser();
+	  if (!currentUser) {
 		  return;
 	  }
 
-	  this.deleteError.set('');
 	  this.authService.deleteUser({
 		  identifier: currentUser.username,
-		  password: this.editForm.value.password
+		  password: this.editForm.value.password ?? ''
 	  }).subscribe({
 		  next: () => {
 			  // Deletion was successful, logout handled by service
 			  this.deleteError.set('');
+			  this.editForm.controls.password.setValue('');
 		  },
 		  error: (err) => {
 			  if (err.status === 401) {
@@ -245,8 +253,13 @@ export class Profile {
 			  } else {
 				  this.deleteError.set('Failed to delete account. Please try again later.');
 			  }
+			  this.editForm.controls.password.setValue('');
 		  }
 	  });
+  }
+
+  protected onDeleteCancelled(): void {
+	  // Dialog was cancelled, no action needed
   }
 }
 

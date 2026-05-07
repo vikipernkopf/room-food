@@ -1,0 +1,93 @@
+@use '../styles/theme' as *;
+
+.dialog-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: $color-overlay-40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.dialog-container {
+  background: $color-white;
+  border-radius: 16px;
+  padding: 2rem;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 12px 40px $color-overlay-20;
+  animation: slideUp 0.3s ease-out;
+
+  h2 {
+    margin: 0 0 1rem;
+    color: $color-green-4;
+    font-size: 1.3rem;
+  }
+
+  p {
+    margin: 0 0 1.5rem;
+    color: $color-text-main;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.dialog-actions {
+  display: flex;
+  gap: 0.8rem;
+  justify-content: flex-end;
+
+  button {
+    border: none;
+    border-radius: 10px;
+    padding: 0.7rem 1.2rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+}
+
+.button-secondary {
+  background: $color-light-gray;
+  color: $color-text-main;
+
+  &:hover {
+    background: $color-slate-1;
+  }
+}
+
+.button-danger {
+  background: $color-red;
+  color: $color-white;
+
+  &:hover {
+    background: $color-red-dark;
+  }
+}
+
