@@ -45,6 +45,7 @@ describe('JoinRoomLink', () => {
 
     fixture = TestBed.createComponent(JoinRoomLink);
     component = fixture.componentInstance;
+    await fixture.whenStable();
   });
 
   it('should create', () => {
