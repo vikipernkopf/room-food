@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, effect, signal, ViewChild, WritableSignal } from '@angular/core';
+import { Component, computed, effect, inject, signal, ViewChild, WritableSignal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../core/auth-service';
@@ -17,6 +17,9 @@ import { ConfirmationDialog } from '../core/confirmation-dialog';
 export class Profile {
   @ViewChild(ConfirmationDialog) confirmDialog!: ConfirmationDialog;
   private readonly sharedValidators = profileFieldValidators(false);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly authService = inject(AuthService);
 
   protected readonly profile: WritableSignal<PublicProfile | null> = signal(null);
   protected readonly isLoading = signal(true);
@@ -47,15 +50,11 @@ export class Profile {
     password: new FormControl('', this.sharedValidators.password)
   });
 
-  constructor(
-    private readonly route: ActivatedRoute,
-    private readonly router: Router,
-    private readonly authService: AuthService
-  ) {
+  constructor() {
     this.currentUser = this.authService.currentUser;
 
     effect(() => {
-      const routeUsername = this.route.snapshot.paramMap.get('username');
+      const routeUsername = this.route?.snapshot?.paramMap?.get('username');
       const currentUserUsername = this.currentUser()?.username;
 
       const username = (routeUsername ?? currentUserUsername ?? '').trim();
