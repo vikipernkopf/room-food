@@ -25,7 +25,9 @@
 		<div class="container-body">
 			<div class="time-column">
 				@for (hour of hours; track hour) {
-					<div class="time-slot">{{ hour }}:00</div>
+					<div class="time-slot">
+						{{ hour % 12 === 0 ? 12 : hour % 12 }}:00 {{ hour >= 12 ? 'PM' : 'AM' }}
+					</div>
 				}
 			</div>
 

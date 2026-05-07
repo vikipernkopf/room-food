@@ -584,10 +584,10 @@ export class MealManagement implements OnChanges {
 		// 1. Check Range (5 AM - 11 PM) using standard .getHours()
 		const startHours = start.getHours();
 		const endHours = end.getHours();
-		if (startHours < 5 || startHours >= 23) {
+		if (startHours < 5 || startHours >= 24) {
 			errors.start = "Time must be between 5 AM and 11 PM";
 		}
-		if (endHours < 5 || endHours >= 23) {
+		if (endHours < 5 || endHours >= 24) {
 			errors.end = "Time must be between 5 AM and 11 PM";
 		}
 
