@@ -5,6 +5,7 @@ import { roomViewRouter } from './room-view/room-view-router';
 import { mealManagementRouter } from './meal-management/meal-management-router';
 import { roomsRouter } from './rooms/rooms-router';
 import { recipesRouter } from './recipes/recipes-router';
+import { ingredientsRouter } from './ingredients/ingredients-router';
 import cookieParser from 'cookie-parser';
 import 'dotenv/config';
 
@@ -25,6 +26,7 @@ export function createApiRouter() {
 	router.use('/', roomViewRouter);
 	router.use('/', roomsRouter);
 	router.use('/', recipesRouter);
+	router.use('/', ingredientsRouter);
 
 	return router;
 }
