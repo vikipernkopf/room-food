@@ -12,6 +12,8 @@ import { ErrorPage } from '../../frontend/error-page/error-page';
 import { Calendar } from '../../frontend/room-view/calendar/calendar';
 import { Overview } from '../../frontend/overview/overview';
 import { EditRoom } from '../../frontend/room-management-view/edit-room/edit-room';
+import {JoinRoom} from '../../frontend/rooms/join-room/join-room';
+import {JoinRoomLink} from '../../frontend/rooms/join-room-link/join-room-link';
 
 export const routes: Routes = [
 	{
@@ -70,6 +72,10 @@ export const routes: Routes = [
 	{
 		path: 'manage/:code/edit',
 		component: EditRoom
+	},
+	{
+		path: 'join/:code',
+		component: JoinRoomLink
 	},
 	{
 		path: '**',

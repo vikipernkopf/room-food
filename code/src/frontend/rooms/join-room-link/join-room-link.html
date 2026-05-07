@@ -1,0 +1,28 @@
+<div class="page">
+	<div class="card">
+
+		@if (isLoading) {
+			<div class="icon-circle loading">
+				<div class="spinner"></div>
+			</div>
+			<p class="title">Joining room...</p>
+			<p class="subtitle">Sending your join request, hang tight.</p>
+			<span class="badge loading">Pending</span>
+		}
+
+		@if (isJoinRoomSuccess()) {
+			<div class="icon-circle success">✓</div>
+			<p class="title">Request sent!</p>
+			<p class="subtitle">Your join request has been sent. The room owner will review it shortly.</p>
+			<span class="badge success">Request pending approval</span>
+		}
+
+		@if (isJoinRoomError()) {
+			<div class="icon-circle error">✕</div>
+			<p class="title">Couldn't join room</p>
+			<p class="subtitle">{{ joinRoomStatus() }}</p>
+			<span class="badge error">Failed</span>
+		}
+
+	</div>
+</div>
