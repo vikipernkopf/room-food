@@ -85,4 +85,10 @@ export class RecipeService {
 			deleted: boolean
 		}>(apiUrl);
 	}
+
+	public getIngredientsForRecipe(recipeId: number): Observable<{ ingredientName: string; measurement: string; amount: number }[]> {
+		return this.http.get<{ ingredientName: string; measurement: string; amount: number }[]>(
+			`${this.apiBase}/recipes/${recipeId}/ingredients`
+		);
+	}
 }

@@ -1,4 +1,5 @@
 export type User = {
+	id?: number,
 	username: string,
 	email?: string,
 	firstName?: string,
@@ -90,7 +91,8 @@ export type Meal = {
 	room: string,
 	responsible: string,
 	responsibleUsers?: string[],
-	recipeIds?: number[]
+	recipeIds?: number[],
+	eatingUsernames?: string[]
 }
 
 export enum Role {

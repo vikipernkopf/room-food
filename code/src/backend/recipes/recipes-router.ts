@@ -267,3 +267,23 @@ recipesRouter.delete('/recipes/:id', async (req, res): Promise<void> => {
 		console.error('Error deleting recipe:', error);
 	}
 });
+
+recipesRouter.get('/recipes/:id/ingredients', async (req, res): Promise<void> => {
+	const recipeId = Number(req.params.id);
+
+	if (!Number.isInteger(recipeId) || recipeId <= 0) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid recipe id' });
+		return;
+	}
+
+	const unit = new Unit(true);
+	try {
+		const recipesService = new RecipesService(unit);
+		const ingredients = recipesService.getIngredientsForRecipe(recipeId);
+		unit.complete();
+		res.status(StatusCodes.OK).json(ingredients);
+	} catch (error) {
+		unit.complete();
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to fetch ingredients' });
+	}
+});
