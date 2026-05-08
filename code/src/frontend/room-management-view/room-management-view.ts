@@ -1,5 +1,5 @@
 import {Component, effect, inject, OnDestroy, signal, WritableSignal, DestroyRef} from '@angular/core';
-import {ActivatedRoute, Router} from '@angular/router';
+import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {MatDivider} from '@angular/material/divider';
 import {MatCard} from '@angular/material/card';
 import {MatButton, MatIconButton} from '@angular/material/button';
@@ -36,7 +36,8 @@ interface Request {
 		MatMenuTrigger,
 		MatMenu,
 		MatMenuItem,
-		EditRoom
+		EditRoom,
+		RouterLink
 	],
 	templateUrl: './room-management-view.html',
 	styleUrl: './room-management-view.scss'

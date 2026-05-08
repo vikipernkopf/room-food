@@ -1,3 +1,5 @@
+
+
 <div class="page-wrapper">
 	<mat-card class="room-card">
 
@@ -24,7 +26,9 @@
 			</div>
 
 			@if (userRole()===Role.Owner || userRole()===Role.Admin) {
-				<button mat-stroked-button class="accept-btn" (click)="editRoom()">Edit Room</button>
+				<button type="button" class="accept-btn edit-btn" (click)="editRoom()">
+					Edit Room
+				</button>
 				@if (isPopupVisible()) {
 					<div class="popup-overlay">
 						<div class="popup-content">
@@ -52,7 +56,9 @@
 				@for (member of members(); track member.username) {
 					<div class="member-item">
 						<div class="member-info">
-							<span class="member-username">{{member.username}}</span>
+							<a [routerLink]="['/profile', member.username]" class="member-profile-link">
+								<span class="member-username">{{member.username}}</span>
+							</a>
 							@if (userRole() === Role.Owner && member.username !== currentUser()?.username) {
 								<button mat-button [matMenuTriggerFor]="roleMenu" class="role-dropdown-btn">
 									{{member.role}} <span class="arrow-down">▼</span>
@@ -98,8 +104,9 @@
 					@for (request of requests(); track request.username) {
 						<div class="request-item">
 							<div class="member-info">
-								<span class="member-username">{{request.username}}</span>
-							</div>
+								<a [routerLink]="['/profile', request.username]" class="member-profile-link">
+									<span class="member-username">{{request.username}}</span>
+								</a>							</div>
 							<div class="action-buttons">
 								<button mat-icon-button class="action-btn accept-btn" aria-label="Accept request" (click)="acceptRequest(request.username)">
 									✓
@@ -116,9 +123,19 @@
 			}
 
 			<div class="leave-delete-div">
-				<button mat-stroked-button class="reject-btn" [disabled]="userRole()===Role.Owner" (click)="leaveRoom()">Leave Room</button>
-				@if (userRole()===Role.Owner){
-					<button mat-stroked-button class="reject-btn" (click)="deleteRoom()">Delete Room</button>
+				<button type="button"
+						class="reject-btn leave-btn"
+						[disabled]="userRole() === Role.Owner"
+						(click)="leaveRoom()">
+					Leave Room
+				</button>
+
+				@if (userRole() === Role.Owner) {
+					<button type="button"
+							class="reject-btn delete-btn"
+							(click)="deleteRoom()">
+						Delete Room
+					</button>
 				}
 			</div>
 
