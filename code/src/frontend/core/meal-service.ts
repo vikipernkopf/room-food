@@ -125,4 +125,25 @@ export class MealService {
 			deleted: boolean
 		}>(apiUrl);
 	}
+
+	public addEatingUser(mealId: number, username: string): Observable<{ mealId: number; username: string; added: boolean }> {
+		const apiUrl = `${this.apiBase}/meal/${mealId}/eating-user/${username}`;
+		return this.http.post<{ mealId: number; username: string; added: boolean }>(apiUrl, {});
+	}
+
+	public removeEatingUser(mealId: number, username: string): Observable<{ mealId: number; username: string; removed: boolean }> {
+		const apiUrl = `${this.apiBase}/meal/${mealId}/eating-user/${username}`;
+		return this.http.delete<{ mealId: number; username: string; removed: boolean }>(apiUrl);
+	}
+
+	public getEatingUsers(mealId: number): Observable<{
+		mealId: number;
+		eatingUsers: string[]
+	}> {
+		const apiUrl = `${this.apiBase}/meal/${mealId}/eating-users`;
+		return this.http.get<{
+			mealId: number;
+			eatingUsers: string[]
+		}>(apiUrl);
+	}
 }
