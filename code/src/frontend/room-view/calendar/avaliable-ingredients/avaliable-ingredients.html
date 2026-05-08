@@ -1,0 +1,21 @@
+<h2>Needed Ingredients</h2>
+
+@if (loading()) {
+	<p>Loading ingredients...</p>
+}
+
+@if (!loading() && ingredients().length === 0) {
+	<p>No ingredients found.</p>
+}
+
+@if (!loading() && ingredients().length > 0) {
+	<ul>
+		@for (ingredient of ingredients(); track ingredient.name) {
+			<li>
+				<b>{{ ingredient.amount }}</b>
+				<span>{{ ingredient.measurement }} of </span>
+				<strong>{{ ingredient.name }}</strong>
+			</li>
+		}
+	</ul>
+}

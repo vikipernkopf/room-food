@@ -141,19 +141,4 @@ export class IngredientsService extends ServiceBase {
 
 		return success1 && success2;
 	}
-
-	/*public useIngredient(name:string, room:string, user:string, amount:number):boolean{
-		if(!this.roomsService.checkUserRoomMember(user, room)){
-			return false;
-		}
-
-		let success:boolean = true;
-
-		[success] = this.executeStmt(
-			this.unit.prepare(`
-			update RoomIngredients set amount=:a where :r
-		`, {a:newAmount, r:recipeId}));
-
-		return success;
-	}*/
 }
