@@ -55,9 +55,10 @@
 
 /* ===== ROOM NAME ROW ===== */
 .room-name-row {
-	display: flex;
-	align-items: center;
-	gap: 8px;
+	font-size: 30px;
+	font-weight: 600;
+	color: $color-text-main;
+	margin: 0 0 8px 0;
 }
 
 /* ===== ROOM IMAGE ===== */
@@ -123,7 +124,7 @@
 
 /* ===== SECTION TITLE ===== */
 .section-title {
-	font-size: 16px;
+	font-size: 20px;
 	font-weight: 600;
 	color: $color-text-main;
 	margin: 0 0 8px 0;
@@ -283,29 +284,56 @@
 }
 
 
-.reject-btn {
-	color: red;
-	font-size: 15px;
-}
-
-.leave-delete-btn {
-	color: red;
-	font-size: 15px;
-	max-width: 20rem;
-}
-
 .leave-delete-div {
-	padding-top: 1rem;
-	align-self: flex-end;
-	max-width: 40rem;
-	gap: 1rem;
 	display: flex;
-	flex-direction: row;
+	justify-content: flex-end; /* Pushes buttons to the right */
+	gap: 12px;
+	margin-top: 1.5rem;
+	width: 100%;
 }
 
-.reject-btn:hover {
-	background-color: $color-red-overlay-8;
-	color: $color-red-dark;
+.reject-btn {
+	/* Removed flex: 1 1 0 so they don't stretch */
+	padding: 0.75rem 1.5rem; /* Adjusted padding for a better "right-aligned" look */
+	border-radius: 12px;
+	font-weight: 700;
+	font-size: 15px;
+	cursor: pointer;
+	border: none;
+	transition: transform 0.08s ease, background-color 0.12s ease;
+
+	&:active:not(:disabled) {
+		transform: scale(0.97);
+	}
+
+	&:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+		filter: grayscale(1);
+	}
+}
+
+.leave-btn {
+	background-color: $color-white;
+	color: $color-red;
+	border: 1px solid $color-light-gray;
+
+	&:hover:not(:disabled) {
+		background-color: $color-lighter-gray;
+		border-color: $color-red;
+	}
+}
+
+.delete-btn {
+	background-color: $color-red;
+	color: $color-white !important;
+	// Using a simple rgba here if $color-red-overlay isn't handy
+	box-shadow: 0 4px 12px rgba(255, 0, 0, 0.15);
+
+	&:hover:not(:disabled) {
+		filter: brightness(1.1);
+		color: $color-red !important;
+	}
 }
 
 /* ===== REQUEST ITEM ===== */
@@ -334,12 +362,29 @@
 }
 
 .accept-btn {
+	padding: 0.75rem 1.5rem;
+	border-radius: 12px;
+	font-weight: 700;
+	font-size: 15px;
+	cursor: pointer;
+	border: 1px solid $color-light-gray;
+	transition: transform 0.08s ease, background-color 0.12s ease, border-color 0.12s ease;
+	background-color: $color-white;
 	color: $color-green-2;
+
+	&:active {
+		transform: scale(0.97);
+	}
 }
 
-.accept-btn:hover {
-	background-color: $color-green-2-overlay-8;
-	color: $color-green-3;
+.edit-btn {
+	border-color: $color-light-gray;
+
+	&:hover {
+		background-color: $color-white; // Keep bg white
+		color: $color-green-3 !important;
+		border-color: $color-green-3; // Border turns green on hover
+	}
 }
 
 .reject-btn {
@@ -376,3 +421,17 @@
 		display: block;
 	}
 }
+
+.member-profile-link {
+	text-decoration: none; /* Removes underline */
+	color: inherit;        /* Keeps your existing text color */
+	transition: opacity 0.2s ease;
+}
+
+.member-profile-link:hover {
+	opacity: 0.7;          /* Slight fade effect on hover */
+	cursor: pointer;
+}
+
+
+
