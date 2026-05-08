@@ -1,58 +1,74 @@
-import { Component, signal, computed } from '@angular/core';
-import {form, required} from '@angular/forms/signals';
-import { MatFormField } from '@angular/material/input';
+import { Component, signal, computed, Output, EventEmitter, inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { Ingredient } from '../../../../backend/model';
+import { IngredientsFrontendService } from '../../../core/ingredients-frontend-service';
+import { AuthService } from '../../../core/auth-service';
 
 @Component({
 	selector: 'app-search-ingredient',
 	standalone: true,
 	templateUrl: './search-ingredient.html',
-	imports: [
-		MatFormField
-	]
+	styleUrl: './search-ingredient.scss',
+	imports: [FormsModule, CommonModule]
 })
-export class SearchDropdownComponent {
-	private static DEFAULT_FORM:formModel = {name:'', amount:0, measurement:''}
-	private formModel = signal(SearchDropdownComponent.DEFAULT_FORM);
-	protected readonly form = form(this.formModel, path =>{
-		required(path.name, {message:'Name of ingredient required'});
-	})
+export class SearchIngredient {
+	@Output() ingredientSelected = new EventEmitter<Ingredient>();
 
-	protected options = signal<string[]>([
-		'smth 12',
-		'smth abc',
-		'another option',
-		'something else',
-		'sex',
-		'2 sexes',
-		'penis'
-	]);
+	private readonly authService = inject(AuthService);
+	private readonly ingredientService = inject(IngredientsFrontendService);
+
 	protected query = signal('');
 	protected isOpen = signal(false);
-	filteredOptions = computed(() => {
-		const q = this.query().toLowerCase();
-		return this.options().filter(opt =>
-			opt.toLowerCase().includes(q)
-		);
+	protected options = signal<Ingredient[]>([]);
+	protected isLoading = signal(false);
+
+	protected filteredOptions = computed(() => {
+		return this.options();
 	});
 
 	onInput(value: string) {
-		this.updateList()
 		this.query.set(value);
+
+		const username = this.authService.currentUser()?.username;
+		if (!value.trim() || !username) {
+			this.options.set([]);
+			this.isOpen.set(false);
+			return;
+		}
+
+		this.isLoading.set(true);
 		this.isOpen.set(true);
+
+		this.ingredientService.getIngredientsForPrefix(value, username).subscribe({
+			next: (ingredients) => {
+				this.options.set(ingredients);
+				this.isLoading.set(false);
+			},
+			error: (err) => {
+				console.error('Error fetching ingredients:', err);
+				this.options.set([]);
+				this.isLoading.set(false);
+			}
+		});
 	}
 
-	selectOption(option: string) {
-		this.query.set(option);
+	selectOption(option: Ingredient) {
+		this.query.set(option.name);
 		this.isOpen.set(false);
+		this.ingredientSelected.emit(option);
 	}
 
-	updateList(){
-		//
+	onFocus() {
+		if (this.options().length > 0) {
+			this.isOpen.set(true);
+		}
 	}
-}
 
-type formModel = {
-	name: string,
-	amount: number,
-	measurement: string
+	onBlur() {
+		// Delay to allow click on option to register
+		setTimeout(() => {
+			this.isOpen.set(false);
+		}, 200);
+	}
 }

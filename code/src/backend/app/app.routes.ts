@@ -11,7 +11,8 @@ import { RoomManagementView } from '../../frontend/room-management-view/room-man
 import { ErrorPage } from '../../frontend/error-page/error-page';
 import { Calendar } from '../../frontend/room-view/calendar/calendar';
 import {EditRoom} from '../../frontend/room-management-view/edit-room/edit-room';
-import {SearchDropdownComponent} from '../../frontend/recipes/recipe-management/search-ingredient/search-ingredient';
+import {SearchIngredient} from '../../frontend/recipes/recipe-management/search-ingredient/search-ingredient';
+import {CreateRecipe} from '../../frontend/recipes/create-recipe/create-recipe';
 
 export const routes: Routes = [
 	{
@@ -44,8 +45,12 @@ export const routes: Routes = [
 		component: Recipes
 	},
 	{
+		path: 'recipes/create',
+		component: CreateRecipe
+	},
+	{
 		path: 'test',
-		component: SearchDropdownComponent
+		component: SearchIngredient
 	},
 	{
 		path: 'calendar/:code',
