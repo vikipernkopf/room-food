@@ -50,38 +50,6 @@ export type Room = {
 	name: string,
 };
 
-export type RecipeVisibility = 'public' | 'private';
-
-export type Recipe = {
-	id: number,
-	name: string,
-	description?: string,
-	image?: string,
-	mealTypes: string[],
-	visibility: RecipeVisibility,
-	author: number,  // User ID
-	authorUsername?: string,
-	isSavedByUser?: boolean,
-	isOwnedByUser?: boolean
-}
-
-export type RecipeCreatePayload = {
-	authorUsername: string,
-	name: string,
-	description?: string,
-	image?: string,
-	mealTypes: string[],
-	visibility: RecipeVisibility
-}
-
-export type RecipeUpdatePayload = {
-	name: string,
-	description?: string,
-	image?: string,
-	mealTypes: string[],
-	visibility: RecipeVisibility
-}
-
 export type Meal = {
 	id?: number,
 	time: Date,
@@ -96,13 +64,48 @@ export type Meal = {
 }
 
 export enum Role {
-	Member='member',
-	Admin='admin',
-	Owner='owner'
+	Member = 'member',
+	Admin = 'admin',
+	Owner = 'owner'
 }
 
 export type Ingredient = {
-	name:string,
-	measurement:string,
-	amount:number;
-}
+	name: string;
+	measurement: string;
+	amount: number;
+};
+
+export type RecipeVisibility = 'public' | 'private';
+
+export type Recipe = {
+	id: number;
+	name: string;
+	description?: string;
+	image?: string;
+	mealTypes: string[];
+	visibility: RecipeVisibility;
+	author: number;
+	authorUsername?: string;
+	ingredients: Ingredient[];
+	isSavedByUser?: boolean;
+	isOwnedByUser?: boolean;
+};
+
+export type RecipeCreatePayload = {
+	authorUsername: string;
+	name: string;
+	description?: string;
+	image?: string;
+	mealTypes: string[];
+	visibility: RecipeVisibility;
+	ingredients: Ingredient[];
+};
+
+export type RecipeUpdatePayload = {
+	name: string;
+	description?: string;
+	image?: string;
+	mealTypes: string[];
+	visibility: RecipeVisibility;
+	ingredients: Ingredient[]; // Added for persistence during updates
+};

@@ -681,6 +681,8 @@ section {
 	border: 1px solid $color-light-gray;
 	border-radius: 10px;
 	overflow: hidden;
+	padding-left: 1rem;
+	padding-right: 1rem;
 
 	&__image {
 		width: 5rem;

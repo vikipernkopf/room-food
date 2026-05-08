@@ -2,6 +2,25 @@
 
 $hour-height: 65px;
 
+.total-container {
+	display: flex;
+	flex-direction: row;
+	width: 100%;
+}
+
+.ingredient-list {
+	width: 30%;
+	background: $color-white;
+	box-shadow: 0 2px 6px $color-overlay-20;
+	padding-left: 1.5rem;
+	padding-right: 1.5rem;
+	padding-top: 2rem;
+}
+
+.overview {
+	width: 69%;
+}
+
 .controls {
 	display: flex;
 	justify-content: space-between; // This pushes H2 left and Buttons right
@@ -62,7 +81,7 @@ $hour-height: 65px;
 	padding-bottom: 10px;
 
 	.time-spacer {
-		width: 75px;
+		width: 45px;
 	}
 
 	.day-label {
@@ -99,7 +118,7 @@ $hour-height: 65px;
 }
 
 .time-column {
-	width: 75px;
+	width: 45px;
 	border-top: 1px solid $color-transparent;
 
 	.time-slot {
@@ -107,9 +126,8 @@ $hour-height: 65px;
 		font-size: 11px;
 		color: $color-gray;
 		text-align: right;
-		padding-right: 12px; // Slightly more padding for breathing room
+		padding-right: 8px;
 		line-height: $hour-height;
-		white-space: nowrap; // CRITICAL: Prevents the AM/PM from dropping to a new line
 	}
 }
 
@@ -190,3 +208,50 @@ $hour-height: 65px;
 	align-items: center;
 	z-index: 1000;
 }
+
+.room-selector {
+	max-width: 85%;
+	margin: 0 auto 20px auto;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	font-family: "Inter", sans-serif;
+
+	label {
+		font-size: 14px;
+		font-weight: 500;
+		color: $color-text-main;
+	}
+
+	select {
+		padding: 8px 12px;
+		border: 1px solid $color-light-gray;
+		border-radius: 6px;
+		background-color: $color-white;
+		font-size: 14px;
+		font-family: "Inter", sans-serif;
+		cursor: pointer;
+		box-shadow: 0 2px 4px $color-overlay-10;
+		transition: all 0.2s;
+
+		&:hover {
+			border-color: $color-label-gray;
+			background-color: $color-lighter-gray;
+		}
+
+		&:focus {
+			outline: none;
+			border-color: $color-green-2;
+			box-shadow: 0 2px 6px $color-green-2-overlay-8;
+		}
+	}
+}
+
+.meal-room {
+	font-size: 0.7rem;
+	color: $color-orange-2;
+	font-weight: 500;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+

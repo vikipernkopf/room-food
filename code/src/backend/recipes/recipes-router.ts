@@ -127,37 +127,17 @@ recipesRouter.post('/recipes/:id/save', async (req, res): Promise<void> => {
 });
 
 recipesRouter.post('/recipes', async (req, res): Promise<void> => {
-	const payload = req.body as Partial<RecipeCreatePayload>;
+	const payload: RecipeCreatePayload = req.body;
 
-	if (!payload?.authorUsername || !payload.name) {
-		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Author username and name are required' });
-		return;
-	}
-
-	if (!isRecipeVisibility(payload.visibility)) {
-		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Recipe visibility must be public or private' });
+	if (!payload.name || !payload.authorUsername || !Array.isArray(payload.ingredients)) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid recipe data: name, author, and ingredients are required.' });
 		return;
 	}
 
 	const unit = new Unit(false);
-
 	try {
 		const recipesService = new RecipesService(unit);
-
-		const result = recipesService.addRecipe({
-			authorUsername: payload.authorUsername,
-			name: payload.name,
-			description: payload.description,
-			image: payload.image,
-			mealTypes: payload.mealTypes ?? [],
-			visibility: payload.visibility
-		});
-
-		if (result === 'author_not_found') {
-			unit.complete(false);
-			res.status(StatusCodes.NOT_FOUND).json({ error: 'Author not found' });
-			return;
-		}
+		const result = recipesService.createRecipe(payload);
 
 		if (result === 'error') {
 			unit.complete(false);
@@ -169,41 +149,24 @@ recipesRouter.post('/recipes', async (req, res): Promise<void> => {
 		res.status(StatusCodes.CREATED).json({ id: result });
 	} catch (error) {
 		unit.complete(false);
-		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to create recipe' });
-		console.error('Error creating recipe:', error);
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Internal Server Error' });
+		console.error(error);
 	}
 });
 
-recipesRouter.put('/recipes/:id', async (req, res): Promise<void> => {
+recipesRouter.put('/recipes/:id', async (req, res) => {
 	const recipeId = Number(req.params.id);
-	const payload = req.body as Partial<RecipeUpdatePayload>;
+	const payload: RecipeUpdatePayload = req.body;
 
-	if (!Number.isInteger(recipeId) || recipeId <= 0) {
-		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid recipe id' });
-		return;
-	}
-
-	if (!payload?.name) {
-		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Recipe name is required' });
-		return;
-	}
-
-	if (!isRecipeVisibility(payload.visibility)) {
-		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Recipe visibility must be public or private' });
+	if (!recipeId || !Array.isArray(payload.ingredients)) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid update data' });
 		return;
 	}
 
 	const unit = new Unit(false);
-
 	try {
-		const recipesService = new RecipesService(unit);
-		const result = recipesService.updateRecipe(recipeId, {
-			name: payload.name,
-			description: payload.description,
-			image: payload.image,
-			mealTypes: payload.mealTypes ?? [],
-			visibility: payload.visibility
-		});
+		const service = new RecipesService(unit);
+		const result = service.updateRecipe(recipeId, payload);
 
 		if (result === 'not_found') {
 			unit.complete(false);
@@ -211,18 +174,11 @@ recipesRouter.put('/recipes/:id', async (req, res): Promise<void> => {
 			return;
 		}
 
-		if (result === 'error') {
-			unit.complete(false);
-			res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to update recipe' });
-			return;
-		}
-
 		unit.complete(true);
 		res.status(StatusCodes.OK).json({ id: recipeId });
 	} catch (error) {
 		unit.complete(false);
-		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to update recipe' });
-		console.error('Error updating recipe:', error);
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Update failed' });
 	}
 });
 

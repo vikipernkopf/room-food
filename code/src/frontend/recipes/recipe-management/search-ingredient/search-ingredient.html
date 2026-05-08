@@ -1,25 +1,32 @@
 <div class="search-container">
-	<input
-		type="text"
-		[value]="query()"
-		(input)="onInput($any($event.target).value)"
-		(focus)="isOpen.set(true)"
-		placeholder="Search..."
-	/>
+	<div class="search-input-wrapper">
+		<input
+			type="text"
+			class="search-input"
+			[value]="query()"
+			(input)="onInput($any($event.target).value)"
+			(focus)="onFocus()"
+			(blur)="onBlur()"
+			placeholder="Search ingredients..."
+		/>
+	</div>
 
 	@if (isOpen() && filteredOptions().length > 0) {
-		<div class="dropdown">
-			@for (option of filteredOptions(); track option) {
+		<div class="dropdown-list">
+			@for (option of filteredOptions(); track option.name) {
 				<button
 					class="dropdown-item"
 					(click)="selectOption(option)"
+					type="button"
 				>
-					{{ option }}
+					{{ option.name }}
 				</button>
 			}
 		</div>
 	}
 
-	hello
-
+	@if (isLoading()) {
+		<div class="loading">Loading...</div>
+	}
 </div>
+
