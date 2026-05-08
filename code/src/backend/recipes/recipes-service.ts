@@ -1,7 +1,7 @@
 import { ServiceBase } from '../service-base';
 import { Unit } from '../unit';
 import { LoginSignUpService } from '../login-sign-up/login-sign-up-service';
-import { Recipe, RecipeCreatePayload, RecipeUpdatePayload, RecipeVisibility } from '../model';
+import { Ingredient, Recipe, RecipeCreatePayload, RecipeUpdatePayload, RecipeVisibility } from '../model';
 
 export class RecipesService extends ServiceBase {
 	private readonly users: LoginSignUpService;
@@ -17,38 +17,34 @@ export class RecipesService extends ServiceBase {
 			return [];
 		}
 
-		const recipes = this.unit.prepare<{
-			id: number;
-			name: string;
-			description?: string | null;
-			image?: string | null;
-			visibility: RecipeVisibility;
-			author: number;
-			authorUsername: string;
-			mealTypes: string | null;
-			isSavedByUser: number;
-			isOwnedByUser: number;
-		}>(`
+		const recipes = this.unit.prepare<any>(`
 			select r.id,
 			       r.name,
 			       r.description,
 			       r.image,
 			       r.visibility,
 			       r.author,
-			       u.username as authorUsername,
-			       coalesce(group_concat(rmt.meal_type, '||'), '') as mealTypes
-			       ,case when sr.user_id is null then 0 else 1 end as isSavedByUser
-			       ,case when r.author = :viewerId then 1 else 0 end as isOwnedByUser
+			       u.username                                         as authorUsername,
+			       coalesce(group_concat(distinct rmt.meal_type), '') as mealTypes,
+			       (select json_group_array(json_object(
+				       'name', ingredient_name,
+				       'amount', amount,
+				       'measurement', measurement
+			                                )) as jga
+			        from RecipeIngredient
+			        where recipe_id = r.id)                           as ingredients,
+			       case when sr.user_id is not null then 1 else 0 end as isSavedByUser,
+			       case when r.author = :viewerId then 1 else 0 end   as isOwnedByUser
 			from Recipe r
-			join User u on u.id = r.author
-			left join RecipeMealType rmt on r.id = rmt.recipe_id
-			left join SavedRecipe sr on sr.recipe_id = r.id and sr.user_id = :viewerId
-			where r.author = :viewerId
-			   or (r.visibility = 'public' and sr.user_id = :viewerId)
-			group by r.id, r.name, r.description, r.image, r.visibility, r.author, u.username,
-			         isSavedByUser, isOwnedByUser
-			order by r.id desc
-		`, { viewerId }).all();
+				     join User u on r.author = u.id
+				     left join RecipeMealType rmt on r.id = rmt.recipe_id
+				     left join SavedRecipe sr on r.id = sr.recipe_id and sr.user_id = :viewerId
+			where lower(u.username) = lower(:username)
+			group by r.id
+		`, {
+			username,
+			viewerId
+		}).all();
 
 		return RecipesService.mapRowsToRecipes(recipes);
 	}
@@ -79,14 +75,16 @@ export class RecipesService extends ServiceBase {
 			       r.image,
 			       r.visibility,
 			       r.author,
-			       u.username as authorUsername,
-			       coalesce(group_concat(rmt.meal_type, '||'), '') as mealTypes
-			       ,case when sr.user_id is null then 0 else 1 end as isSavedByUser
-			       ,case when r.author = :viewerId then 1 else 0 end as isOwnedByUser
+			       u.username                                       as authorUsername,
+			       coalesce(group_concat(rmt.meal_type, '||'), '')  as mealTypes
+				,
+				   case when sr.user_id is null then 0 else 1 end   as isSavedByUser
+				,
+				   case when r.author = :viewerId then 1 else 0 end as isOwnedByUser
 			from Recipe r
-			join User u on u.id = r.author
-			left join RecipeMealType rmt on r.id = rmt.recipe_id
-			left join SavedRecipe sr on sr.recipe_id = r.id and sr.user_id = :viewerId
+				     join User u on u.id = r.author
+				     left join RecipeMealType rmt on r.id = rmt.recipe_id
+				     left join SavedRecipe sr on sr.recipe_id = r.id and sr.user_id = :viewerId
 			where r.visibility = 'public'
 			  and lower(r.name) like '%' || :search || '%'
 			group by r.id, r.name, r.description, r.image, r.visibility, r.author, u.username,
@@ -166,6 +164,70 @@ export class RecipesService extends ServiceBase {
 			from Recipe
 			order by id desc
 		`).all();
+	}
+
+	public createRecipe(payload: RecipeCreatePayload): number | 'error' {
+		const authorId = this.users.getUserIdByUsername(payload.authorUsername);
+		if (authorId === undefined) {
+			return 'error';
+		}
+
+		const result = this.unit.prepare<unknown, any>(
+			`insert into Recipe (name, description, image, visibility, author)
+			 values (:name, :description, :image, :visibility, :author)`,
+			{
+				name: payload.name,
+				description: payload.description ?? null,
+				image: payload.image ?? null,
+				visibility: payload.visibility,
+				author: authorId
+			}
+		).run();
+
+		const recipeId = result.lastInsertRowid as number;
+
+		if (this.linkMealTypes(recipeId, payload.mealTypes) === 'error') {
+			return 'error';
+		}
+		if (this.saveIngredients(recipeId, payload.ingredients) === 'error') {
+			return 'error';
+		}
+
+		return recipeId;
+	}
+
+	private linkMealTypes(recipeId: number, mealTypes: string[]): 'error' | true {
+		for (const mealType of mealTypes) {
+			const linked = this.unit.prepare(`insert into RecipeMealType (recipe_id, meal_type)
+			                                  values (:recipeId, :mealType)`,
+				{
+					recipeId,
+					mealType
+				}).run();
+			if (!linked) return 'error';
+		}
+		return true;
+	}
+
+	private saveIngredients(recipeId: number, ingredients: Ingredient[]): 'error' | true {
+		for (const ing of ingredients) {
+			this.unit.prepare(`insert or ignore into Ingredient (name)
+			                   values (:name)`, { name: ing.name }).run();
+			const linked = this.unit.prepare(`
+					insert into RecipeIngredient (recipe_id, ingredient_name, amount, measurement)
+					values (:recipeId, :name, :amount, :measurement)`,
+				{
+					recipeId,
+					name: ing.name,
+					amount: ing.amount,
+					measurement: ing.measurement
+				}
+			).run();
+			if (!linked) {
+				return 'error';
+			}
+		}
+		return true;
 	}
 
 	public addRecipe(recipe: RecipeCreatePayload): number | 'author_not_found' | 'error' {
@@ -250,10 +312,10 @@ export class RecipesService extends ServiceBase {
 		try {
 			this.unit.prepare(
 				`update Recipe
-				 set name = :name,
+				 set name        = :name,
 				     description = :description,
-				     image = :image,
-				     visibility = :visibility
+				     image       = :image,
+				     visibility  = :visibility
 				 where id = :id`,
 				{
 					name: recipe.name.trim(),
@@ -264,7 +326,9 @@ export class RecipesService extends ServiceBase {
 				}
 			).run();
 
-			this.unit.prepare(`delete from RecipeMealType where recipe_id = :id`, { id: recipeId }).run();
+			this.unit.prepare(`delete
+			                   from RecipeMealType
+			                   where recipe_id = :id`, { id: recipeId }).run();
 		} catch {
 			return 'error';
 		}
@@ -293,27 +357,17 @@ export class RecipesService extends ServiceBase {
 		return visibility === 'public' ? 'public' : 'private';
 	}
 
-	private static mapRowsToRecipes(rows: Array<{
-		id: number;
-		name: string;
-		description?: string | null;
-		image?: string | null;
-		visibility: RecipeVisibility;
-		author: number;
-		authorUsername: string;
-		mealTypes: string | null;
-		isSavedByUser: number;
-		isOwnedByUser: number;
-	}>): Recipe[] {
+	private static mapRowsToRecipes(rows: any[]): Recipe[] {
 		return rows.map(recipe => ({
 			id: recipe.id,
 			name: recipe.name,
 			description: recipe.description ?? undefined,
 			image: recipe.image ?? undefined,
-			visibility: RecipesService.normalizeVisibility(recipe.visibility),
+			visibility: recipe.visibility === 'public' ? 'public' : 'private',
 			author: recipe.author,
 			authorUsername: recipe.authorUsername,
-			mealTypes: recipe.mealTypes ? recipe.mealTypes.split('||').filter(Boolean) : [],
+			mealTypes: recipe.mealTypes ? recipe.mealTypes.split(',').filter(Boolean) : [],
+			ingredients: recipe.ingredients ? JSON.parse(recipe.ingredients) : [],
 			isSavedByUser: !!recipe.isSavedByUser,
 			isOwnedByUser: !!recipe.isOwnedByUser
 		}));
@@ -325,7 +379,9 @@ export class RecipesService extends ServiceBase {
 		}
 
 		const [success] = this.executeStmt(
-			this.unit.prepare(`delete from Recipe where id = :id`, { id: recipeId })
+			this.unit.prepare(`delete
+			                   from Recipe
+			                   where id = :id`, { id: recipeId })
 		);
 
 		if (!success) {

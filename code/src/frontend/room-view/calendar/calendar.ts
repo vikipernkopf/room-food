@@ -9,12 +9,15 @@ import { AuthService } from '../../core/auth-service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RoomService } from '../../core/room-service';
+import {IngredientList} from '../../overview/ingredient-list/ingredient-list';
+import {AvailableIngredients} from './avaliable-ingredients/avaliable-ingredients';
 
 @Component({
 	selector: 'app-calendar',
 	imports: [
 		MealManagement,
-		DatePipe
+		DatePipe,
+		AvailableIngredients
 	],
 	templateUrl: './calendar.html',
 	styleUrl: './calendar.scss',

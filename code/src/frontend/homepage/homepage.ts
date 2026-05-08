@@ -28,7 +28,7 @@ export class Homepage {
     this.router.navigate([target]);
   }
 
-	async IngredientTestDeleteLater() {
+	/*async IngredientTestDeleteLater() {
 		console.log(
 			await firstValueFrom(this.service.addIngredient(`hello ${Math.random()}`, "cups"))
 		);
@@ -61,5 +61,5 @@ export class Homepage {
 		console.log(await firstValueFrom(
 			this.service.getIngredientsForRecipe(id)
 		));
-	}
+	}*/
 }

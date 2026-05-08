@@ -220,6 +220,45 @@ class DB {
 			 ) strict`
 		);
 
+		connection.exec(
+			`create table if not exists Ingredient
+			 (
+				 id              integer primary key autoincrement,
+				 name	         text not null,
+				 default_measurement text,
+				 user text,
+
+				 constraint uq_name unique (name)
+
+			 ) strict`
+		);
+
+		connection.exec(
+			`create table if not exists RecipeIngredient
+			 (
+				 recipe_id		 text not null,
+				 ingredient_name text not null,
+				 measurement text not null,
+				 amount text not null,
+
+				 constraint fk_recipe foreign key (recipe_id) references Recipe(id) ON DELETE CASCADE
+
+			 ) strict`
+		);
+
+		connection.exec(
+			`create table if not exists RoomIngredient
+			 (
+				 room_code		 text not null,
+				 ingredient_name text not null,
+				 measurement text not null,
+				 amount text not null,
+
+				 constraint fk_recipe foreign key (room_code) references Room(code) ON DELETE CASCADE
+
+			 ) strict`
+		);
+
 		DB.migrateMealTableToIncludeEndTime(connection);
 		DB.migrateMealTableToIncludeCooked(connection);
 		DB.migrateRecipeAndMealTables(connection);
@@ -577,6 +616,52 @@ class DB {
 					constraint fk_saved_recipe_recipe_id foreign key (recipe_id) references Recipe (id) ON DELETE CASCADE
 				) strict
 			`);
+			}
+
+			// Repair RecipeIngredient FK to include ON DELETE CASCADE
+			const recipeIngredientExists = connection.prepare(
+				`select name from sqlite_master where type = 'table' and name = 'RecipeIngredient'`
+			).get();
+
+			const recipeIngredientFkRows = connection.prepare(
+				`pragma foreign_key_list(RecipeIngredient)`
+			).all() as Array<{
+				table: string;
+				on_delete: string;
+			}>;
+			const recipeIngredientFkHasCascade = recipeIngredientFkRows.some(
+				fk => fk.table.toLowerCase() === 'recipe' && fk.on_delete.toUpperCase() === 'CASCADE'
+			);
+			const recipeIngredientNeedsFkRepair = !!recipeIngredientExists && !recipeIngredientFkHasCascade;
+
+			if (recipeIngredientNeedsFkRepair) {
+				console.log('Repairing RecipeIngredient FK to add ON DELETE CASCADE...');
+				connection.exec(`
+				alter table RecipeIngredient
+					rename to RecipeIngredient_legacy;
+
+				create table RecipeIngredient
+				(
+					recipe_id        text not null,
+					ingredient_name  text not null,
+					measurement      text not null,
+					amount           text not null,
+
+					constraint fk_recipe foreign key (recipe_id) references Recipe (id) ON DELETE CASCADE
+				) strict;
+
+				insert into RecipeIngredient(recipe_id, ingredient_name, measurement, amount)
+				select legacy.recipe_id, legacy.ingredient_name, legacy.measurement, legacy.amount
+				from RecipeIngredient_legacy legacy
+				where exists(
+					select 1
+					from Recipe r
+					where r.id = legacy.recipe_id
+				);
+
+				drop table RecipeIngredient_legacy;
+			`);
+				console.log('✓ RecipeIngredient FK repair completed');
 			}
 
 			console.log('Database schema migration check completed');
