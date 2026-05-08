@@ -156,3 +156,35 @@ ingredientsRouter.get('/ingredients/measurement/:name', async (req, res): Promis
 		console.error('Error fetching default measurement:', error);
 	}
 });
+
+ingredientsRouter.get('/ingredients/:username', async (req, res): Promise<void> => {
+	const { username } = req.params;
+
+	if (!username) {
+		res.status(StatusCodes.BAD_REQUEST).json({
+			error: 'Username is required'
+		});
+		return;
+	}
+
+	const unit = new Unit(true);
+
+	try {
+		const ingredientsService = new IngredientsService(unit);
+
+		const ingredients =
+			ingredientsService.getIngredientsToBuyForUser(username);
+
+		unit.complete();
+
+		res.status(StatusCodes.OK).json(ingredients);
+	} catch (error) {
+		console.error(error);
+
+		unit.complete();
+
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+			error: 'Failed to fetch shopping ingredients'
+		});
+	}
+});

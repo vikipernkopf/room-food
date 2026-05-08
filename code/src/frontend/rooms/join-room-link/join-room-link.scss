@@ -1,0 +1,70 @@
+.page {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 340px;
+	padding: 2rem 1rem;
+}
+
+.card {
+	background: #ffffff;
+	border: 0.5px solid #e2e8f0;
+	border-radius: 12px;
+	padding: 2.5rem 2rem;
+	max-width: 420px;
+	width: 100%;
+	text-align: center;
+}
+
+.icon-circle {
+	width: 64px;
+	height: 64px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin: 0 auto 1.5rem;
+	font-size: 28px;
+
+	&.loading { background: #FFF3E0; color: #E67E22; }
+	&.success { background: #E8F5E9; color: #2E7D32; }
+	&.error   { background: #FFEBEE; color: #e53e3e; }
+}
+
+.spinner {
+	width: 28px;
+	height: 28px;
+	border: 3px solid #FFE0B2;
+	border-top-color: #E67E22;
+	border-radius: 50%;
+	animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+	to { transform: rotate(360deg); }
+}
+
+.title {
+	font-size: 18px;
+	font-weight: 500;
+	color: #2d3748;
+	margin: 0 0 8px;
+}
+
+.subtitle {
+	font-size: 14px;
+	color: #4a5568;
+	margin: 0 0 1.5rem;
+	line-height: 1.6;
+}
+
+.badge {
+	display: inline-block;
+	font-size: 12px;
+	padding: 4px 14px;
+	border-radius: 8px;
+
+	&.loading { background: #FFF3E0; color: #C85A04; }
+	&.success { background: #E8F5E9; color: #2E7D32; }
+	&.error   { background: #FFEBEE; color: #c53030; }
+}

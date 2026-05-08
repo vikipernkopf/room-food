@@ -1,16 +1,18 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, effect, inject } from '@angular/core';
 import { MealManagement } from '../room-view/meal-management/meal-management';
 import { MealService } from '../core/meal-service';
 import { Meal } from '../../backend/model';
 import { AuthService } from '../core/auth-service';
 import { Router } from '@angular/router';
 import { RoomService } from '../core/room-service';
+import { IngredientList } from './ingredient-list/ingredient-list';
 
 //noinspection JSIgnoredPromiseFromCall
 @Component({
 	selector: 'app-overview',
 	imports: [
-		MealManagement
+		MealManagement,
+		IngredientList
 	],
 	templateUrl: './overview.html',
 	styleUrl: './overview.scss',
@@ -38,22 +40,38 @@ export class Overview implements OnInit {
 	selectedTimeForPopup: Date | null = null;
 	availableRooms = signal<{ code: string; roomName: string; role: string; profilePicture?: string }[]>([]);
 	selectedRoomCode: string = '';
+	protected readonly currentUser;
 
 	private hasRedirected = false;
 
 	constructor(private router: Router, private authService: AuthService,
 		private mealService: MealService, private roomService: RoomService) {
+		this.currentUser = this.authService.currentUser;
+
+		// Reactively load data whenever the user state changes
+		effect(() => {
+			const user = this.currentUser();
+
+			// If user is logged in, (re)load the data
+			if (user?.username) {
+				this.loadMeals();
+				this.loadRooms();
+			} else {
+				// Optionally clear data if logged out
+				this.meals.set([]);
+				this.availableRooms.set([]);
+			}
+		});
+
 		console.log('Overview component initialized');
 	}
 
 	loadRooms() {
-		const user = this.authService.currentUser();
-
-		if (!user) {
+		if (!this.currentUser) {
 			return;
 		}
 
-		this.roomService.getRoomsForMember(user.username).subscribe({
+		this.roomService.getRoomsForMember(this.currentUser()?.username ?? "").subscribe({
 			next: rooms => {
 				console.log('Rooms loaded for overview:', rooms);
 				this.availableRooms.set(rooms);
@@ -81,28 +99,17 @@ export class Overview implements OnInit {
 
 	ngOnInit() {
 		this.renderWeek();
-		this.loadMeals();
-		this.loadRooms();
 	}
 
 	async loadMeals() {
-		await new Promise(f => setTimeout(f, 40));
-		const user = this.authService.currentUser();
+		const username = this.currentUser()?.username;
 
-		if (!user) {
-			console.error('User not logged in');
-			if (!this.hasRedirected) {
-				this.hasRedirected = true;
-				this.meals.set([]);
-				// noinspection JSIgnoredPromiseFromCall
-				await this.router.navigate(['/error']);
-			}
+		if (!username) {
 			return;
 		}
 
-		this.mealService.getMealsByUsername(user.username).subscribe({
+		this.mealService.getMealsByUsername(username).subscribe({
 			next: meals => {
-				console.log('Meals received for overview:', meals);
 				const formattedMeals = meals.map(m => ({
 					...m,
 					time: new Date(m.time)
@@ -110,7 +117,7 @@ export class Overview implements OnInit {
 				this.meals.set(formattedMeals);
 			},
 			error: err => {
-				console.error('Error loading meals for overview', err);
+				console.error('Error loading meals', err);
 				this.meals.set([]);
 			}
 		});
@@ -229,8 +236,7 @@ export class Overview implements OnInit {
 	}
 
 	getFormattedResponsibleUsers(meal: Meal): string {
-		const currentUser = this.authService.currentUser();
-		const currentUsername = currentUser?.username;
+		const currentUsername = this.authService.currentUser()?.username;
 
 		if (!meal.responsibleUsers || meal.responsibleUsers.length === 0) {
 			return '';

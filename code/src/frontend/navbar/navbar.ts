@@ -11,7 +11,6 @@ import {
 	signal
 } from '@angular/core';
 import { isPlatformBrowser, NgOptimizedImage } from '@angular/common';
-import { MatButton } from '@angular/material/button';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../core/auth-service';
 
@@ -20,8 +19,7 @@ import { AuthService } from '../core/auth-service';
 	imports: [
 		NgOptimizedImage,
 		RouterLink,
-		RouterLinkActive,
-		MatButton
+		RouterLinkActive
 	],
 	templateUrl: './navbar.html',
 	styleUrl: './navbar.scss'

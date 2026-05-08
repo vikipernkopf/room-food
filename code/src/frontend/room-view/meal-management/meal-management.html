@@ -165,25 +165,32 @@
 				</div>
 				<div class="field-group">
 					<label class="field-label" for="startTime">Start Time</label>
+
 					<div class="input-with-icon">
-						<input id="startTime" matInput [matTimepicker]="startPicker" [min]="minTime" [max]="maxTime"
-							[(ngModel)]="selectedStartTime" name="startTime">
+						<input id="startTime" matInput [matTimepicker]="startPicker"
+							   [(ngModel)]="selectedStartTime" name="startTime">
 						<mat-timepicker-toggle matIconSuffix [for]="startPicker"></mat-timepicker-toggle>
 						<mat-timepicker interval="15min" #startPicker></mat-timepicker>
-					</div>
+					</div> @if (timeErrors.start) {
+					<div class="field-error">{{ timeErrors.start }}</div>
+				}
 				</div>
 				<div class="field-group">
 					<label class="field-label" for="endTime">End Time</label>
+
 					<div class="input-with-icon">
-						<input id="endTime" matInput [matTimepicker]="endPicker" [min]="minTime" [max]="maxTime"
-							[(ngModel)]="selectedEndTime" name="endTime">
+						<input id="endTime" matInput [matTimepicker]="endPicker"
+							   [(ngModel)]="selectedEndTime" name="endTime">
 						<mat-timepicker-toggle matIconSuffix [for]="endPicker"></mat-timepicker-toggle>
 						<mat-timepicker interval="15min" #endPicker></mat-timepicker>
-					</div>
+					</div> @if (timeErrors.end) {
+					<div class="field-error">{{ timeErrors.end }}</div>
+				}
 				</div>
 			</div>
 			<div class="action-row">
-				<button mat-flat-button type="button" class="save-btn" (click)="saveMeal()" [disabled]="isSubmitting">
+				<button mat-flat-button type="button" class="save-btn" (click)="saveMeal()"
+						[disabled]="isSubmitting || timeErrors.start || timeErrors.end">
 					{{ isEditMode ? 'Update Meal' : 'Save Meal' }}
 				</button>
 				@if (isEditMode) {

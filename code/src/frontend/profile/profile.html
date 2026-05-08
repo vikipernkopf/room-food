@@ -1,4 +1,13 @@
 <section class="profile-page">
+  <app-confirmation-dialog
+    [title]="'Delete Profile'"
+    [message]="'Are you sure you want to permanently delete your profile? This cannot be undone.'"
+    [cancelText]="'Cancel'"
+    [confirmText]="'Delete'"
+    (confirmed)="onDeleteConfirmed()"
+    (cancelled)="onDeleteCancelled()">
+  </app-confirmation-dialog>
+
   @if (isLoading()) {
     <p class="status">Loading profile...</p>
   } @else if (loadError()) {
