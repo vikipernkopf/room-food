@@ -1,3 +1,6 @@
+console.log('JWT_SECRET is set:', !!process.env['JWT_SECRET']);
+console.log('NODE_ENV is:', process.env['NODE_ENV']);
+
 export const JWT_SECRET = process.env['JWT_SECRET'] ?? 'fallback_secret_change_me';
 
 const isProduction = process.env['NODE_ENV'] === 'production';
