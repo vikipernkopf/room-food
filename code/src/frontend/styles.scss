@@ -57,3 +57,12 @@ body {
 .cdk-overlay-pane {
 	z-index: 10010 !important;
 }
+
+.mat-mdc-option.mdc-list-item {
+	align-items: center;
+	background: white !important;
+}
+
+.mat-mdc-select-panel{
+	background: white !important;
+}
