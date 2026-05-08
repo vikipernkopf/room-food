@@ -98,7 +98,8 @@ export class MealService {
 		const payload = {
 			...meal,
 			time: meal.time instanceof Date ? meal.time.toISOString() : meal.time,
-			endTime: meal.endTime instanceof Date ? meal.endTime.toISOString() : meal.endTime
+			endTime: meal.endTime instanceof Date ? meal.endTime.toISOString() : meal.endTime,
+			cooked: meal.cooked ?? false
 		};
 		return this.http.post<Meal>(apiUrl, payload);
 	}
@@ -109,7 +110,8 @@ export class MealService {
 			updatedMeal: {
 				...updatedMeal,
 				time: updatedMeal.time instanceof Date ? updatedMeal.time.toISOString() : updatedMeal.time,
-				endTime: updatedMeal.endTime instanceof Date ? updatedMeal.endTime.toISOString() : updatedMeal.endTime
+				endTime: updatedMeal.endTime instanceof Date ? updatedMeal.endTime.toISOString() : updatedMeal.endTime,
+				cooked: updatedMeal.cooked
 			}
 		};
 		return this.http.put<Meal>(apiUrl, payload);

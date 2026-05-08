@@ -41,7 +41,6 @@
 							<div class="meal-box" [style.top.px]="getMealPosition(meal.time)"
 								[style.height.px]="getMealHeight(meal.time, meal.endTime)"
 								(click)="$event.stopPropagation(); openEdit(meal)">
-
 								<span class="meal-name">{{ meal.name }}</span>
 								<span class="meal-responsible">{{
 										getFormattedResponsibleUsers(meal) || meal.responsible }}</span>
@@ -56,9 +55,15 @@
 
 			@if (showMealPopup) {
 				<div class="modal-overlay">
-					<app-add-meal [mealToEdit]="selectedMeal" [roomCode]="roomCode()"
-						[initialDate]="selectedDateForPopup" [initialTime]="selectedTimeForPopup"
-						(close)="showMealPopup = false" (mealSaved)="showMealPopup = false; loadMeals()"></app-add-meal>
+					<app-add-meal
+						[mealToEdit]="selectedMeal"
+						[roomCode]="roomCode()"
+						[initialDate]="selectedDateForPopup"
+						[initialTime]="selectedTimeForPopup"
+						(close)="showMealPopup = false"
+						(mealSaved)="loadMeals()"
+						(cookedUpdated)="onCookedUpdated($event)">
+					</app-add-meal>
 				</div>
 			}
 		</div>

@@ -24,6 +24,7 @@ import { Meal, Recipe, User } from '../../../backend/model';
 import { MealService } from '../../core/meal-service';
 import { RecipeService } from '../../core/recipe-service';
 import { RoomService } from '../../core/room-service';
+import {MatCheckbox} from '@angular/material/checkbox';
 
 interface MealType {
 	value: string;
@@ -42,7 +43,7 @@ interface MealType {
 		MatInputModule,
 		MatDatepickerModule,
 		MatTimepickerModule,
-		MatIconModule, MatButtonModule
+		MatIconModule, MatButtonModule, MatCheckbox
 	],
 	templateUrl: './meal-management.html',
 	styleUrl: './meal-management.scss',
@@ -50,6 +51,8 @@ interface MealType {
 })
 
 export class MealManagement implements OnChanges {
+	@Output()
+	cookedUpdated = new EventEmitter<Meal>();
 	@Output()
 	close = new EventEmitter<void>();
 	@Output()
@@ -79,6 +82,7 @@ export class MealManagement implements OnChanges {
 	protected selectedDate: Date | null = null;
 	protected selectedStartTime: Date | null = null;
 	protected selectedEndTime: Date | null = null;
+	protected isCooked: boolean = false;
 	protected minTime: Date = new Date(new Date().setHours(5, 0, 0, 0));
 	protected maxTime: Date = new Date(new Date().setHours(23, 0, 0, 0));
 	protected showError: boolean = false;
@@ -92,6 +96,7 @@ export class MealManagement implements OnChanges {
 	protected availableRoomMembers: string[] = [];
 	protected roomMembersLoadError: string = '';
 	protected selectedRoomCode: string = '';
+	private isCookedUpdateInProgress = false;
 
 	mealTypes: MealType[] = [
 		{
@@ -128,7 +133,9 @@ export class MealManagement implements OnChanges {
 
 	ngOnChanges(changes: SimpleChanges): void {
 		if (changes['mealToEdit'] && this.mealToEdit) {
-			this.prefillFormFromInput();
+			if (!this.isCookedUpdateInProgress) {   // ← add this guard
+				this.prefillFormFromInput();
+			}
 		} else if (changes['initialDate'] || changes['initialTime']) {
 			this.applyInitialDateTime();
 		}
@@ -226,6 +233,7 @@ export class MealManagement implements OnChanges {
 		this.selectedEndTime = new Date(this.mealToEdit.endTime);
 		this.selectedRecipeIds = this.normalizeRecipeIds(this.mealToEdit.recipeIds);
 		this.selectedResponsibleUsers = this.normalizeResponsibleUsers(this.mealToEdit.responsibleUsers);
+		this.isCooked = this.mealToEdit.cooked ?? false;
 		this.recipeSearchTerm = '';
 		this.applyRecipeFilter();
 		this.requestViewUpdate();
@@ -447,7 +455,8 @@ export class MealManagement implements OnChanges {
 				responsible: currentUsername,
 				room: effectiveRoomCode,
 				recipeIds: [...this.selectedRecipeIds],
-				responsibleUsers: [...this.selectedResponsibleUsers]
+				responsibleUsers: [...this.selectedResponsibleUsers],
+				cooked: this.isCooked
 			};
 
 			const editMealId = this.mealToEdit?.id;
@@ -573,7 +582,6 @@ export class MealManagement implements OnChanges {
 		const start = this.selectedStartTime;
 		const end = this.selectedEndTime;
 
-		// If times aren't picked yet, no errors
 		if (!start || !end) return { start: null, end: null };
 
 		const errors = {
@@ -581,7 +589,6 @@ export class MealManagement implements OnChanges {
 			end: null as string | null
 		};
 
-		// 1. Check Range (5 AM - 11 PM) using standard .getHours()
 		const startHours = start.getHours();
 		const endHours = end.getHours();
 		if (startHours < 5 || startHours >= 24) {
@@ -591,12 +598,47 @@ export class MealManagement implements OnChanges {
 			errors.end = "Time must be between 5 AM and 11 PM";
 		}
 
-		// 2. Check Relationship (End > Start)
 		if (end <= start) {
 			errors.end = "End time must be after start time";
 		}
 
 		return errors;
+	}
+
+	protected cookedCheckBox(): void {
+		this.isCooked = !this.isCooked;
+		this.isCookedUpdateInProgress = true;
+
+		const mealId = this.mealToEdit?.id;
+		if (!mealId || !this.mealToEdit) {
+			this.isCookedUpdateInProgress = false;
+			this.requestViewUpdate();
+			return;
+		}
+
+		this.mealToEdit = { ...this.mealToEdit, cooked: this.isCooked };
+
+		const updatedMeal: Meal = {
+			...this.mealToEdit,
+			time: new Date(this.mealToEdit.time),
+			endTime: new Date(this.mealToEdit.endTime),
+			cooked: this.isCooked
+		};
+
+		this.mealService.updateMeal(mealId, updatedMeal).subscribe({
+			next: () => {
+				this.cookedUpdated.emit(this.mealToEdit!);
+				this.isCookedUpdateInProgress = false;
+				this.requestViewUpdate();
+			},
+			error: (err) => {
+				this.isCooked = !this.isCooked;
+				this.mealToEdit = { ...this.mealToEdit!, cooked: this.isCooked };
+				this.isCookedUpdateInProgress = false;
+				console.error('Failed to update cooked status:', err);
+				this.requestViewUpdate();
+			}
+		});
 	}
 }
 

@@ -90,7 +90,8 @@ export type Meal = {
 	room: string,
 	responsible: string,
 	responsibleUsers?: string[],
-	recipeIds?: number[]
+	recipeIds?: number[],
+	cooked: boolean
 }
 
 export enum Role {

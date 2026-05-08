@@ -50,7 +50,6 @@ export class Calendar implements OnInit {
 		private mealService: MealService, private roomService: RoomService) {
 		console.log('Calendar component initialized');
 
-		// Subscribe to route param 'code' and unsubscribe on destroy
 		this.route.paramMap
 		.pipe(takeUntilDestroyed())
 		.subscribe(paramMap => {
@@ -95,7 +94,6 @@ export class Calendar implements OnInit {
 			},
 			error: error => {
 				console.error('Error validating room:', error);
-				// If validation fails, redirect to error
 				if (!this.hasRedirected) {
 					this.hasRedirected = true;
 					this.meals.set([]);
@@ -130,7 +128,9 @@ export class Calendar implements OnInit {
 				console.log('Meals received for calendar:', meals);
 				const formattedMeals = meals.map(m => ({
 					...m,
-					time: new Date(m.time)
+					time: new Date(m.time),
+					endTime: new Date(m.endTime),
+					cooked: m.cooked ?? false
 				}));
 				this.meals.set(formattedMeals);
 			},
@@ -164,7 +164,6 @@ export class Calendar implements OnInit {
 	}
 
 	handleColumnClick(event: MouseEvent, dayInfo: any) {
-		// Only open if we didn't click an existing meal (which stops propagation)
 		this.selectedMeal = null;
 
 		const clickedY = event.offsetY;
@@ -242,12 +241,10 @@ export class Calendar implements OnInit {
 		const currentUser = this.authService.currentUser();
 		const currentUsername = currentUser?.username;
 
-		// If no responsible users, return empty
 		if (!meal.responsibleUsers || meal.responsibleUsers.length === 0) {
 			return '';
 		}
 
-		// Start with the current user if they're in the list
 		const users: string[] = [];
 		const allUsers = [...meal.responsibleUsers];
 
@@ -256,14 +253,19 @@ export class Calendar implements OnInit {
 			allUsers.splice(allUsers.indexOf(currentUsername), 1);
 		}
 
-		// Add remaining users
 		users.push(...allUsers);
 
-		// Format to single line with ellipsis
 		if (users.length === 1) {
 			return users[0];
 		}
 
 		return users.slice(0, 2).join(', ') + (users.length > 2 ? '...' : '');
+	}
+
+	onCookedUpdated(updatedMeal: Meal): void {
+		this.meals.update(meals =>
+			meals.map(m => m.id === updatedMeal.id ? { ...m, cooked: updatedMeal.cooked } : m)
+		);
+		this.selectedMeal = { ...this.selectedMeal!, cooked: updatedMeal.cooked };
 	}
 }

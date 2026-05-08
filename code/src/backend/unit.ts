@@ -221,6 +221,7 @@ class DB {
 		);
 
 		DB.migrateMealTableToIncludeEndTime(connection);
+		DB.migrateMealTableToIncludeCooked(connection);
 		DB.migrateRecipeAndMealTables(connection);
 		DB.migrateIngredients(connection);
 	}
@@ -614,6 +615,20 @@ class DB {
 		);
 
 		console.log('✓ Ingredient migration completed');
+	}
+
+	private static migrateMealTableToIncludeCooked(connection: BetterSqlite3.Database): void {
+		// Check current columns in the Meal table
+		const columns = connection.prepare(`pragma table_info(Meal)`).all() as Array<{ name: string }>;
+		const existingColumns = new Set(columns.map((column) => column.name));
+
+		// Add 'cooked' column if it doesn't exist
+		// We use integer (0 or 1) with a default of 0 (false)
+		if (!existingColumns.has('cooked')) {
+			console.log('Migrating Meal table: adding "cooked" column...');
+			connection.exec(`alter table Meal add column cooked integer not null default 0;`);
+			console.log('✓ Meal cooked column migration completed');
+		}
 	}
 
 	private static getLegacyRecipeAuthorExpr(

@@ -39,7 +39,8 @@ mealManagementRouter.post('/meal', async (req, res): Promise<void> => {
 		name,
 		mealType,
 		room,
-		responsible
+		responsible,
+		cooked
 	} = req.body;
 	const recipeIds = normalizeRecipeIds(req.body?.recipeIds);
 	const responsibleUsers = normalizeResponsibleUsers(req.body?.responsibleUsers);
@@ -73,7 +74,8 @@ mealManagementRouter.post('/meal', async (req, res): Promise<void> => {
 			room,
 			responsible,
 			responsibleUsers,
-			recipeIds
+			recipeIds,
+			cooked: !!cooked,
 		} as Meal;
 
 		console.log('Creating meal with:', meal);
@@ -181,7 +183,8 @@ mealManagementRouter.put('/meal/:id', async (req, res): Promise<void> => {
 			room: updatedMeal.room,
 			responsible: updatedMeal.responsible,
 			responsibleUsers,
-			recipeIds
+			recipeIds,
+			cooked: !!updatedMeal.cooked
 		} as Meal;
 
 		const mealManagementService = new MealManagementService(unit);
@@ -218,7 +221,8 @@ mealManagementRouter.put('/meal/:id', async (req, res): Promise<void> => {
 		unit.complete(true);
 		res.status(StatusCodes.OK).json({
 			...updated,
-			id: mealId
+			id: mealId,
+			cooked: updated.cooked
 		});
 	} catch (error) {
 		unit.complete(false);

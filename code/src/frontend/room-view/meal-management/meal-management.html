@@ -64,6 +64,17 @@
 					</div>
 				</div>
 			}
+			<div class="view-status-toggle" style="margin: 20px 0; padding: 10px; background: #f9f9f9; border-radius: 8px;">
+				<mat-checkbox
+					name="cookedCheckbox"
+					color="primary"
+					[checked]="isCooked"
+					(click)="$event.preventDefault(); cookedCheckBox()"
+				>
+					Meal Prepared
+				</mat-checkbox>
+
+			</div>
 			<div class="action-row">
 				<button mat-flat-button type="button" class="save-btn" (click)="editButton()">
 					Edit Meal
