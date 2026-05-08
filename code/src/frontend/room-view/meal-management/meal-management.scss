@@ -923,7 +923,7 @@ section {
 	width: 2.75rem;
 	height: 2.75rem;
 	border: 2px solid $color-orange-2;
-	border-radius: 50%;
+	border-radius: 1rem;
 	background-color: $color-white;
 	color: $color-orange-2;
 	font-size: 1.3rem;
@@ -1000,4 +1000,38 @@ section {
 		box-shadow: 0 0 0 2px rgba($color-blue-gray, 0.08);
 	}
 	&::placeholder { color: $color-label-gray; }
+}
+
+.more-ingredients-empty {
+	font-size: 14px;
+	color: var(--text-secondary, #888);
+	margin: 8px 0;
+}
+
+.more-ingredients-note {
+	font-size: 12px;
+	color: var(--text-secondary, #888);
+	margin-bottom: 8px;
+}
+
+.more-ingredients-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 14px;
+
+	th {
+		text-align: left;
+		padding: 6px 8px;
+		border-bottom: 1px solid var(--border, #e0e0e0);
+		font-weight: 500;
+	}
+
+	td {
+		padding: 6px 8px;
+		border-bottom: 1px solid var(--border-light, #f0f0f0);
+	}
+
+	tr:last-child td {
+		border-bottom: none;
+	}
 }

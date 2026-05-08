@@ -261,6 +261,62 @@ export class MealManagement implements OnChanges {
 
 	// ----------------------- Recipes ------------------------------
 
+	protected recipeIngredients: { ingredientName: string; measurement: string; amount: number }[] = [];
+	protected ingredientsLoading: boolean = false;
+
+	protected get scaledIngredients(): { ingredientName: string; measurement: string; amount: number }[] {
+		const people = Math.max(1, this.eatingPeople().size);
+		return this.recipeIngredients.map(ing => ({
+			...ing,
+			amount: Math.round(ing.amount * people * 100) / 100
+		}));
+	}
+	private loadIngredientsForSelectedRecipes(): void {
+		if (this.selectedRecipeIds.length === 0) {
+			this.recipeIngredients = [];
+			this.requestViewUpdate();
+			return;
+		}
+
+		this.ingredientsLoading = true;
+		const calls = this.selectedRecipeIds.map(id =>
+			this.recipeService.getIngredientsForRecipe(id)
+		);
+
+		// fire all requests, merge results
+		let completed = 0;
+		const merged = new Map<string, { ingredientName: string; measurement: string; amount: number }>();
+
+		calls.forEach(call => {
+			call.subscribe({
+				next: ingredients => {
+					for (const ing of ingredients) {
+						const key = `${ing.ingredientName}__${ing.measurement}`;
+						const existing = merged.get(key);
+						if (existing) {
+							existing.amount += ing.amount;
+						} else {
+							merged.set(key, { ...ing });
+						}
+					}
+					completed++;
+					if (completed === calls.length) {
+						this.recipeIngredients = Array.from(merged.values())
+							.sort((a, b) => a.ingredientName.localeCompare(b.ingredientName));
+						this.ingredientsLoading = false;
+						this.requestViewUpdate();
+					}
+				},
+				error: () => {
+					completed++;
+					if (completed === calls.length) {
+						this.ingredientsLoading = false;
+						this.requestViewUpdate();
+					}
+				}
+			});
+		});
+	}
 	public onRecipeSearchChange(searchTerm: string): void {
 		this.recipeSearchTerm = searchTerm;
 		this.applyRecipeFilter();
@@ -271,6 +327,7 @@ export class MealManagement implements OnChanges {
 		this.selectedRecipeIds = this.normalizeRecipeIds(recipeIds);
 		this.applyRecipeFilter();
 		this.clearErrors();
+		this.loadIngredientsForSelectedRecipes(); // add this line
 		this.requestViewUpdate();
 	}
 
@@ -444,6 +501,7 @@ export class MealManagement implements OnChanges {
 			this.eatingPeople.set(new Set());
 			this.isViewMode.set(false);
 			this.applyRecipeFilter();
+			this.loadIngredientsForSelectedRecipes();
 			this.requestViewUpdate();
 			console.log('prefillFormFromInput called, this is inside the if mealToEdit:', this.mealToEdit);
 			return;
@@ -529,7 +587,9 @@ export class MealManagement implements OnChanges {
 				if (this.selectedRecipeIds.length > 0) {
 					const validIds = new Set(this.availableRecipes.map(r => r.id));
 					this.selectedRecipeIds = this.selectedRecipeIds.filter(id => validIds.has(id));
+					this.loadIngredientsForSelectedRecipes(); // ADD THIS LINE
 				}
+
 				this.requestViewUpdate();
 			},
 			error: () => {

@@ -276,12 +276,37 @@
 
 				<div class="more-section">
 					<h3 class="more-section__title">Ingredients needed</h3>
-					<textarea class="more-ingredients"
-							  placeholder="e.g. oregano x1, salt x500g..."
-							  [(ngModel)]="selectedIngredients"
-							  name="ingredients"
-							  rows="5">
-            </textarea>
+
+					@if (ingredientsLoading) {
+						<p class="more-ingredients-empty">Loading ingredients...</p>
+					} @else if (scaledIngredients.length === 0) {
+						<p class="more-ingredients-empty">
+							{{ selectedRecipeIds.length === 0 ? 'No recipes selected yet.' : 'No ingredients found for the selected recipes.' }}
+						</p>
+					} @else {
+						<div class="more-ingredients-note">
+							Scaled for {{ eatingPeople().size < 1 ? 1 : eatingPeople().size }}
+							{{ eatingPeople().size === 1 ? 'person' : 'people' }}
+						</div>
+						<table class="more-ingredients-table">
+							<thead>
+							<tr>
+								<th>Ingredient</th>
+								<th>Amount</th>
+								<th>Unit</th>
+							</tr>
+							</thead>
+							<tbody>
+								@for (ing of scaledIngredients; track ing.ingredientName) {
+									<tr>
+										<td>{{ ing.ingredientName }}</td>
+										<td>{{ ing.amount }}</td>
+										<td>{{ ing.measurement }}</td>
+									</tr>
+								}
+							</tbody>
+						</table>
+					}
 				</div>
 
 				<div class="action-row">
