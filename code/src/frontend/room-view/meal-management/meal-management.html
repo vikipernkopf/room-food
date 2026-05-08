@@ -77,6 +77,35 @@
 					</button>
 				</div>
 			}
+			<div class="view-status-toggle" style="margin: 20px 0; padding: 10px; background: #f9f9f9; border-radius: 8px;">
+				<mat-checkbox
+					name="cookedCheckbox"
+					color="primary"
+					[checked]="isCooked"
+					(click)="$event.preventDefault(); cookedCheckBox()"
+				>
+					Meal Prepared
+				</mat-checkbox>
+
+			</div>
+			<div class="action-row">
+				<button mat-flat-button type="button" class="save-btn" (click)="editButton()">
+					Edit Meal
+				</button>
+			</div>
+		} @else {
+			<div class="modal-header">
+				@if (isEditMode) {
+					<h2>Edit Meal</h2>
+				} @else {
+					<h2>Plan a Meal</h2>
+				}
+				<button class="btn-close" type="button" (click)="closePopup()">x</button>
+			</div>
+			<div class="form-grid">
+				<div class="field-group field-group--full">
+					@if (isViewMode()) {
+						<span>{{ dish || '-' }}</span>
 		} @else { <!-- EDIT MODE - Meal Form -->
 			@if (!showMore()) {
 				<div class="modal-header">

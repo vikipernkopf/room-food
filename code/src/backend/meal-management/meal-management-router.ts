@@ -23,7 +23,15 @@ function normalizeResponsibleUsers(responsibleUsers: unknown): string[] | null {
 // ----------------------- Meal CRUD ------------------------------
 
 mealManagementRouter.post('/meal', async (req, res): Promise<void> => {
-	const { time, endTime, name, mealType, room, responsible } = req.body;
+	const {
+		time,
+		endTime,
+		name,
+		mealType,
+		room,
+		responsible,
+		cooked
+	} = req.body;
 	const recipeIds = normalizeRecipeIds(req.body?.recipeIds);
 	const responsibleUsers = normalizeResponsibleUsers(req.body?.responsibleUsers);
 
@@ -52,6 +60,7 @@ mealManagementRouter.post('/meal', async (req, res): Promise<void> => {
 			responsible,
 			responsibleUsers,
 			recipeIds,
+			cooked: !!cooked,
 			eatingUsernames: []
 		} as Meal;
 
@@ -128,6 +137,7 @@ mealManagementRouter.put('/meal/:id', async (req, res): Promise<void> => {
 			responsible: updatedMeal.responsible,
 			responsibleUsers,
 			recipeIds,
+			cooked: !!updatedMeal.cooked
 			eatingUsernames: []
 		} as Meal;
 
@@ -197,7 +207,11 @@ mealManagementRouter.post('/meal/:mealId/eating-user/:username', async (req, res
 		if (result === 'error') { unit.complete(false); res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to add user' }); return; }
 
 		unit.complete(true);
-		res.status(StatusCodes.OK).json({ mealId, username, added: true });
+		res.status(StatusCodes.OK).json({
+			...updated,
+			id: mealId,
+			cooked: updated.cooked
+		});
 	} catch (error) {
 		unit.complete(false);
 		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to add user to eating list' });

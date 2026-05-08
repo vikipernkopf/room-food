@@ -25,6 +25,7 @@ import { Meal, Recipe, User } from '../../../backend/model';
 import { MealService } from '../../core/meal-service';
 import { RecipeService } from '../../core/recipe-service';
 import { RoomService } from '../../core/room-service';
+import {MatCheckbox} from '@angular/material/checkbox';
 
 interface MealType {
 	value: string;
@@ -43,22 +44,36 @@ interface MealType {
 		MatInputModule,
 		MatDatepickerModule,
 		MatTimepickerModule,
-		MatIconModule,
-		MatButtonModule
+		MatIconModule, MatButtonModule, MatCheckbox
 	],
 	templateUrl: './meal-management.html',
 	styleUrl: './meal-management.scss',
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MealManagement implements OnChanges {
-	@Output() close = new EventEmitter<void>();
-	@Output() mealSaved = new EventEmitter<void>();
-	@Input() mealToEdit: Meal | null = null;
-	@Input() roomCode: string = '';
-	@Input() initialDate: Date | null = null;
-	@Input() initialTime: Date | null = null;
-	@Input() overviewMode: boolean = false;
-	@Input() availableRooms: { code: string; roomName: string; role: string; profilePicture?: string }[] = [];
+	@Output()
+	cookedUpdated = new EventEmitter<Meal>();
+	@Output()
+	close = new EventEmitter<void>();
+	@Output()
+	mealSaved = new EventEmitter<void>();
+	@Input()
+	mealToEdit: Meal | null = null;
+	@Input()
+	roomCode: string = '';
+	@Input()
+	initialDate: Date | null = null;
+	@Input()
+	initialTime: Date | null = null;
+	@Input()
+	overviewMode: boolean = false;
+	@Input()
+	availableRooms: { code: string; roomName: string; role: string; profilePicture?: string }[] = [];
+
+	closePopup() {
+		this.isViewMode.set(false);
+		this.close.emit();
+	}
 
 	protected readonly isViewMode: WritableSignal<boolean> = signal(true);
 	protected readonly showMore = signal(false);
@@ -70,6 +85,7 @@ export class MealManagement implements OnChanges {
 	protected selectedDate: Date | null = null;
 	protected selectedStartTime: Date | null = null;
 	protected selectedEndTime: Date | null = null;
+	protected isCooked: boolean = false;
 	protected minTime: Date = new Date(new Date().setHours(5, 0, 0, 0));
 	protected maxTime: Date = new Date(new Date().setHours(23, 0, 0, 0));
 	protected showError: boolean = false;
@@ -83,6 +99,7 @@ export class MealManagement implements OnChanges {
 	protected availableRoomMembers: string[] = [];
 	protected roomMembersLoadError: string = '';
 	protected selectedRoomCode: string = '';
+	private isCookedUpdateInProgress = false;
 	protected selectedIngredients: string = '';
 
 	protected mealTypes: MealType[] = [
@@ -109,7 +126,9 @@ export class MealManagement implements OnChanges {
 
 	ngOnChanges(changes: SimpleChanges): void {
 		if (changes['mealToEdit'] && this.mealToEdit) {
-			this.prefillFormFromInput();
+			if (!this.isCookedUpdateInProgress) {   // ← add this guard
+				this.prefillFormFromInput();
+			}
 		} else if (changes['initialDate'] || changes['initialTime']) {
 			this.applyInitialDateTime();
 		}
@@ -278,6 +297,19 @@ export class MealManagement implements OnChanges {
 			return;
 		}
 
+		const mealTime = new Date(this.mealToEdit.time as unknown as string);
+		this.dish = this.mealToEdit.name;
+		this.selectedValue = this.mealToEdit.mealType || 'breakfast-0';
+		this.selectedDate = mealTime;
+		this.selectedStartTime = new Date(this.mealToEdit.time);
+		this.selectedEndTime = new Date(this.mealToEdit.endTime);
+		this.selectedRecipeIds = this.normalizeRecipeIds(this.mealToEdit.recipeIds);
+		this.selectedResponsibleUsers = this.normalizeResponsibleUsers(this.mealToEdit.responsibleUsers);
+		this.isCooked = this.mealToEdit.cooked ?? false;
+		this.recipeSearchTerm = '';
+		this.applyRecipeFilter();
+		this.requestViewUpdate();
+		this.isViewMode.set(true);
 		this.ingredientsLoading = true;
 		const calls = this.selectedRecipeIds.map(id =>
 			this.recipeService.getIngredientsForRecipe(id)
@@ -437,14 +469,53 @@ export class MealManagement implements OnChanges {
 
 		this.isSubmitting = true;
 
+		if (this.dish
+			&& this.selectedValue
+			&& this.selectedDate
+			&& this.selectedStartTime
+			&& this.selectedEndTime
+			&& currentUsername
+			&& effectiveRoomCode) {
+
+			// 1. Create a fresh Date object for Start from the selected Date
+			const finalDate = new Date(this.selectedDate);
+			finalDate.setHours(this.selectedStartTime.getHours());
+			finalDate.setMinutes(this.selectedStartTime.getMinutes());
+			finalDate.setSeconds(0);
+			finalDate.setMilliseconds(0);
+
+			const finalEndDate = new Date(this.selectedDate);
+			finalEndDate.setHours(this.selectedEndTime.getHours());
+			finalEndDate.setMinutes(this.selectedEndTime.getMinutes());
+			finalEndDate.setSeconds(0);
+			finalEndDate.setMilliseconds(0);
+
+			console.log('START STRING:', finalDate.toISOString());
+			console.log('END STRING:', finalEndDate.toISOString());
+
+			const newMeal: Meal = {
+				time: finalDate,
+				endTime: finalEndDate,
+				name: this.dish,
+				mealType: this.selectedValue,
+				responsible: currentUsername,
+				room: effectiveRoomCode,
+				recipeIds: [...this.selectedRecipeIds],
+				responsibleUsers: [...this.selectedResponsibleUsers],
+				cooked: this.isCooked
+			};
+
+			const editMealId = this.mealToEdit?.id;
+
+			if (this.isEditMode && !editMealId) {
+				this.mealService.saveError.set('Unable to update meal: missing meal id');
+				return;
+			}
 		request.subscribe({
 			next: meal => {
 				console.log('Successfully saved meal:', meal);
 				this.mealService.saveError.set('');
 				this.isSubmitting = false;
-
-
-
 				this.mealSaved.emit();
 				this.closePopup();
 			},
@@ -614,6 +685,7 @@ export class MealManagement implements OnChanges {
 			return;
 		}
 
+		if (!start || !end) return { start: null, end: null };
 		this.roomService.getMembersPerRoom(roomCode).subscribe({
 			next: members => {
 				this.availableRoomMembers = members.map(m => m.username) || [];
@@ -630,6 +702,18 @@ export class MealManagement implements OnChanges {
 
 	private loadEatingUsers(): void {
 
+		const startHours = start.getHours();
+		const endHours = end.getHours();
+		if (startHours < 5 || startHours >= 24) {
+			errors.start = "Time must be between 5 AM and 11 PM";
+		}
+		if (endHours < 5 || endHours >= 24) {
+			errors.end = "Time must be between 5 AM and 11 PM";
+		}
+
+		if (end <= start) {
+			errors.end = "End time must be after start time";
+		}
 		const mealId = this.mealToEdit?.id;
 		console.log('loadEatingUsers called, mealId:', mealId);
 		if (!mealId) {
@@ -657,6 +741,43 @@ export class MealManagement implements OnChanges {
 		const normalized = recipeIds.map(Number).filter(id => Number.isInteger(id) && id > 0);
 		return Array.from(new Set(normalized));
 	}
+
+	protected cookedCheckBox(): void {
+		this.isCooked = !this.isCooked;
+		this.isCookedUpdateInProgress = true;
+
+		const mealId = this.mealToEdit?.id;
+		if (!mealId || !this.mealToEdit) {
+			this.isCookedUpdateInProgress = false;
+			this.requestViewUpdate();
+			return;
+		}
+
+		this.mealToEdit = { ...this.mealToEdit, cooked: this.isCooked };
+
+		const updatedMeal: Meal = {
+			...this.mealToEdit,
+			time: new Date(this.mealToEdit.time),
+			endTime: new Date(this.mealToEdit.endTime),
+			cooked: this.isCooked
+		};
+
+		this.mealService.updateMeal(mealId, updatedMeal).subscribe({
+			next: () => {
+				this.cookedUpdated.emit(this.mealToEdit!);
+				this.isCookedUpdateInProgress = false;
+				this.requestViewUpdate();
+			},
+			error: (err) => {
+				this.isCooked = !this.isCooked;
+				this.mealToEdit = { ...this.mealToEdit!, cooked: this.isCooked };
+				this.isCookedUpdateInProgress = false;
+				console.error('Failed to update cooked status:', err);
+				this.requestViewUpdate();
+			}
+		});
+	}
+}
 
 	private normalizeResponsibleUsers(usernames: string[] | undefined): string[] {
 		if (!Array.isArray(usernames)) return [];

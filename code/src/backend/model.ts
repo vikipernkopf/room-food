@@ -60,6 +60,7 @@ export type Meal = {
 	responsible: string,
 	responsibleUsers?: string[],
 	recipeIds?: number[],
+	cooked: boolean
 	eatingUsernames?: string[]
 }
 

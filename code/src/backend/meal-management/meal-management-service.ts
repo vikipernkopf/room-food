@@ -44,15 +44,16 @@ export class MealManagementService extends ServiceBase {
 
 		[success, id] = this.executeStmt(
 			this.unit.prepare(`
-				insert into Meal(time, endTime, name, mealType, responsible, roomCode)
-				values (:t, :et, :n, :mt, :rs, :rc)
+				insert into Meal(time, endTime, name, mealType, responsible, roomCode, cooked)
+				values (:t, :et, :n, :mt, :rs, :rc, :c)
 			`, {
 				t: meal.time.toISOString(),
 				et: meal.endTime.toISOString(),
 				n: meal.name,
 				mt: meal.mealType,
 				rs: meal.responsible,
-				rc: meal.room
+				rc: meal.room,
+				c: meal.cooked ? 1 : 0
 			})
 		);
 
@@ -136,7 +137,8 @@ export class MealManagementService extends ServiceBase {
 				     name=:newName,
 				     mealType=:newMealType,
 				     responsible=:newResponsible,
-				     roomCode=:newRoom
+				     roomCode=:newRoom,
+				     cooked=:isCooked
 				 where id = :mealId`,
 				{
 					newTime: updatedMeal.time.toISOString(),
@@ -145,6 +147,7 @@ export class MealManagementService extends ServiceBase {
 					newMealType: updatedMeal.mealType,
 					newResponsible: updatedMeal.responsible,
 					newRoom: updatedMeal.room,
+					isCooked: updatedMeal.cooked ? 1 : 0,
 					mealId
 				}
 			)
@@ -183,7 +186,8 @@ export class MealManagementService extends ServiceBase {
 			       m.name,
 			       coalesce(m.mealType, 'breakfast-0') as mealType,
 			       m.roomCode,
-			       m.responsible
+			       m.responsible,
+			       m.cooked
 			from Meal m
 			where m.responsible = :n
 		`, { n: username }).all() as {
@@ -193,7 +197,8 @@ export class MealManagementService extends ServiceBase {
 			name: string,
 			mealType: string,
 			roomCode: string,
-			responsible: string
+			responsible: string,
+			cooked: number
 		}[];
 
 		if (fetch === undefined) {
@@ -213,7 +218,8 @@ export class MealManagementService extends ServiceBase {
 				responsible: e.responsible,
 				room: e.roomCode,
 				recipeIds: this.getRecipeIdsForMeal(e.id),
-				responsibleUsers: this.getResponsibleUsersForMeal(e.id)
+				responsibleUsers: this.getResponsibleUsersForMeal(e.id),
+				cooked: e.cooked === 1
 			});
 		});
 
@@ -253,7 +259,8 @@ export class MealManagementService extends ServiceBase {
 			       m.name,
 			       coalesce(m.mealType, 'breakfast-0') as mealType,
 			       m.roomCode,
-			       m.responsible
+			       m.responsible,
+			       m.cooked
 			from Meal m
 			where m.roomCode = :c
 		`, { c: roomCode }).all() as {
@@ -263,7 +270,8 @@ export class MealManagementService extends ServiceBase {
 			name: string,
 			mealType: string,
 			roomCode: string,
-			responsible: string
+			responsible: string,
+			cooked: number
 		}[];
 
 		if (fetch === undefined) {
@@ -283,7 +291,8 @@ export class MealManagementService extends ServiceBase {
 				responsible: e.responsible,
 				room: e.roomCode,
 				recipeIds: this.getRecipeIdsForMeal(e.id),
-				responsibleUsers: this.getResponsibleUsersForMeal(e.id)
+				responsibleUsers: this.getResponsibleUsersForMeal(e.id),
+				cooked: e.cooked === 1
 			});
 		});
 
