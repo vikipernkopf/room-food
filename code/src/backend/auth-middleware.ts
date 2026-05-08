@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { StatusCodes } from 'http-status-codes';
 import { JWT_SECRET } from '../config'
+import 'cookie-parser/index';
 
 export interface AuthenticatedRequest extends Request {
 	authenticatedUsername?: string;
@@ -14,7 +15,7 @@ export function requireAuth(
 ): void {
 	const token = req.cookies?.['session'];
 	console.log('requireAuth - token:', token ? 'present' : 'missing');
-	//console.log('requireAuth - JWT_SECRET used:', JWT_SECRET);  // <-- FIXED
+	console.log('requireAuth - JWT_SECRET used:', JWT_SECRET);
 
 	if (!token) {
 		res.sendStatus(StatusCodes.UNAUTHORIZED);
