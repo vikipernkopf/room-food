@@ -3,7 +3,7 @@ import { FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angu
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { Recipe, RecipeVisibility } from '../../../backend/model';
+import { Ingredient, Recipe, RecipeVisibility } from '../../../backend/model';
 
 export type RecipeMealType = {
 	value: string;
@@ -16,6 +16,7 @@ export type RecipeFormValue = {
 	image?: string;
 	mealTypes: string[];
 	visibility: RecipeVisibility;
+	ingredients?: Ingredient[];
 };
 
 @Component({

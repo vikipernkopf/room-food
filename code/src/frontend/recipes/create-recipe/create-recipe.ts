@@ -4,10 +4,11 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { AuthService } from '../../core/auth-service';
 import { RecipeService } from '../../core/recipe-service';
 import { IngredientsFrontendService } from '../../core/ingredients-frontend-service';
-import { Ingredient, RecipeVisibility } from '../../../backend/model';
+import { Ingredient, RecipeCreatePayload, RecipeVisibility } from '../../../backend/model';
 import { DEFAULT_RECIPE_IMAGE } from '../../core/user-form-validation';
 import { SearchIngredient } from '../recipe-management/search-ingredient/search-ingredient';
 import { RecipeMealType } from '../recipe-management/recipe-management';
@@ -39,6 +40,7 @@ export class CreateRecipe {
 	protected readonly saveError = signal('');
 	protected readonly ingredientError = signal('');
 	protected readonly defaultRecipeImage = DEFAULT_RECIPE_IMAGE;
+	private readonly router = inject(Router);
 
 	// Recipe form controls
 	protected readonly recipeNameControl = new FormControl('', [Validators.required, Validators.minLength(3)]);
@@ -111,19 +113,7 @@ export class CreateRecipe {
 	}
 
 	createRecipe() {
-		if (this.isCreating()) {
-			return;
-		}
-
-		this.recipeNameControl.markAsTouched();
-		this.recipeStepsControl.markAsTouched();
-
-		if (this.recipeNameControl.invalid || this.recipeStepsControl.invalid) {
-			this.saveError.set('Please fill in recipe name and cooking steps');
-			return;
-		}
-
-		const username = this.currentUser()?.username;
+		const username = this.authService.currentUser()?.username;
 		if (!username) {
 			this.saveError.set('You must be logged in to create a recipe');
 			return;
@@ -132,29 +122,28 @@ export class CreateRecipe {
 		this.isCreating.set(true);
 		this.saveError.set('');
 
-		const payload = {
+		const payload: RecipeCreatePayload = {
 			authorUsername: username,
 			name: this.recipeNameControl.value?.trim() ?? '',
 			description: this.recipeDescriptionControl.value?.trim() || undefined,
 			image: this.recipeImageControl.value?.trim() || this.defaultRecipeImage,
-			mealTypes: this.recipeMealTypesControl.value,
-			visibility: this.recipeVisibilityControl.value
+			mealTypes: this.recipeMealTypesControl.value ?? [],
+			visibility: this.recipeVisibilityControl.value ?? 'private',
+			ingredients: this.ingredients()
 		};
 
 		this.recipeService.createRecipe(payload).subscribe({
 			next: (response) => {
-				// TODO: Add ingredients and steps to the recipe
 				this.isCreating.set(false);
-				this.saveError.set('');
-				// Reset form
-				this.resetForm();
-				// Navigate to recipes page or show success message
-				console.log('Recipe created successfully:', response);
+				// 3. Redirect to /recipes
+				this.router.navigate(['/recipes']).then(() => {
+					this.resetForm();
+					this.ingredients.set([]);
+				});
 			},
 			error: (err) => {
 				this.isCreating.set(false);
 				this.saveError.set(err?.error?.message || 'Failed to create recipe');
-				console.error('Error creating recipe:', err);
 			}
 		});
 	}
@@ -164,11 +153,6 @@ export class CreateRecipe {
 		this.recipeDescriptionControl.reset('');
 		this.recipeImageControl.reset('');
 		this.recipeMealTypesControl.reset([]);
-		this.recipeVisibilityControl.reset('private');
-		this.recipeStepsControl.reset('');
 		this.ingredients.set([]);
-		this.currentIngredientName.set('');
-		this.currentIngredientMeasurement.set('');
-		this.currentIngredientAmount.set('');
 	}
 }
