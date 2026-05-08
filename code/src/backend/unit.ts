@@ -262,7 +262,7 @@ class DB {
 		DB.migrateMealTableToIncludeEndTime(connection);
 		DB.migrateMealTableToIncludeCooked(connection);
 		DB.migrateRecipeAndMealTables(connection);
-		DB.migrateIngredients(connection);
+		DB.migrateIngredientsAndEating(connection);
 	}
 
 	private static migrateRoomTableToProfilePicture(connection: BetterSqlite3.Database): void {
@@ -670,8 +670,8 @@ class DB {
 		}
 	}
 
-	private static migrateIngredients(connection: BetterSqlite3.Database) {
-		console.log('Migrating Ingredients and RecipeIngredient tables...');
+	private static migrateIngredientsAndEating(connection: BetterSqlite3.Database) {
+		console.log('Migrating Ingredients and RecipeIngredient and MealEatingUser tables...');
 
 		connection.exec(
 			`create table if not exists Ingredient
@@ -698,6 +698,18 @@ class DB {
               constraint fk_ingredient foreign key (ingredient_name) references Ingredient(name) ON DELETE CASCADE
            ) strict`
 		);
+
+		connection.exec(
+			`create table if not exists MealEatingUser
+			(
+				meal_id integer not null,
+				user_id integer not null,
+
+				constraint pk_meal_eating_user primary key (meal_id, user_id),
+				constraint fk_meal_id foreign key (meal_id) references Meal (id) ON DELETE CASCADE,
+				constraint fk_username foreign key (user_id) references User (id) ON DELETE CASCADE
+			 )`
+		)
 
 		console.log('✓ Ingredient migration completed');
 	}

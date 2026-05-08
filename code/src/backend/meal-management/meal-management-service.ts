@@ -69,6 +69,10 @@ export class MealManagementService extends ServiceBase {
 			return 'error';
 		}
 
+		// in addMeal, before return id:
+		if (!this.replaceEatingUsers(id, meal.eatingUsernames ?? [])) {
+			return 'error';
+		}
 		return id;
 	}
 
@@ -154,6 +158,10 @@ export class MealManagementService extends ServiceBase {
 		}
 
 		if (!this.replaceMealRecipes(mealId, recipeIds)) {
+			return 'error';
+		}
+
+		if (!this.replaceMealResponsibleUsers(mealId, updatedMeal.responsibleUsers)) {
 			return 'error';
 		}
 
@@ -289,6 +297,58 @@ export class MealManagementService extends ServiceBase {
 		});
 
 		return meals;
+	}
+
+	public addEatingUserByUsername(mealId: number, username: string): true | 'meal_not_found' | 'user_not_found' | 'already_eating' | 'error' {
+		if (!this.checkMealExists(mealId)) return 'meal_not_found';
+
+		const userRow = this.unit.prepare<{ id: number }>(
+			`select id from User where username = :username`,
+			{ username }
+		).get();
+		if (!userRow) return 'user_not_found';
+
+		const userId = userRow.id;
+
+		const existing = this.unit.prepare(
+			`select 1 from MealEatingUser where meal_id = :mealId and user_id = :userId`,
+			{ mealId, userId }
+		).get();
+		if (existing) return 'already_eating';
+
+		const [success] = this.executeStmt(
+			this.unit.prepare(
+				`insert into MealEatingUser(meal_id, user_id) values (:mealId, :userId)`,
+				{ mealId, userId }
+			)
+		);
+		return success ? true : 'error';
+	}
+
+	public removeEatingUserByUsername(mealId: number, username: string): true | 'meal_not_found' | 'user_not_found' | 'not_eating' | 'error' {
+		if (!this.checkMealExists(mealId)) return 'meal_not_found';
+
+		const userRow = this.unit.prepare<{ id: number }>(
+			`select id from User where username = :username`,
+			{ username }
+		).get();
+		if (!userRow) return 'user_not_found';
+
+		const userId = userRow.id;
+
+		const existing = this.unit.prepare(
+			`select 1 from MealEatingUser where meal_id = :mealId and user_id = :userId`,
+			{ mealId, userId }
+		).get();
+		if (!existing) return 'not_eating';
+
+		const [success] = this.executeStmt(
+			this.unit.prepare(
+				`delete from MealEatingUser where meal_id = :mealId and user_id = :userId`,
+				{ mealId, userId }
+			)
+		);
+		return success ? true : 'error';
 	}
 
 	// ----------------------- Recipe part ------------------------------
@@ -465,4 +525,170 @@ export class MealManagementService extends ServiceBase {
 
 		return rows.map(row => row.username);
 	}
+	private replaceEatingUsers(mealId: number, usernames: string[]): boolean {
+		try {
+			this.unit.prepare(
+				`delete from MealEatingUser where meal_id = :mealId`,
+				{ mealId }
+			).run();
+
+			for (const username of usernames) {
+				const userRow = this.unit.prepare<{ id: number }>(
+					`select id from User where username = :username`,
+					{ username }
+				).get();
+
+				if (!userRow) continue;
+
+				this.unit.prepare(
+					`insert into MealEatingUser(meal_id, user_id) values (:mealId, :userId)`,
+					{ mealId, userId: userRow.id }
+				).run();
+			}
+
+			return true;
+		} catch (error) {
+			console.error('Error in replaceEatingUsers:', error);
+			return false;
+		}
+	}
+
+	// ----------------------- MealEatingUser part ------------------------------
+
+	/**
+	 * Add a user to the eating list for a meal
+	 *
+	 * @param mealId - meal id
+	 * @param userId - user id
+	 * @return true if added, "meal_not_found" if meal doesn't exist, "user_not_found" if user doesn't exist, "already_eating" if user is already in the list, "error" otherwise
+	 */
+	public addEatingUser(mealId: number, userId: number): true | 'meal_not_found' | 'user_not_found' | 'already_eating' | 'error' {
+		if (!this.checkMealExists(mealId)) {
+			return 'meal_not_found';
+		}
+
+		if (!this.checkUserExists(userId)) {
+			return 'user_not_found';
+		}
+
+		// Check if user is already eating
+		const existing = this.unit.prepare(
+			`select 1 from MealEatingUser where meal_id = :mealId and user_id = :userId`,
+			{ mealId, userId }
+		).get();
+
+		if (existing) {
+			return 'already_eating';
+		}
+
+		let success: boolean;
+
+		[success] = this.executeStmt(
+			this.unit.prepare(
+				`insert into MealEatingUser(meal_id, user_id) values (:mealId, :userId)`,
+				{ mealId, userId }
+			)
+		);
+
+		return success ? true : 'error';
+	}
+
+	/**
+	 * Remove a user from the eating list for a meal
+	 *
+	 * @param mealId - meal id
+	 * @param userId - user id
+	 * @return true if removed, "meal_not_found" if meal doesn't exist, "user_not_found" if user doesn't exist, "not_eating" if user is not in the list, "error" otherwise
+	 */
+	public removeEatingUser(mealId: number, userId: number): true | 'meal_not_found' | 'user_not_found' | 'not_eating' | 'error' {
+		if (!this.checkMealExists(mealId)) {
+			return 'meal_not_found';
+		}
+
+		if (!this.checkUserExists(userId)) {
+			return 'user_not_found';
+		}
+
+		// Check if user is eating
+		const existing = this.unit.prepare(
+			`select 1 from MealEatingUser where meal_id = :mealId and user_id = :userId`,
+			{ mealId, userId }
+		).get();
+
+		if (!existing) {
+			return 'not_eating';
+		}
+
+		let success: boolean;
+
+		[success] = this.executeStmt(
+			this.unit.prepare(
+				`delete from MealEatingUser where meal_id = :mealId and user_id = :userId`,
+				{ mealId, userId }
+			)
+		);
+
+		return success ? true : 'error';
+	}
+
+	/**
+	 * Get the list of users eating a meal
+	 *
+	 * @param mealId - meal id
+	 * @return array of user ids, or "meal_not_found" if meal doesn't exist
+	 */
+	public getEatingUsers(mealId: number): string[] | 'meal_not_found' {
+		if (!this.checkMealExists(mealId)) {
+			return 'meal_not_found';
+		}
+
+		const rows = this.unit.prepare<{
+			username: string
+		}>(
+			`select u.username from MealEatingUser meu join User u on meu.user_id = u.id where meu.meal_id = :mealId order by u.username`,
+			{ mealId }
+		).all();
+
+		return rows.map(row => row.username);
+	}
+
+	private checkUserExists(userId: number): boolean {
+		const result = this.unit.prepare(
+			`select 1 from User where id = :userId`,
+			{ userId }
+		).get();
+
+		return !!result;
+	}
+
+	private syncEatingUser(mealId: number, username: string, isEating: boolean): void {
+		const userRow = this.unit.prepare<{ id: number }>(
+			`select id from User where username = :username`,
+			{ username }
+		).get();
+
+		if (!userRow) return;
+
+		const userId = userRow.id;
+
+		if (isEating) {
+			const existing = this.unit.prepare(
+				`select 1 from MealEatingUser where meal_id = :mealId and user_id = :userId`,
+				{ mealId, userId }
+			).get();
+
+			if (!existing) {
+				this.unit.prepare(
+					`insert into MealEatingUser(meal_id, user_id) values (:mealId, :userId)`,
+					{ mealId, userId }
+				).run();
+			}
+		} else {
+			this.unit.prepare(
+				`delete from MealEatingUser where meal_id = :mealId and user_id = :userId`,
+				{ mealId, userId }
+			).run();
+		}
+	}
 }
+

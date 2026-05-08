@@ -390,4 +390,24 @@ export class RecipesService extends ServiceBase {
 
 		return true;
 	}
+
+	public getIngredientsForRecipe(recipeId: number): { ingredientName: string; measurement: string; amount: number }[] {
+		const rows = this.unit.prepare<{
+			ingredient_name: string;
+			measurement: string;
+			amount: string;
+		}>(
+			`select ingredient_name, measurement, amount
+         from RecipeIngredient
+         where recipe_id = :recipeId
+         order by ingredient_name`,
+			{ recipeId }
+		).all();
+
+		return rows.map(row => ({
+			ingredientName: row.ingredient_name,
+			measurement: row.measurement,
+			amount: Number(row.amount)
+		}));
+	}
 }

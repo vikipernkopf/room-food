@@ -60,7 +60,7 @@ describe('Profile', () => {
 				},
 				{
 					provide: ActivatedRoute,
-					useValue: { paramMap: of(convertToParamMap({ username: 'alice' })) }
+					useValue: { snapshot: { paramMap: convertToParamMap({ username: 'alice' }) } }
 				}
 			]
 		}).compileComponents();
