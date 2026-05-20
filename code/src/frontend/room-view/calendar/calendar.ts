@@ -9,9 +9,9 @@ import { AuthService } from '../../core/auth-service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RoomService } from '../../core/room-service';
-import {IngredientList} from '../../overview/ingredient-list/ingredient-list';
-import {AvailableIngredients} from './avaliable-ingredients/avaliable-ingredients';
+import { AvailableIngredients } from './available-ingredients/available-ingredients';
 
+//noinspection JSIgnoredPromiseFromCall
 @Component({
 	selector: 'app-calendar',
 	imports: [
@@ -121,7 +121,7 @@ export class Calendar implements OnInit {
 				this.hasRedirected = true;
 				this.meals.set([]);
 				// noinspection JSIgnoredPromiseFromCall
-				this.router.navigate(['/error']);
+				await this.router.navigate(['/error']);
 			}
 			return;
 		}
@@ -267,8 +267,14 @@ export class Calendar implements OnInit {
 
 	onCookedUpdated(updatedMeal: Meal): void {
 		this.meals.update(meals =>
-			meals.map(m => m.id === updatedMeal.id ? { ...m, cooked: updatedMeal.cooked } : m)
+			meals.map(m => m.id === updatedMeal.id ? {
+				...m,
+				cooked: updatedMeal.cooked
+			} : m)
 		);
-		this.selectedMeal = { ...this.selectedMeal!, cooked: updatedMeal.cooked };
+		this.selectedMeal = {
+			...this.selectedMeal!,
+			cooked: updatedMeal.cooked
+		};
 	}
 }

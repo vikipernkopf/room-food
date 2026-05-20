@@ -118,7 +118,8 @@ describe('Recipes', () => {
 				mealTypes: ['dinner'],
 				visibility: 'private',
 				author: 1,
-				isOwnedByUser: true
+				isOwnedByUser: true,
+				ingredients: []
 			}
 		];
 
@@ -139,7 +140,8 @@ describe('Recipes', () => {
 				image: undefined,
 				mealTypes: ['dinner'],
 				visibility: 'private',
-				author: 1
+				author: 1,
+				ingredients: []
 			}
 		];
 		publicRecipesResponse = [
@@ -150,7 +152,8 @@ describe('Recipes', () => {
 				image: undefined,
 				mealTypes: ['lunch'],
 				visibility: 'public',
-				author: 2
+				author: 2,
+				ingredients: []
 			}
 		];
 
@@ -179,7 +182,8 @@ describe('Recipes', () => {
 				author: 2,
 				authorUsername: 'bob',
 				isOwnedByUser: false,
-				isSavedByUser: false
+				isSavedByUser: false,
+				ingredients: []
 			}
 		];
 
@@ -208,7 +212,8 @@ describe('Recipes', () => {
 				mealTypes: ['dinner'],
 				visibility: 'private',
 				author: 1,
-				isOwnedByUser: true
+				isOwnedByUser: true,
+				ingredients: []
 			}
 		];
 
@@ -237,7 +242,8 @@ describe('Recipes', () => {
 				mealTypes: ['dinner'],
 				visibility: 'private',
 				author: 1,
-				isOwnedByUser: true
+				isOwnedByUser: true,
+				ingredients: []
 			}
 		];
 
@@ -259,7 +265,8 @@ describe('Recipes', () => {
 			description: 'Updated pasta',
 			image: (component as any).defaultRecipeImage,
 			mealTypes: ['dinner'],
-			visibility: 'public'
+			visibility: 'public',
+			ingredients: []
 		});
 	});
 });

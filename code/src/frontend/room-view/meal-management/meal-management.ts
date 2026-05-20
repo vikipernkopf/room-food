@@ -25,7 +25,7 @@ import { Meal, Recipe, User } from '../../../backend/model';
 import { MealService } from '../../core/meal-service';
 import { RecipeService } from '../../core/recipe-service';
 import { RoomService } from '../../core/room-service';
-import {MatCheckbox} from '@angular/material/checkbox';
+import { MatCheckbox } from '@angular/material/checkbox';
 
 interface MealType {
 	value: string;
@@ -68,12 +68,12 @@ export class MealManagement implements OnChanges {
 	@Input()
 	overviewMode: boolean = false;
 	@Input()
-	availableRooms: { code: string; roomName: string; role: string; profilePicture?: string }[] = [];
-
-	closePopup() {
-		this.isViewMode.set(false);
-		this.close.emit();
-	}
+	availableRooms: {
+		code: string;
+		roomName: string;
+		role: string;
+		profilePicture?: string
+	}[] = [];
 
 	protected readonly isViewMode: WritableSignal<boolean> = signal(true);
 	protected readonly showMore = signal(false);
@@ -103,10 +103,22 @@ export class MealManagement implements OnChanges {
 	protected selectedIngredients: string = '';
 
 	protected mealTypes: MealType[] = [
-		{ value: 'breakfast-0', viewValue: 'Breakfast' },
-		{ value: 'lunch-1', viewValue: 'Lunch' },
-		{ value: 'dinner-2', viewValue: 'Dinner' },
-		{ value: 'snack-3', viewValue: 'Snack' }
+		{
+			value: 'breakfast-0',
+			viewValue: 'Breakfast'
+		},
+		{
+			value: 'lunch-1',
+			viewValue: 'Lunch'
+		},
+		{
+			value: 'dinner-2',
+			viewValue: 'Dinner'
+		},
+		{
+			value: 'snack-3',
+			viewValue: 'Snack'
+		}
 	];
 
 	private readonly cdr: ChangeDetectorRef | null;
@@ -167,30 +179,56 @@ export class MealManagement implements OnChanges {
 	}
 
 	protected get formattedStartTime(): string {
-		if (!this.selectedStartTime) return '';
+		if (!this.selectedStartTime) {
+			return '';
+		}
 		const hours = this.selectedStartTime.getHours();
-		if (hours === 0) return '12am';
-		if (hours === 12) return '12pm';
+		if (hours === 0) {
+			return '12am';
+		}
+		if (hours === 12) {
+			return '12pm';
+		}
 		return hours < 12 ? `${hours}am` : `${hours - 12}pm`;
 	}
 
 	protected get formattedEndTime(): string {
-		if (!this.selectedEndTime) return '';
+		if (!this.selectedEndTime) {
+			return '';
+		}
 		const hours = this.selectedEndTime.getHours();
 		const minutes = this.selectedEndTime.getMinutes();
 		const mins = minutes > 0 ? `:${minutes.toString().padStart(2, '0')}` : '';
-		if (hours === 0) return `12${mins}am`;
-		if (hours === 12) return `12${mins}pm`;
+		if (hours === 0) {
+			return `12${mins}am`;
+		}
+		if (hours === 12) {
+			return `12${mins}pm`;
+		}
 		return hours < 12 ? `${hours}${mins}am` : `${hours - 12}${mins}pm`;
 	}
 
-	protected get timeErrors(): { start: string | null; end: string | null } {
+	protected get timeErrors(): {
+		start: string | null;
+		end: string | null
+	} {
 		const start = this.selectedStartTime;
 		const end = this.selectedEndTime;
 
-		if (!start || !end) return { start: null, end: null };
+		if (!start || !end) {
+			return {
+				start: null,
+				end: null
+			};
+		}
 
-		const errors: { start: string | null; end: string | null } = { start: null, end: null };
+		const errors: {
+			start: string | null;
+			end: string | null
+		} = {
+			start: null,
+			end: null
+		};
 		const startHours = start.getHours();
 		const endHours = end.getHours();
 
@@ -234,11 +272,14 @@ export class MealManagement implements OnChanges {
 	protected addCurrentUserToEating(): void {
 		const username = this.currentUser()?.username;
 		const mealId = this.mealToEdit?.id;
-		if (!username || !mealId) return;
+		if (!username || !mealId) {
+			return;
+		}
 
 		this.mealService.addEatingUser(mealId, username).subscribe({
 			next: () => {
 				this.eatingPeople.update(people => new Set([...people, username]));
+				// Trigger change detection to recalculate scaled ingredients
 				this.requestViewUpdate();
 			},
 			error: err => console.error('Error adding eating user:', err)
@@ -248,7 +289,9 @@ export class MealManagement implements OnChanges {
 	protected removeCurrentUserFromEating(): void {
 		const username = this.currentUser()?.username;
 		const mealId = this.mealToEdit?.id;
-		if (!username || !mealId) return;
+		if (!username || !mealId) {
+			return;
+		}
 
 		this.mealService.removeEatingUser(mealId, username).subscribe({
 			next: () => {
@@ -257,17 +300,19 @@ export class MealManagement implements OnChanges {
 					next.delete(username);
 					return next;
 				});
+				// Trigger change detection to recalculate scaled ingredients
 				this.requestViewUpdate();
 			},
 			error: err => console.error('Error removing eating user:', err)
 		});
 	}
+
 	protected isCurrentUserEating(): boolean {
 		return this.eatingPeople().has(this.currentUser()?.username ?? '');
 	}
 
 	protected eatingPeopleArray(): string[] {
-		return Array.from(this.eatingPeople());
+		return Array.from(this.eatingPeople()).sort();
 	}
 
 	protected isUserEating(username: string): boolean {
@@ -280,16 +325,29 @@ export class MealManagement implements OnChanges {
 
 	// ----------------------- Recipes ------------------------------
 
-	protected recipeIngredients: { ingredientName: string; measurement: string; amount: number }[] = [];
+	protected recipeIngredients: {
+		ingredientName: string;
+		measurement: string;
+		amount: number
+	}[] = [];
 	protected ingredientsLoading: boolean = false;
 
-	protected get scaledIngredients(): { ingredientName: string; measurement: string; amount: number }[] {
-		const people = Math.max(1, this.eatingPeople().size);
-		return this.recipeIngredients.map(ing => ({
-			...ing,
-			amount: Math.round(ing.amount * people * 100) / 100
-		}));
+	protected get scaledIngredients(): {
+		ingredientName: string;
+		measurement: string;
+		amount: number
+	}[] {
+		// Scale ingredients based on number of eating people
+		const people = this.eatingPeople().size;
+		return this.recipeIngredients
+			.map(ing => ({
+				...ing,
+				// Round to 2 decimal places for cleaner display
+				amount: Math.round(ing.amount * people * 100) / 100
+			}))
+			.sort((a, b) => a.ingredientName.localeCompare(b.ingredientName));
 	}
+
 	private loadIngredientsForSelectedRecipes(): void {
 		if (this.selectedRecipeIds.length === 0) {
 			this.recipeIngredients = [];
@@ -297,42 +355,39 @@ export class MealManagement implements OnChanges {
 			return;
 		}
 
-		const mealTime = new Date(this.mealToEdit.time as unknown as string);
-		this.dish = this.mealToEdit.name;
-		this.selectedValue = this.mealToEdit.mealType || 'breakfast-0';
-		this.selectedDate = mealTime;
-		this.selectedStartTime = new Date(this.mealToEdit.time);
-		this.selectedEndTime = new Date(this.mealToEdit.endTime);
-		this.selectedRecipeIds = this.normalizeRecipeIds(this.mealToEdit.recipeIds);
-		this.selectedResponsibleUsers = this.normalizeResponsibleUsers(this.mealToEdit.responsibleUsers);
-		this.isCooked = this.mealToEdit.cooked ?? false;
-		this.recipeSearchTerm = '';
-		this.applyRecipeFilter();
-		this.requestViewUpdate();
-		this.isViewMode.set(true);
 		this.ingredientsLoading = true;
 		const calls = this.selectedRecipeIds.map(id =>
 			this.recipeService.getIngredientsForRecipe(id)
 		);
 
-		// fire all requests, merge results
+		// Fire all requests and merge results
+		// When the same ingredient appears in multiple recipes, sum the amounts
 		let completed = 0;
-		const merged = new Map<string, { ingredientName: string; measurement: string; amount: number }>();
+		const merged = new Map<string, {
+			ingredientName: string;
+			measurement: string;
+			amount: number
+		}>();
 
 		calls.forEach(call => {
 			call.subscribe({
 				next: ingredients => {
 					for (const ing of ingredients) {
+						// Create unique key combining ingredient name and measurement
+						// This allows ingredients with different measurements to be separate
 						const key = `${ing.ingredientName}__${ing.measurement}`;
 						const existing = merged.get(key);
 						if (existing) {
+							// If ingredient already exists with same measurement, add amounts
 							existing.amount += ing.amount;
 						} else {
+							// New ingredient, add it to the map
 							merged.set(key, { ...ing });
 						}
 					}
 					completed++;
 					if (completed === calls.length) {
+						// Convert map to sorted array
 						this.recipeIngredients = Array.from(merged.values())
 							.sort((a, b) => a.ingredientName.localeCompare(b.ingredientName));
 						this.ingredientsLoading = false;
@@ -349,6 +404,7 @@ export class MealManagement implements OnChanges {
 			});
 		});
 	}
+
 	public onRecipeSearchChange(searchTerm: string): void {
 		this.recipeSearchTerm = searchTerm;
 		this.applyRecipeFilter();
@@ -368,34 +424,44 @@ export class MealManagement implements OnChanges {
 	}
 
 	public getSelectedRecipeLabel(): string {
-		if (this.selectedRecipeIds.length === 0) return '';
+		if (this.selectedRecipeIds.length === 0) {
+			return '';
+		}
 
 		const names = this.selectedRecipeIds
-			.map(id => this.availableRecipes.find(r => r.id === id)?.name)
-			.filter((name): name is string => !!name);
+		.map(id => this.availableRecipes.find(r => r.id === id)?.name)
+		.filter((name): name is string => !!name);
 
-		if (names.length === 0) return 'Recipes selected';
-		if (names.length <= 2) return names.join(', ');
+		if (names.length === 0) {
+			return 'Recipes selected';
+		}
+		if (names.length <= 2) {
+			return names.join(', ');
+		}
 		return `${names.length} recipes selected`;
 	}
 
 	// ----------------------- Responsible users ------------------------------
 
 	public onResponsibleUsersChange(usernames: string[]): void {
-		this.selectedResponsibleUsers = this.normalizeResponsibleUsers(usernames);
+		this.selectedResponsibleUsers = usernames;
 		this.clearErrors();
 		this.requestViewUpdate();
 	}
 
 	public getSelectedResponsibleUsersLabel(): string {
-		if (this.selectedResponsibleUsers.length === 0) return '';
+		if (this.selectedResponsibleUsers.length === 0) {
+			return '';
+		}
 		return this.selectedResponsibleUsers.join(', ');
 	}
 
 	// ----------------------- Room ------------------------------
 
 	protected getRoomName(roomCode: string | null | undefined): string {
-		if (!roomCode) return '';
+		if (!roomCode) {
+			return '';
+		}
 		return this.availableRooms.find(room => room.code === roomCode)?.roomName ?? roomCode;
 	}
 
@@ -413,7 +479,9 @@ export class MealManagement implements OnChanges {
 	}
 
 	protected formatDateValue(date: Date | null): string {
-		if (!date) return '';
+		if (!date) {
+			return '';
+		}
 		return new Intl.DateTimeFormat('en-US', {
 			weekday: 'long',
 			month: 'short',
@@ -430,7 +498,8 @@ export class MealManagement implements OnChanges {
 		const currentUsername = user?.username;
 		const effectiveRoomCode = this.overviewMode ? this.selectedRoomCode : this.roomCode;
 
-		if (!this.dish || !this.selectedValue || !this.selectedDate || !this.selectedStartTime || !this.selectedEndTime || !currentUsername || !effectiveRoomCode) {
+		if (!this.dish || !this.selectedValue || !this.selectedDate || !this.selectedStartTime || !this.selectedEndTime
+			|| !currentUsername || !effectiveRoomCode) {
 			this.showError = true;
 			if (!this.roomCode) {
 				this.mealService.saveError.set('Room code is missing. Please refresh the page.');
@@ -453,7 +522,8 @@ export class MealManagement implements OnChanges {
 			room: effectiveRoomCode,
 			recipeIds: [...this.selectedRecipeIds],
 			responsibleUsers: [...this.selectedResponsibleUsers],
-			eatingUsernames: []/* this.isCurrentUserEating() ? [currentUsername] : []*/
+			eatingUsernames: this.isCurrentUserEating() ? [currentUsername] : [],
+			cooked: this.isCooked
 		};
 
 		const editMealId = this.mealToEdit?.id;
@@ -511,21 +581,23 @@ export class MealManagement implements OnChanges {
 				this.mealService.saveError.set('Unable to update meal: missing meal id');
 				return;
 			}
-		request.subscribe({
-			next: meal => {
-				console.log('Successfully saved meal:', meal);
-				this.mealService.saveError.set('');
-				this.isSubmitting = false;
-				this.mealSaved.emit();
-				this.closePopup();
-			},
-			error: err => {
-				console.error('Error saving meal:', err);
-				this.isSubmitting = false;
-				this.mealService.saveError.set(
-					'Unable to save meal: ' + (err.error?.error || err.message || 'Unknown error'));
-			}
-		});
+
+			request.subscribe({
+				next: meal => {
+					console.log('Successfully saved meal:', meal);
+					this.mealService.saveError.set('');
+					this.isSubmitting = false;
+					this.mealSaved.emit();
+					this.closePopup();
+				},
+				error: err => {
+					console.error('Error saving meal:', err);
+					this.isSubmitting = false;
+					this.mealService.saveError.set(
+						'Unable to save meal: ' + (err.error?.error || err.message || 'Unknown error'));
+				}
+			});
+		}
 	}
 
 	protected deleteMeal(): void {
@@ -585,7 +657,7 @@ export class MealManagement implements OnChanges {
 		this.selectedStartTime = new Date(this.mealToEdit.time);
 		this.selectedEndTime = new Date(this.mealToEdit.endTime);
 		this.selectedRecipeIds = this.normalizeRecipeIds(this.mealToEdit.recipeIds);
-		this.selectedResponsibleUsers = this.normalizeResponsibleUsers(this.mealToEdit.responsibleUsers);
+		this.selectedResponsibleUsers = this.mealToEdit?.responsibleUsers ?? [];
 		this.selectedIngredients = '';
 		this.recipeSearchTerm = '';
 		this.applyRecipeFilter();
@@ -685,7 +757,13 @@ export class MealManagement implements OnChanges {
 			return;
 		}
 
-		if (!start || !end) return { start: null, end: null };
+		let start = this.selectedStartTime;
+		let end = this.selectedEndTime;
+
+		if (!start || !end) {
+			return;
+		}
+
 		this.roomService.getMembersPerRoom(roomCode).subscribe({
 			next: members => {
 				this.availableRoomMembers = members.map(m => m.username) || [];
@@ -701,21 +779,24 @@ export class MealManagement implements OnChanges {
 	}
 
 	private loadEatingUsers(): void {
+		const startHours = this.selectedStartTime?.getHours() ?? 0;
+		const endHours = this.selectedEndTime?.getHours() ?? 0;
+		const errors = this.timeErrors ?? 0;
 
-		const startHours = start.getHours();
-		const endHours = end.getHours();
 		if (startHours < 5 || startHours >= 24) {
-			errors.start = "Time must be between 5 AM and 11 PM";
+			errors.start = 'Time must be between 5 AM and 11 PM';
 		}
 		if (endHours < 5 || endHours >= 24) {
-			errors.end = "Time must be between 5 AM and 11 PM";
+			errors.end = 'Time must be between 5 AM and 11 PM';
 		}
 
-		if (end <= start) {
-			errors.end = "End time must be after start time";
+		if (endHours <= startHours) {
+			errors.end = 'End time must be after start time';
 		}
+
 		const mealId = this.mealToEdit?.id;
 		console.log('loadEatingUsers called, mealId:', mealId);
+
 		if (!mealId) {
 			this.eatingPeople.set(new Set());
 			return;
@@ -737,7 +818,10 @@ export class MealManagement implements OnChanges {
 	}
 
 	private normalizeRecipeIds(recipeIds: number[] | undefined): number[] {
-		if (!Array.isArray(recipeIds)) return [];
+		if (!Array.isArray(recipeIds)) {
+			return [];
+		}
+
 		const normalized = recipeIds.map(Number).filter(id => Number.isInteger(id) && id > 0);
 		return Array.from(new Set(normalized));
 	}
@@ -745,15 +829,18 @@ export class MealManagement implements OnChanges {
 	protected cookedCheckBox(): void {
 		this.isCooked = !this.isCooked;
 		this.isCookedUpdateInProgress = true;
-
 		const mealId = this.mealToEdit?.id;
+
 		if (!mealId || !this.mealToEdit) {
 			this.isCookedUpdateInProgress = false;
 			this.requestViewUpdate();
 			return;
 		}
 
-		this.mealToEdit = { ...this.mealToEdit, cooked: this.isCooked };
+		this.mealToEdit = {
+			...this.mealToEdit,
+			cooked: this.isCooked
+		};
 
 		const updatedMeal: Meal = {
 			...this.mealToEdit,
@@ -770,17 +857,22 @@ export class MealManagement implements OnChanges {
 			},
 			error: (err) => {
 				this.isCooked = !this.isCooked;
-				this.mealToEdit = { ...this.mealToEdit!, cooked: this.isCooked };
+				this.mealToEdit = {
+					...this.mealToEdit!,
+					cooked: this.isCooked
+				};
 				this.isCookedUpdateInProgress = false;
 				console.error('Failed to update cooked status:', err);
 				this.requestViewUpdate();
 			}
 		});
 	}
-}
 
 	private normalizeResponsibleUsers(usernames: string[] | undefined): string[] {
-		if (!Array.isArray(usernames)) return [];
+		if (!Array.isArray(usernames)) {
+			return [];
+		}
+
 		const normalized = usernames.map(u => String(u).trim()).filter(u => u.length > 0);
 		return Array.from(new Set(normalized));
 	}

@@ -9,7 +9,9 @@
 		"backend:dev": "npx tsx src/backend/start-api.ts",
 		"backend:start": "cross-env SERVE_FRONTEND=false node dist/roomFood/server/server.mjs",
 		"test": "ng test",
-		"init-db": "npx tsx src/backend/init-db.ts"
+		"init-db": "npx tsx src/backend/init-db.ts",
+		"seed-ingredients": "npx tsx scripts/seed-ingredients-data.ts",
+		"seed-full-data": "npx tsx scripts/seed-full-data.ts"
 	},
 	"prettier": {
 		"printWidth": 100,
