@@ -265,7 +265,8 @@ describe('Recipes', () => {
 			description: 'Updated pasta',
 			image: (component as any).defaultRecipeImage,
 			mealTypes: ['dinner'],
-			visibility: 'public'
+			visibility: 'public',
+			ingredients: []
 		});
 	});
 });
