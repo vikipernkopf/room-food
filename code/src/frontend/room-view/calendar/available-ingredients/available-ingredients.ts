@@ -16,8 +16,8 @@ interface Ingredient {
 	imports: [
 		CommonModule
 	],
-	templateUrl: './avaliable-ingredients.html',
-	styleUrl: './avaliable-ingredients.scss',
+	templateUrl: './available-ingredients.html',
+	styleUrl: './available-ingredients.scss',
 	standalone: true
 })
 export class AvailableIngredients implements OnInit {

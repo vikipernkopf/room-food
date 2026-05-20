@@ -32,7 +32,8 @@ describe('MealService', () => {
 			endTime: new Date('2026-04-17T18:00:00.000Z'),
 			room: 'A1',
 			responsible: 'luni',
-			responsibleUsers: ['luni']
+			responsibleUsers: ['luni'],
+			cooked: false
 		};
 
 		service.postMeal(meal).subscribe();
@@ -57,7 +58,8 @@ describe('MealService', () => {
 			endTime: new Date('2026-04-17T12:00:00.000Z'),
 			room: 'A1',
 			responsible: 'tobi',
-			responsibleUsers: ['tobi', 'luni']
+			responsibleUsers: ['tobi', 'luni'],
+			cooked: false
 		};
 
 		service.updateMeal(7, meal).subscribe();

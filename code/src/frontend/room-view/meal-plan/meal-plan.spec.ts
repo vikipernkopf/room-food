@@ -34,7 +34,8 @@ describe('MealPlan', () => {
 			time: new Date('2026-02-27T12:00:00Z'),
 			endTime: new Date('2026-02-27T14:00:00Z'),
 			room: 'A1',
-			responsible: 'luni'
+			responsible: 'luni',
+			cooked: false
 		};
 		component.index = 0;
 		fixture.detectChanges();
@@ -54,7 +55,8 @@ describe('MealPlan', () => {
 			time: new Date('2026-02-27T18:00:00Z'),
 			endTime: new Date('2026-02-27T20:00:00Z'),
 			room: 'A1',
-			responsible: 'luni'
+			responsible: 'luni',
+			cooked: false
 		};
 		component.index = 1;
 		fixture.detectChanges();
@@ -72,7 +74,8 @@ describe('MealPlan', () => {
 			time: new Date('2026-02-28T12:00:00Z'),
 			endTime: new Date('2026-02-27T15:00:00Z'),
 			room: 'A1',
-			responsible: 'luni'
+			responsible: 'luni',
+			cooked: false
 		};
 		component.onDelete = meal => {
 			deletedMealName = meal.name;

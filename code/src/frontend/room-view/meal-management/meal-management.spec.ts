@@ -35,7 +35,8 @@ describe('Meal', () => {
 			endTime: new Date('2026-04-17T18:00:00.000Z'),
 			room: 'A1',
 			responsible: 'luni',
-			responsibleUsers: ['luni']
+			responsibleUsers: ['luni'],
+			cooked: false
 		};
 
 		component.mealToEdit = mealToEdit;
