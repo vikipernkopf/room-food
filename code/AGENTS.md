@@ -1,6 +1,91 @@
 
 You are an expert in TypeScript, Angular, and scalable web application development. You write functional, maintainable, performant, and accessible code following Angular and TypeScript best practices.
 
+## General Rules
+
+- **Never write summary markdown files** unless explicitly asked for. Only write code, tests, and modifications that directly solve the user's problem.
+
+## Where the App Lives
+
+- Work inside `code/`; the repo root mainly holds docs and deployment config.
+- Treat `code/AGENTS.md` as the TypeScript/Angular convention source for implementation details.
+- The Angular app is standalone-component based and signal-heavy. Match nearby files rather than introducing NgModules.
+- Representative patterns: `code/src/frontend/login/login.ts`, `code/src/frontend/profile/profile.ts`,
+  `code/src/frontend/rooms/rooms.ts`, `code/src/frontend/room-view/room-view.ts`.
+- Current feature patterns also live in `code/src/frontend/room-management-view/room-management-view.ts`,
+  `code/src/frontend/room-management-view/edit-room/edit-room.ts`, `code/src/frontend/room-view/calendar/calendar.ts`,
+  `code/src/frontend/recipes/recipe-management/recipe-management.ts`,
+  `code/src/frontend/rooms/create-room/create-room.ts`, and `code/src/frontend/rooms/join-room/join-room.ts`.
+- Global styling lives in `code/src/frontend/styles.scss`; use the shared palette from
+  `code/src/frontend/styles/theme.scss` for component colors, and keep the global Angular Material overlay z-index
+  override there in mind when working on menus, dialogs, and dropdowns.
+
+## Runtime and Request Flow
+
+- Browser bootstrap: `code/src/frontend/main.ts`.
+- SSR bootstrap: `code/src/frontend/main.server.ts` with server config from `code/src/backend/app/app.config.server.ts`.
+- Route map: `code/src/backend/app/app.routes.ts`; SSR always renders via `code/src/backend/app/app.routes.server.ts`.
+- Combined server: `code/src/backend/server.ts` mounts `/api` before frontend SSR/static handling.
+- Standalone API mode: `code/src/backend/api-server.ts` is started by `backend:dev`/`start-api.ts` and serves the same
+  `/api` router without the frontend.
+- App startup restores auth state by calling `AuthService.restoreSession()` in `code/src/frontend/app/app.ts`; login
+  state is cookie-based (`session` cookie verified by `code/src/backend/auth-middleware.ts`).
+- API-only mode is controlled by `SERVE_FRONTEND=false` in `code/package.json` (`backend:start`).
+
+## Backend Boundaries
+
+- Each request gets its own `Unit` from `code/src/backend/unit.ts`; use `new Unit(true)` for reads and
+  `new Unit(false)` for writes.
+- Always close the unit with `unit.complete(...)`; write handlers pass commit/rollback explicitly.
+- Routers live under `code/src/backend/*/*-router.ts` and delegate to matching services (for example `login-sign-up`,
+  `rooms`, `meal-management`, `room-view`, `recipes`).
+- SQLite schema and migrations are centralized in `code/src/backend/unit.ts`;
+  `code/src/backend/model.ts` defines the shared DTOs.
+- One-off database repair scripts live in
+  `code/scripts/`; use them for backfilling existing data after schema or default-value changes (for example
+  `code/scripts/backfill-default-images.ts` with `--db <path>` when targeting a specific SQLite file).
+
+## Frontend API Conventions
+
+- API base resolution is the same in `code/src/frontend/core/auth-service.ts`, `room-service.ts`, `meal-service.ts`, and
+  `recipe-service.ts`:
+  `window.__API_URL` / `window.API_URL` → `environment.apiUrl` → `/api`.
+- Frontend services call REST endpoints such as `/api/login`, `/api/signup`, `/api/room/:code/members`,
+  `/api/meals/:username`, `/api/meal/:id`, `/api/recipes/raw`, and `/api/recipes/:id`.
+- Route-driven views use `ActivatedRoute`, `effect()`, and signals to reload data when params change; see
+  `room-view.ts` and `room-management-view.ts`.
+
+## Workflow Commands
+
+- Run commands from `code/`.
+- `npm run frontend:start` starts the Angular dev server with `proxy.conf.json` pointing `/api` to the local backend.
+- `npm run backend:dev` starts the API from TypeScript via `src/backend/start-api.ts`.
+- `npm run build` is the production build; it also runs `scripts/postprocess-index.js` to copy `index.csr.html` to
+  `dist/roomFood/browser/index.html`.
+- `npm run backend:build` + `npm run backend:start` runs the built Node server.
+- `npm run init-db` initializes the local SQLite database via `src/backend/init-db.ts`.
+- `npm test` runs the Vitest-backed Angular test suite.
+
+## Deployment Clues
+
+- `render.yaml` serves `dist/roomFood/browser` with `serve -s ... -l $PORT`.
+- `docs/deploy.md` describes GitHub Pages publishing and the `/room-food/` base href used there.
+- `docs/commands.md` is the best quick reference for the active scripts and local proxy variants.
+- `README.md` lists current public endpoints: GitHub Pages (`https://vikipernkopf.github.io/room-food/`) and Render
+  (`https://roomfood.onrender.com`).
+- `code/src/environments/environment.prod.ts` points the frontend at `https://roomfood-backend.black2.cf/api`, and
+  `code/proxy.conf.json` proxies `/api` to `https://roomfood-backend.black2.cf` for `npm run frontend:start`.
+- `code/src/frontend/styles/theme.scss` holds the global color variables and theming, while `code/src/frontend/styles.scss`
+  imports Angular Material, Bootstrap, and Inter globally; component styles are in their respective `.scss` files, and
+  color choices should stay on the shared theme variables.
+
+## Default Image Data
+
+- Keep the default image URLs in `src/frontend/core/user-form-validation.ts` and
+  `scripts/backfill-default-images.ts` in sync.
+- When the room or recipe default image changes, update both the UI fallback and the backfill script so existing
+  database rows match newly created ones.
+
 ## TypeScript Best Practices
 
 - Use strict type checking
@@ -62,13 +147,6 @@ You are an expert in TypeScript, Angular, and scalable web application developme
     });
   });
 
-- Template binding:
-
-  <form [formRoot]="f" (ngSubmit)="onSubmit()">
-    <input id="username" [formField]="f.username" />
-    <div *ngIf="f.username().touched() && f.username().invalid()">...</div>
-  </form>
-
 ### Testing tips
 
 - Update unit tests to read/write the model signal directly:
@@ -108,6 +186,15 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - Use the async pipe to handle observables
 - Do not assume globals like (`new Date()`) are available.
 - Do not write arrow functions in templates (they are not supported).
+- **Do NOT use inline styles in HTML templates**. All styling must be defined in the corresponding `.scss` file using SCSS classes. Use `class` bindings in templates to apply styles dynamically.
+
+## Styling
+
+- All styling must be in the component's `.scss` file, never use inline `style` attributes in HTML
+- Use the shared theme variables and colors from `code/src/frontend/styles/theme.scss`
+- Avoid hardcoded colors; always use theme variables like `$color-orange-2`, `$color-input-bg`, etc.
+- Component styles are scoped to the component and don't leak globally
+- For dynamic styling, use Angular's `class` bindings instead of `ngClass` or `style` attributes
 
 ## Services
 

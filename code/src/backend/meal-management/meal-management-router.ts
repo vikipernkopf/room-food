@@ -137,7 +137,7 @@ mealManagementRouter.put('/meal/:id', async (req, res): Promise<void> => {
 			responsible: updatedMeal.responsible,
 			responsibleUsers,
 			recipeIds,
-			cooked: !!updatedMeal.cooked
+			cooked: !!updatedMeal.cooked,
 			eatingUsernames: []
 		} as Meal;
 
@@ -207,11 +207,7 @@ mealManagementRouter.post('/meal/:mealId/eating-user/:username', async (req, res
 		if (result === 'error') { unit.complete(false); res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to add user' }); return; }
 
 		unit.complete(true);
-		res.status(StatusCodes.OK).json({
-			...updated,
-			id: mealId,
-			cooked: updated.cooked
-		});
+		res.status(StatusCodes.OK).json();
 	} catch (error) {
 		unit.complete(false);
 		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to add user to eating list' });

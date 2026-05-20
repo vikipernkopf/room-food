@@ -13,14 +13,16 @@
 				<div class="view-meta">
 					<span class="view-meta__who">
 						<svg class="view-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
-							<path d="M480-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47ZM160-160v-112q0-34 17.5-62.5T224-378q62-31 126-46.5T480-440q66 0 130 15.5T736-378q29 15 46.5 43.5T800-272v112H160Z"/>
+							<path
+								d="M480-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47ZM160-160v-112q0-34 17.5-62.5T224-378q62-31 126-46.5T480-440q66 0 130 15.5T736-378q29 15 46.5 43.5T800-272v112H160Z"/>
 						</svg>
 						{{ currentUser()?.username }} will prepare this at {{ formattedStartTime }}
 					</span>
 					@if (selectedDate) {
 						<span class="view-meta__date">
 							<svg class="view-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
-								<path d="M200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-80h80v80h320v-80h80v80h40q33 0 56.5 23.5T840-720v560q0 33-23.5 56.5T760-80H200Zm0-80h560v-400H200v400Z"/>
+								<path
+									d="M200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-80h80v80h320v-80h80v80h40q33 0 56.5 23.5T840-720v560q0 33-23.5 56.5T760-80H200Zm0-80h560v-400H200v400Z"/>
 							</svg>
 							{{ formatDateValue(selectedDate) }}
 						</span>
@@ -35,7 +37,8 @@
 					}
 					<span class="view-meta__time">
 						<svg class="view-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-							<path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8Zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67Z"/>
+							<path
+								d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8Zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67Z"/>
 						</svg>
 						{{ formattedStartTime }} – {{ formattedEndTime }}
 					</span>
@@ -71,42 +74,21 @@
 					</div>
 				}
 
+				<div class="view-status-toggle">
+					<mat-checkbox name="cookedCheckbox" color="primary" [checked]="isCooked"
+						(click)="$event.preventDefault(); cookedCheckBox()">
+						Meal Prepared
+					</mat-checkbox>
+				</div>
+
 				<div class="action-row">
 					<button mat-flat-button type="button" class="save-btn" (click)="editButton()">
 						Edit Meal
 					</button>
 				</div>
 			}
-			<div class="view-status-toggle" style="margin: 20px 0; padding: 10px; background: #f9f9f9; border-radius: 8px;">
-				<mat-checkbox
-					name="cookedCheckbox"
-					color="primary"
-					[checked]="isCooked"
-					(click)="$event.preventDefault(); cookedCheckBox()"
-				>
-					Meal Prepared
-				</mat-checkbox>
-
-			</div>
-			<div class="action-row">
-				<button mat-flat-button type="button" class="save-btn" (click)="editButton()">
-					Edit Meal
-				</button>
-			</div>
 		} @else {
-			<div class="modal-header">
-				@if (isEditMode) {
-					<h2>Edit Meal</h2>
-				} @else {
-					<h2>Plan a Meal</h2>
-				}
-				<button class="btn-close" type="button" (click)="closePopup()">x</button>
-			</div>
-			<div class="form-grid">
-				<div class="field-group field-group--full">
-					@if (isViewMode()) {
-						<span>{{ dish || '-' }}</span>
-		} @else { <!-- EDIT MODE - Meal Form -->
+			<!-- EDIT MODE - Meal Form -->
 			@if (!showMore()) {
 				<div class="modal-header">
 					@if (isEditMode) {
@@ -121,8 +103,8 @@
 					<!-- Dish Name -->
 					<div class="field-group field-group--full">
 						<label class="field-label" for="dish">Dish Name</label>
-						<input id="dish" matInput name="dish" placeholder="e.g. Pasta Bolognese"
-							[(ngModel)]="dish" (input)="clearErrors()">
+						<input id="dish" matInput name="dish" placeholder="e.g. Pasta Bolognese" [(ngModel)]="dish"
+							(input)="clearErrors()">
 					</div>
 
 					<!-- Room Selection (Overview Mode Only) -->
@@ -143,24 +125,23 @@
 					<div class="field-group field-group--full">
 						<label class="field-label" for="mealRecipes">Recipes</label>
 						<mat-select id="mealRecipes" panelClass="meal-type-panel recipe-panel"
-							placeholder="Select recipes" [disableOptionCentering]="true"
-							[(ngModel)]="selectedRecipeIds" name="recipeIds" multiple
-							(ngModelChange)="onRecipeSelectionChange($any($event))">
+							placeholder="Select recipes" [disableOptionCentering]="true" [(ngModel)]="selectedRecipeIds"
+							name="recipeIds" multiple (ngModelChange)="onRecipeSelectionChange($any($event))">
 							<mat-select-trigger>
 								{{ getSelectedRecipeLabel() || 'Select recipes' }}
 							</mat-select-trigger>
-							<mat-option class="recipe-search-option" disabled>
+							<div class="recipe-search-option">
 								<input matInput type="text" placeholder="Search recipes (e.g. Pasta)"
-									[(ngModel)]="recipeSearchTerm" [ngModelOptions]="{standalone: true}"
-									(input)="onRecipeSearchChange($any($event.target).value)"
-									(click)="$event.stopPropagation()" (mousedown)="$event.stopPropagation()"
-									(keydown)="onRecipeSearchKeydown($event)">
-							</mat-option>
+								[value]="recipeSearchTerm"
+								(input)="onRecipeSearchChange($any($event.target).value)"
+								(click)="$event.stopPropagation()" (mousedown)="$event.stopPropagation()"
+								(keydown)="onRecipeSearchKeydown($event)">
+							</div>
 							@for (recipe of filteredRecipes; track recipe.id) {
 								<mat-option [value]="recipe.id">{{ recipe.name }}</mat-option>
 							}
 							@if (!filteredRecipes.length) {
-								<mat-option class="recipe-empty-option" disabled>No matching recipes found</mat-option>
+								<div class="recipe-empty-option">No matching recipes found</div>
 							}
 						</mat-select>
 						@if (recipesLoadError) {
@@ -216,8 +197,8 @@
 					<div class="field-group">
 						<label class="field-label" for="startTime">Start Time</label>
 						<div class="input-with-icon">
-							<input id="startTime" matInput [matTimepicker]="startPicker"
-								[(ngModel)]="selectedStartTime" name="startTime">
+							<input id="startTime" matInput [matTimepicker]="startPicker" [(ngModel)]="selectedStartTime"
+								name="startTime">
 							<mat-timepicker-toggle matIconSuffix [for]="startPicker"></mat-timepicker-toggle>
 							<mat-timepicker interval="15min" #startPicker></mat-timepicker>
 						</div>
@@ -230,8 +211,8 @@
 					<div class="field-group">
 						<label class="field-label" for="endTime">End Time</label>
 						<div class="input-with-icon">
-							<input id="endTime" matInput [matTimepicker]="endPicker"
-								[(ngModel)]="selectedEndTime" name="endTime">
+							<input id="endTime" matInput [matTimepicker]="endPicker" [(ngModel)]="selectedEndTime"
+								name="endTime">
 							<mat-timepicker-toggle matIconSuffix [for]="endPicker"></mat-timepicker-toggle>
 							<mat-timepicker interval="15min" #endPicker></mat-timepicker>
 						</div>
@@ -287,16 +268,16 @@
 
 					<div class="more-eating-counter">
 						<button mat-button type="button" class="more-counter-btn"
-								(click)="removeCurrentUserFromEating()"
-								[disabled]="!isCurrentUserEating() || !mealToEdit?.id">−</button>
+							(click)="removeCurrentUserFromEating()"
+							[disabled]="!isCurrentUserEating() || !mealToEdit?.id">−
+						</button>
 
-						<button mat-button type="button" class="more-counter-btn"
-								(click)="addCurrentUserToEating()"
-								[disabled]="isCurrentUserEating() || !mealToEdit?.id">+</button>
+						<button mat-button type="button" class="more-counter-btn" (click)="addCurrentUserToEating()"
+							[disabled]="isCurrentUserEating() || !mealToEdit?.id">+
+						</button>
 					</div>
 
-					<div class="more-eating-list"
-						 [class.more-eating-list--grid]="eatingPeople().size > 4">
+					<div class="more-eating-list" [class.more-eating-list--grid]="eatingPeople().size > 4">
 						@for (person of eatingPeopleArray(); track person) {
 							<div class="more-eating-chip">{{ person }}</div>
 						}
@@ -310,11 +291,11 @@
 						<p class="more-ingredients-empty">Loading ingredients...</p>
 					} @else if (scaledIngredients.length === 0) {
 						<p class="more-ingredients-empty">
-							{{ selectedRecipeIds.length === 0 ? 'No recipes selected yet.' : 'No ingredients found for the selected recipes.' }}
-						</p>
+							{{ selectedRecipeIds.length === 0 ? 'No recipes selected yet.'
+							: 'No ingredients found for the selected recipes.' }} </p>
 					} @else {
 						<div class="more-ingredients-note">
-							Scaled for {{ eatingPeople().size < 1 ? 1 : eatingPeople().size }}
+							Scaled for {{ eatingPeople().size }}
 							{{ eatingPeople().size === 1 ? 'person' : 'people' }}
 						</div>
 						<table class="more-ingredients-table">
@@ -340,14 +321,14 @@
 
 				<div class="action-row">
 					<button mat-flat-button type="button" class="save-btn" (click)="saveMeal()"
-							[disabled]="isSubmitting">
+						[disabled]="isSubmitting">
 						{{ isEditMode ? 'Update Meal' : 'Save Meal' }}
 					</button>
 					@if (isEditMode) {
 						<button mat-stroked-button type="button" class="delete-btn" (click)="deleteMeal()"
-								[disabled]="isSubmitting">
+							[disabled]="isSubmitting">
 							Delete Meal
-							</button>
+						</button>
 					}
 				</div>
 			</div>
