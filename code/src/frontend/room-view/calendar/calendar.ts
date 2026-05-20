@@ -9,7 +9,7 @@ import { AuthService } from '../../core/auth-service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RoomService } from '../../core/room-service';
-import { AvailableIngredients } from './avaliable-ingredients/avaliable-ingredients';
+import { AvailableIngredients } from './available-ingredients/available-ingredients';
 
 //noinspection JSIgnoredPromiseFromCall
 @Component({
