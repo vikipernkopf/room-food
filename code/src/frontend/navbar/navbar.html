@@ -2,54 +2,64 @@
 	<div class="container navbar-shell" #navbarShell>
 		<a class="navbar-brand" [routerLink]="['/homepage']">
 			<img ngSrc="/images/logo.png" alt="RoomFood" height="1024" width="1024" priority>
-			<span id="span">Room</span><span class="brand-food">Food</span>
 		</a>
 		@if (isCollapsed()) {
-			<button class="navbar-toggler" type="button" [attr.aria-expanded]="isMenuOpen()" aria-controls="navContent"
-				aria-label="Toggle navigation" (click)="toggleMenu()">
+			<button class="navbar-toggler" type="button" [attr.aria-expanded]="isMenuOpen()"
+					aria-controls="navContent" aria-label="Toggle navigation" (click)="toggleMenu()">
 				<span class="navbar-toggler-icon"></span>
 			</button>
 		}
 
 		<div id="navContent" class="navbar-menu" [class.is-collapsed]="isCollapsed()"
-			[class.is-open]="!isCollapsed() || isMenuOpen()">
-			<ul class="navbar-links">
-				@if (!isLoggedIn()) {
-					<li class="nav-item">
-						<a class="nav-link" routerLink="/login" routerLinkActive="active"
-							(click)="handleMenuItemClick()">Log in</a>
-					</li>
-					<li class="nav-item">
-						<a class="nav-link" routerLink="/signup" routerLinkActive="active"
-							(click)="handleMenuItemClick()">Sign up</a>
-					</li>
-				} @else {
-					<li class="nav-item">
-						<button class="nav-link" (click)="logout()" routerLinkActive="active">Log out</button>
-					</li>
-				}
+			 [class.is-open]="!isCollapsed() || isMenuOpen()">
+
+			<ul class="navbar-links navbar-links-left">
 				<li class="nav-item">
 					<a class="nav-link" [routerLink]="myRoomsLink()" [queryParams]="myRoomsQueryParams()"
-						routerLinkActive="active" (click)="handleMenuItemClick()">My Rooms</a>
+					   routerLinkActive="active" (click)="handleMenuItemClick()">My Rooms</a>
 				</li>
 				<li class="nav-item">
 					<a class="nav-link" [routerLink]="myRecipesLink()" [queryParams]="myRecipesQueryParams()"
-						routerLinkActive="active" (click)="handleMenuItemClick()">My Recipes</a>
+					   routerLinkActive="active" (click)="handleMenuItemClick()">My Recipes</a>
 				</li>
 				<li class="nav-item">
 					<a class="nav-link" [routerLink]="overviewLink()" [queryParams]="overviewQueryParams()"
-						routerLinkActive="active" (click)="handleMenuItemClick()">Overview</a>
+					   routerLinkActive="active" (click)="handleMenuItemClick()">Overview</a>
 				</li>
-				<li class="nav-item profile-nav-item">
-					<a class="nav-link" [routerLink]="profileLink()" [queryParams]="profileQueryParams()"
-					   routerLinkActive="active" (click)="handleMenuItemClick()">
-						@if (userPfp()) {
-						<img [src]="userPfp()" alt="Profile Picture" class="profile-pfp">
-						}
-					</a>
-				</li>
-
 			</ul>
+
+			<ul class="navbar-links navbar-links-right">
+				@if (!isLoggedIn()) {
+					<li class="nav-item">
+						<a class="nav-link" routerLink="/login" routerLinkActive="active"
+						   (click)="handleMenuItemClick()">Log in</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" routerLink="/signup" routerLinkActive="active"
+						   (click)="handleMenuItemClick()">Sign up</a>
+					</li>
+				}
+				@if (isLoggedIn()) {
+					<li class="nav-item profile-nav-item">
+						<button class="profile-pfp-btn" (click)="toggleProfileMenu()">
+							<img [src]="userPfp()" alt="Profile Picture" class="profile-pfp">
+						</button>
+						@if (isProfileMenuOpen()) {
+							<div class="profile-dropdown">
+								<a class="profile-dropdown-item" [routerLink]="profileLink()"
+								   (click)="closeProfileMenu(); handleMenuItemClick()">
+									Profile
+								</a>
+								<hr class="profile-dropdown-divider">
+								<button class="profile-dropdown-item" (click)="logout()">
+									Log out
+								</button>
+							</div>
+						}
+					</li>
+				}
+			</ul>
+
 		</div>
 	</div>
 
@@ -61,43 +71,37 @@
 			</a>
 
 			<div class="navbar-menu is-open">
-				<ul class="navbar-links">
+				<ul class="navbar-links navbar-links-left">
+					<li class="nav-item">
+						<a class="nav-link" [routerLink]="myRoomsLink()">My Rooms</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" [routerLink]="myRecipesLink()">My Recipes</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" [routerLink]="overviewLink()">Overview</a>
+					</li>
+				</ul>
+
+				<ul class="navbar-links navbar-links-right">
 					@if (!isLoggedIn()) {
 						<li class="nav-item">
-							<a class="nav-link" routerLink="/login" routerLinkActive="active">Log in</a>
+							<a class="nav-link" routerLink="/login">Log in</a>
 						</li>
 						<li class="nav-item">
-							<a class="nav-link" routerLink="/signup" routerLinkActive="active">Sign up</a>
-						</li>
-					} @else {
-						<li class="nav-item">
-							<button class="nav-link">Log out</button>
+							<a class="nav-link" routerLink="/signup">Sign up</a>
 						</li>
 					}
-					<li class="nav-item">
-						<a class="nav-link" [routerLink]="myRoomsLink()" [queryParams]="myRoomsQueryParams()"
-							routerLinkActive="active">My Rooms</a>
-					</li>
-					<li class="nav-item">
-						<a class="nav-link" [routerLink]="myRecipesLink()" [queryParams]="myRecipesQueryParams()"
-							routerLinkActive="active">My Recipes</a>
-					</li>
-					<li class="nav-item">
-						<a class="nav-link" [routerLink]="overviewLink()" [queryParams]="overviewQueryParams()"
-							routerLinkActive="active">Overview</a>
-					</li>
-					<li class="nav-item profile-nav-item">
-
-						<a class="nav-link" [routerLink]="profileLink()" [queryParams]="profileQueryParams()"
-						   routerLinkActive="active" (click)="handleMenuItemClick()">
-							@if (userPfp()) {
-							<img [src]="userPfp()" alt="Profile Picture" class="profile-pfp">
-							}
-						</a>
-					</li>
-
+					@if (isLoggedIn()) {
+						<li class="nav-item profile-nav-item">
+							<button class="profile-pfp-btn">
+								<img [src]="userPfp()" alt="Profile Picture" class="profile-pfp">
+							</button>
+						</li>
+					}
 				</ul>
 			</div>
+
 		</div>
 	</div>
 </nav>

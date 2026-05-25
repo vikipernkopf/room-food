@@ -45,6 +45,7 @@ export class Navbar implements AfterViewInit, OnDestroy {
 	protected readonly isLoggedIn;
 	protected readonly isCollapsed = signal(false);
 	protected readonly isMenuOpen = signal(false);
+	protected readonly isProfileMenuOpen = signal(false);
 	protected readonly userPfp = signal('');
 
 	private readonly handleWindowResize = () => this.queueLayoutRecalculation();
@@ -123,6 +124,7 @@ export class Navbar implements AfterViewInit, OnDestroy {
 			this.resizeObserver.observe(this.navbarShell.nativeElement);
 		}
 		this.queueLayoutRecalculation();
+		document.addEventListener('click', this.handleOutsideClick);
 	}
 
 	ngOnDestroy(): void {
@@ -135,6 +137,8 @@ export class Navbar implements AfterViewInit, OnDestroy {
 		if (this.layoutFrame !== null) {
 			cancelAnimationFrame(this.layoutFrame);
 		}
+
+		document.removeEventListener('click', this.handleOutsideClick);
 	}
 
 	logout(): void {
@@ -199,5 +203,21 @@ export class Navbar implements AfterViewInit, OnDestroy {
 			if (profile.profilePicture != null) {
 				this.userPfp.set(profile.profilePicture);
 			}
-		});	}
+		});
+	}
+
+	protected toggleProfileMenu(): void {
+		this.isProfileMenuOpen.update(v => !v);
+	}
+
+	protected closeProfileMenu(): void {
+		this.isProfileMenuOpen.set(false);
+	}
+
+	private readonly handleOutsideClick = (e: MouseEvent) => {
+		const target = e.target as HTMLElement;
+		if (!target.closest('.profile-nav-item')) {
+			this.isProfileMenuOpen.set(false);
+		}
+	};
 }
