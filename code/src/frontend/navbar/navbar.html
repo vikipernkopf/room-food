@@ -40,10 +40,15 @@
 					<a class="nav-link" [routerLink]="overviewLink()" [queryParams]="overviewQueryParams()"
 						routerLinkActive="active" (click)="handleMenuItemClick()">Overview</a>
 				</li>
-				<li class="nav-item">
+				<li class="nav-item profile-nav-item">
 					<a class="nav-link" [routerLink]="profileLink()" [queryParams]="profileQueryParams()"
-						routerLinkActive="active" (click)="handleMenuItemClick()">Profile</a>
+					   routerLinkActive="active" (click)="handleMenuItemClick()">
+						@if (userPfp()) {
+						<img [src]="userPfp()" alt="Profile Picture" class="profile-pfp">
+						}
+					</a>
 				</li>
+
 			</ul>
 		</div>
 	</div>
@@ -81,10 +86,16 @@
 						<a class="nav-link" [routerLink]="overviewLink()" [queryParams]="overviewQueryParams()"
 							routerLinkActive="active">Overview</a>
 					</li>
-					<li class="nav-item">
+					<li class="nav-item profile-nav-item">
+
 						<a class="nav-link" [routerLink]="profileLink()" [queryParams]="profileQueryParams()"
-							routerLinkActive="active">Profile</a>
+						   routerLinkActive="active" (click)="handleMenuItemClick()">
+							@if (userPfp()) {
+							<img [src]="userPfp()" alt="Profile Picture" class="profile-pfp">
+							}
+						</a>
 					</li>
+
 				</ul>
 			</div>
 		</div>

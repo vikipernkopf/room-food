@@ -61,7 +61,7 @@
 .navbar-links {
 	display: flex;
 	align-items: center;
-	gap: 2.5rem;
+	gap: 1.5rem;
 	flex-wrap: nowrap;
 	margin: 0;
 	padding: 0;
@@ -172,4 +172,23 @@
 .navbar-measure .navbar-links {
 	gap: 2.5rem;
 	padding: 0;
+}
+
+.profile-nav-item a {
+	display: flex;
+	align-items: center;
+}
+
+.profile-pfp {
+	width: 36px;
+	height: 36px;
+	border-radius: 50%;
+	object-fit: cover;
+	display: block;
+	cursor: pointer;
+	transition: opacity 0.2s ease;
+
+	&:hover {
+		opacity: 0.85;
+	}
 }
