@@ -267,14 +267,14 @@ export class Calendar implements OnInit {
 
 	onCookedUpdated(updatedMeal: Meal): void {
 		this.meals.update(meals =>
-			meals.map(m => m.id === updatedMeal.id ? {
-				...m,
-				cooked: updatedMeal.cooked
-			} : m)
+			meals.map(m => m.id === updatedMeal.id ? { ...m, cooked: updatedMeal.cooked } : m)
 		);
-		this.selectedMeal = {
-			...this.selectedMeal!,
-			cooked: updatedMeal.cooked
-		};
+
+		if (this.selectedMeal && this.selectedMeal.id === updatedMeal.id) {
+			this.selectedMeal = {
+				...this.selectedMeal,
+				cooked: updatedMeal.cooked
+			};
+		}
 	}
 }

@@ -658,6 +658,7 @@ export class MealManagement implements OnChanges {
 		this.selectedEndTime = new Date(this.mealToEdit.endTime);
 		this.selectedRecipeIds = this.normalizeRecipeIds(this.mealToEdit.recipeIds);
 		this.selectedResponsibleUsers = this.mealToEdit?.responsibleUsers ?? [];
+		this.isCooked = this.mealToEdit.cooked ?? false;
 		this.selectedIngredients = '';
 		this.recipeSearchTerm = '';
 		this.applyRecipeFilter();
