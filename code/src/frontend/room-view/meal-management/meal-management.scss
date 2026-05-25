@@ -71,7 +71,7 @@ section {
 .meal-management-container {
 	overflow: visible !important;
 	background: $color-white;
-	padding: 1rem 1rem 1.2rem;
+	padding: 1rem 1rem;
 	border-radius: 1rem;
 	border: 1px solid $color-input-bg;
 	width: 100%;
@@ -129,6 +129,14 @@ section {
 
 	&--full {
 		grid-column: 1 / -1;
+	}
+
+	&--start-time {
+		grid-column: 1;
+	}
+
+	&--end-time {
+		grid-column: 2;
 	}
 
 	label {
@@ -267,6 +275,21 @@ section {
 		&:hover .mat-mdc-select-arrow-wrapper {
 			background-color: $color-orange-2-overlay-5;
 		}
+	}
+}
+
+.field-group--time-row {
+	grid-column: 1 / -1; // Spans full grid width automatically
+	display: flex;
+	flex-direction: row;
+	gap: 16px;          // The space separating the start time and end time boxes
+	width: 100%;
+	margin-bottom: 0;   // Prevents double spacing layout issues
+
+	.time-split-input {
+		flex: 1;        // Forces both time inputs to take up exactly 50% width each
+		display: flex;
+		flex-direction: column;
 	}
 }
 

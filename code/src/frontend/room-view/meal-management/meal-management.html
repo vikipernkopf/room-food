@@ -182,23 +182,12 @@
 						</mat-select>
 					</div>
 
-					<!-- Date Selection -->
-					<div class="field-group">
-						<label class="field-label" for="mealDate">Date</label>
-						<div class="input-with-icon">
-							<input id="mealDate" matInput placeholder="Select date" [matDatepicker]="datepicker"
-								[(ngModel)]="selectedDate" name="date">
-							<mat-datepicker-toggle matIconSuffix [for]="datepicker"></mat-datepicker-toggle>
-							<mat-datepicker #datepicker panelClass="meal-datepicker-panel"></mat-datepicker>
-						</div>
-					</div>
-
 					<!-- Start Time -->
 					<div class="field-group">
 						<label class="field-label" for="startTime">Start Time</label>
 						<div class="input-with-icon">
 							<input id="startTime" matInput [matTimepicker]="startPicker" [(ngModel)]="selectedStartTime"
-								name="startTime">
+								   name="startTime">
 							<mat-timepicker-toggle matIconSuffix [for]="startPicker"></mat-timepicker-toggle>
 							<mat-timepicker interval="15min" #startPicker></mat-timepicker>
 						</div>
@@ -212,13 +201,24 @@
 						<label class="field-label" for="endTime">End Time</label>
 						<div class="input-with-icon">
 							<input id="endTime" matInput [matTimepicker]="endPicker" [(ngModel)]="selectedEndTime"
-								name="endTime">
+								   name="endTime">
 							<mat-timepicker-toggle matIconSuffix [for]="endPicker"></mat-timepicker-toggle>
 							<mat-timepicker interval="15min" #endPicker></mat-timepicker>
 						</div>
 						@if (timeErrors.end) {
 							<div class="field-error">{{ timeErrors.end }}</div>
 						}
+					</div>
+
+					<!-- Date Selection -->
+					<div class="field-group">
+						<label class="field-label" for="mealDate">Date</label>
+						<div class="input-with-icon">
+							<input id="mealDate" matInput placeholder="Select date" [matDatepicker]="datepicker"
+								[(ngModel)]="selectedDate" name="date">
+							<mat-datepicker-toggle matIconSuffix [for]="datepicker"></mat-datepicker-toggle>
+							<mat-datepicker #datepicker panelClass="meal-datepicker-panel"></mat-datepicker>
+						</div>
 					</div>
 
 					<!-- More Button -->
