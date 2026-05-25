@@ -29,7 +29,8 @@
 .navbar-menu {
 	flex: 1 1 auto;
 	display: flex;
-	justify-content: flex-end;
+	align-items: center;
+	justify-content: space-between;
 	min-width: 0;
 }
 
@@ -61,12 +62,20 @@
 .navbar-links {
 	display: flex;
 	align-items: center;
-	gap: 2.5rem;
+	gap: 1.5rem;
 	flex-wrap: nowrap;
 	margin: 0;
 	padding: 0;
 	list-style: none;
 	white-space: nowrap;
+}
+
+.navbar-links-left {
+	justify-content: flex-start;
+}
+
+.navbar-links-right {
+	justify-content: flex-end;
 }
 
 /* Logo */
@@ -172,4 +181,71 @@
 .navbar-measure .navbar-links {
 	gap: 2.5rem;
 	padding: 0;
+}
+
+.profile-nav-item a {
+	display: flex;
+	align-items: center;
+}
+
+.profile-pfp {
+	width: 36px;
+	height: 36px;
+	border-radius: 50%;
+	object-fit: cover;
+	display: block;
+	cursor: pointer;
+	transition: opacity 0.2s ease;
+
+	&:hover {
+		opacity: 0.85;
+	}
+}
+
+.profile-pfp-btn {
+	background: none;
+	border: none;
+	padding: 0;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+}
+
+.profile-dropdown {
+	position: absolute;
+	top: 3.2rem;
+	right: 1rem;
+	background: $color-white;
+	border-radius: 12px;
+	box-shadow: 0 4px 20px $color-overlay-8;
+	padding: 0.5rem;
+	min-width: 160px;
+	z-index: 30;
+	display: flex;
+	flex-direction: column;
+}
+
+.profile-dropdown-item {
+	background: none;
+	border: none;
+	text-align: left;
+	padding: 0.6rem 0.75rem;
+	border-radius: 8px;
+	font-weight: 600;
+	font-size: 0.95rem;
+	color: $color-green-4;
+	cursor: pointer;
+	text-decoration: none;
+	display: block;
+
+	&:hover {
+		background-color: $color-lighter-gray;
+		color: $color-green-3;
+	}
+}
+
+.profile-dropdown-divider {
+	margin: 0.25rem 0;
+	border: none;
+	border-top: 1px solid $color-blue-gray;
 }

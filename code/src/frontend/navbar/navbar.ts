@@ -8,7 +8,7 @@ import {
 	ViewChild,
 	computed,
 	effect,
-	signal
+	signal, inject
 } from '@angular/core';
 import { isPlatformBrowser, NgOptimizedImage } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
@@ -32,6 +32,7 @@ export class Navbar implements AfterViewInit, OnDestroy {
 	private navbarShell?: ElementRef<HTMLElement>;
 	@ViewChild('navbarMeasure')
 	private navbarMeasure?: ElementRef<HTMLElement>;
+	private userService = inject(AuthService);
 
 	protected readonly profileLink;
 	protected readonly profileQueryParams;
@@ -44,6 +45,8 @@ export class Navbar implements AfterViewInit, OnDestroy {
 	protected readonly isLoggedIn;
 	protected readonly isCollapsed = signal(false);
 	protected readonly isMenuOpen = signal(false);
+	protected readonly isProfileMenuOpen = signal(false);
+	protected readonly userPfp = signal('');
 
 	private readonly handleWindowResize = () => this.queueLayoutRecalculation();
 	private readonly isBrowser: boolean;
@@ -99,8 +102,14 @@ export class Navbar implements AfterViewInit, OnDestroy {
 		this.isLoggedIn = computed(() => this.authService.currentUser() !== null);
 
 		effect(() => {
-			this.authService.currentUser();
+			const user = this.authService.currentUser();
 			this.queueLayoutRecalculation();
+
+			if (user?.username) {
+				this.retrieveUserPfp(user.username);
+			} else {
+				this.userPfp.set('');
+			}
 		});
 	}
 
@@ -115,6 +124,7 @@ export class Navbar implements AfterViewInit, OnDestroy {
 			this.resizeObserver.observe(this.navbarShell.nativeElement);
 		}
 		this.queueLayoutRecalculation();
+		document.addEventListener('click', this.handleOutsideClick);
 	}
 
 	ngOnDestroy(): void {
@@ -127,6 +137,8 @@ export class Navbar implements AfterViewInit, OnDestroy {
 		if (this.layoutFrame !== null) {
 			cancelAnimationFrame(this.layoutFrame);
 		}
+
+		document.removeEventListener('click', this.handleOutsideClick);
 	}
 
 	logout(): void {
@@ -185,4 +197,27 @@ export class Navbar implements AfterViewInit, OnDestroy {
 			this.isMenuOpen.set(false);
 		}
 	}
+
+	protected retrieveUserPfp(username: string){
+		this.userService.getPublicProfile(username).subscribe(profile => {
+			if (profile.profilePicture != null) {
+				this.userPfp.set(profile.profilePicture);
+			}
+		});
+	}
+
+	protected toggleProfileMenu(): void {
+		this.isProfileMenuOpen.update(v => !v);
+	}
+
+	protected closeProfileMenu(): void {
+		this.isProfileMenuOpen.set(false);
+	}
+
+	private readonly handleOutsideClick = (e: MouseEvent) => {
+		const target = e.target as HTMLElement;
+		if (!target.closest('.profile-nav-item')) {
+			this.isProfileMenuOpen.set(false);
+		}
+	};
 }
