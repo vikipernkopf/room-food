@@ -1,6 +1,6 @@
 import {Component, Input} from '@angular/core';
 import {CommonModule} from '@angular/common';
-import {Meal} from '../../../backend/model';
+import {Meal} from '../../backend/model';
 
 @Component({
   	selector: 'app-meal-plan',

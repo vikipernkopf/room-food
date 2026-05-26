@@ -10,9 +10,9 @@
 
 @if (!loading() && ingredients().length > 0) {
 	<ul>
-		@for (ingredient of ingredients(); track ingredient.name) {
+		@for (ingredient of ingredients(); track ingredient.name + '|' + ingredient.measurement) {
 			<li>
-				<b>{{ ingredient.amount }}</b>
+				<strong>{{ ingredient.amount }}</strong>
 				<span>{{ ingredient.measurement }} of </span>
 				<strong>{{ ingredient.name }}</strong>
 			</li>

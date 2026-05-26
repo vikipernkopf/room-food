@@ -20,11 +20,11 @@ import { MatTimepickerModule } from '@angular/material/timepicker';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { provideNativeDateAdapter } from '@angular/material/core';
-import { AuthService } from '../../core/auth-service';
-import { Meal, Recipe, User } from '../../../backend/model';
-import { MealService } from '../../core/meal-service';
-import { RecipeService } from '../../core/recipe-service';
-import { RoomService } from '../../core/room-service';
+import { AuthService } from '../core/auth-service';
+import { Meal, Recipe, User } from '../../backend/model';
+import { MealService } from '../core/meal-service';
+import { RecipeService } from '../core/recipe-service';
+import { RoomService } from '../core/room-service';
 import { MatCheckbox } from '@angular/material/checkbox';
 
 interface MealType {

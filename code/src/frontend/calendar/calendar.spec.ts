@@ -5,10 +5,10 @@ import { of } from 'rxjs';
 import { vi } from 'vitest';
 
 import { Calendar } from './calendar';
-import { AuthService } from '../../core/auth-service';
-import { MealService } from '../../core/meal-service';
-import { RoomService } from '../../core/room-service';
-import { Meal } from '../../../backend/model';
+import { AuthService } from '../core/auth-service';
+import { MealService } from '../core/meal-service';
+import { RoomService } from '../core/room-service';
+import { Meal } from '../../backend/model';
 
 class StubAuthService {
 	public readonly currentUser: WritableSignal<any | null> = signal({ username: 'alice' });

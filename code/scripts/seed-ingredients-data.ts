@@ -1,4 +1,5 @@
-import * as BetterSqlite3 from 'better-sqlite3';
+//@ts-ignore
+import BetterSqlite3 from 'better-sqlite3';
 import { join } from 'node:path';
 
 /**

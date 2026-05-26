@@ -3,12 +3,12 @@
 import { Component, effect, inject, OnInit, signal, WritableSignal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { MealManagement } from '../meal-management/meal-management';
-import { MealService } from '../../core/meal-service';
-import { Meal } from '../../../backend/model';
-import { AuthService } from '../../core/auth-service';
+import { MealService } from '../core/meal-service';
+import { Meal } from '../../backend/model';
+import { AuthService } from '../core/auth-service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { RoomService } from '../../core/room-service';
+import { RoomService } from '../core/room-service';
 import { AvailableIngredients } from './available-ingredients/available-ingredients';
 
 //noinspection JSIgnoredPromiseFromCall
