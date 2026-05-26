@@ -1,6 +1,6 @@
 // noinspection GrazieInspection
 
-import { Component, effect, OnInit, signal, WritableSignal } from '@angular/core';
+import { Component, effect, inject, OnInit, signal, WritableSignal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { MealManagement } from '../meal-management/meal-management';
 import { MealService } from '../../core/meal-service';
@@ -46,10 +46,12 @@ export class Calendar implements OnInit {
 
 	protected readonly username: WritableSignal<string> = signal('');
 	protected readonly roomCode: WritableSignal<string> = signal('');
+	private readonly authService: AuthService = inject(AuthService);
+	protected readonly currentUser = this.authService.currentUser;
 	private hasRedirected = false;
 	private lastProcessedCode: string = ''; // track which code we've already processed
 
-	constructor(private route: ActivatedRoute, private router: Router, private authService: AuthService,
+	constructor(private route: ActivatedRoute, private router: Router,
 		private mealService: MealService, private roomService: RoomService) {
 		console.log('Calendar component initialized');
 
@@ -77,15 +79,23 @@ export class Calendar implements OnInit {
 			console.log('Validating room code:', code);
 			this.validateAndLoadRoom(code);
 		});
+
+		// Watch for user changes and reload meals when user becomes available
+		effect(() => {
+			const user = this.currentUser();
+			const code = this.roomCode();
+			if (user && code) {
+				console.log('User logged in and room code available, loading meals');
+				this.loadMeals();
+			}
+		});
 	}
 
 	private validateAndLoadRoom(roomCode: string) {
 		this.roomService.checkRoomExists(roomCode).subscribe({
 			next: response => {
 				console.log('Room validation response:', response);
-				if (response.exists) {
-					this.loadMeals();
-				} else {
+				if (!response.exists) {
 					console.log('Room does not exist in database, redirecting to error');
 					if (!this.hasRedirected) {
 						this.hasRedirected = true;
@@ -111,22 +121,14 @@ export class Calendar implements OnInit {
 		this.renderWeek();
 	}
 
-	async loadMeals() {
-		await new Promise(f => setTimeout(f, 40));
-		const user = this.authService.currentUser();
-
-		if (!user) {
-			console.error('User not logged in');
-			if (!this.hasRedirected) {
-				this.hasRedirected = true;
-				this.meals.set([]);
-				// noinspection JSIgnoredPromiseFromCall
-				await this.router.navigate(['/error']);
-			}
+	loadMeals() {
+		const roomCode = this.roomCode();
+		if (!roomCode) {
+			console.log('No room code available for loading meals');
 			return;
 		}
 
-		this.mealService.getMealsByRoomCode(this.roomCode()).subscribe({
+		this.mealService.getMealsByRoomCode(roomCode).subscribe({
 			next: meals => {
 				console.log('Meals received for calendar:', meals);
 				const formattedMeals = meals.map(m => ({

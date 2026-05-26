@@ -6,11 +6,12 @@ import { LoginCredentials, PublicProfile, SignUpCredentials, UpdateProfilePayloa
 import { Observable, tap } from 'rxjs';
 
 function getApiBase(): string {
-	const win = typeof window !== 'undefined' ? (window as any) : undefined;
+	const win = typeof window === 'undefined' ? undefined : (window as any);
 	const runtime = win && (win.__API_URL || win.API_URL);
 	return runtime || environment.apiUrl || '/api';
 }
 
+//noinspection JSIgnoredPromiseFromCall
 @Injectable({
 	providedIn: 'root',
 })
@@ -22,12 +23,20 @@ export class AuthService {
 	public readonly currentUser: WritableSignal<User | null> = signal(null);
 	public readonly loginError: WritableSignal<string> = signal('');
 	public readonly signUpError: WritableSignal<string> = signal('');
+	public readonly sessionRestored: WritableSignal<boolean> = signal(false);
 
 	// Called once on app startup — reads the httpOnly cookie via /me
 	restoreSession(): void {
+		this.sessionRestored.set(false);
 		this.http.get<User>(`${this.apiBase}/me`, { withCredentials: true }).subscribe({
-			next: (user) => this.currentUser.set(user),
-			error: () => this.currentUser.set(null) // no valid session, that's fine
+			next: (user) => {
+				this.currentUser.set(user);
+				this.sessionRestored.set(true);
+			},
+			error: () => {
+				this.currentUser.set(null); // no valid session, that's fine
+				this.sessionRestored.set(true);
+			}
 		});
 	}
 
