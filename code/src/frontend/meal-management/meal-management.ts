@@ -441,6 +441,10 @@ export class MealManagement implements OnChanges {
 		return `${names.length} recipes selected`;
 	}
 
+	public handleRecipeChange(val: unknown[]) {
+		this.onRecipeSelectionChange(val as number[]);
+	}
+
 	// ----------------------- Responsible users ------------------------------
 
 	public onResponsibleUsersChange(usernames: string[]): void {
@@ -454,6 +458,10 @@ export class MealManagement implements OnChanges {
 			return '';
 		}
 		return this.selectedResponsibleUsers.join(', ');
+	}
+
+	public handleResponsibleUsersChange(val: unknown[]) {
+		this.onResponsibleUsersChange(val as string[]);
 	}
 
 	// ----------------------- Room ------------------------------

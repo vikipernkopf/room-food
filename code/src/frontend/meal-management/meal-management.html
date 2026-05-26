@@ -132,10 +132,10 @@
 							</mat-select-trigger>
 							<div class="recipe-search-option">
 								<input matInput type="text" placeholder="Search recipes (e.g. Pasta)"
-								[value]="recipeSearchTerm"
-								(input)="onRecipeSearchChange($any($event.target).value)"
-								(click)="$event.stopPropagation()" (mousedown)="$event.stopPropagation()"
-								(keydown)="onRecipeSearchKeydown($event)">
+									[value]="recipeSearchTerm"
+									(input)="onRecipeSearchChange($any($event.target).value)"
+									(click)="$event.stopPropagation()" (mousedown)="$event.stopPropagation()"
+									(keydown)="onRecipeSearchKeydown($event)">
 							</div>
 							@for (recipe of filteredRecipes; track recipe.id) {
 								<mat-option [value]="recipe.id">{{ recipe.name }}</mat-option>
@@ -170,6 +170,7 @@
 							<div class="error-text field-error">{{ roomMembersLoadError }}</div>
 						}
 					</div>
+
 
 					<!-- Meal Type -->
 					<div class="field-group field-group--full">

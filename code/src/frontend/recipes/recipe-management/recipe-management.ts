@@ -1,4 +1,7 @@
 import { Component, effect, input, output } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -22,7 +25,16 @@ export type RecipeFormValue = {
 @Component({
 	selector: 'app-recipe-management',
 	standalone: true,
-	imports: [FormsModule, MatFormFieldModule, MatInputModule, MatSelectModule, ReactiveFormsModule],
+	imports: [
+		CommonModule,
+		FormsModule,
+		ReactiveFormsModule,
+		MatFormFieldModule,
+		MatInputModule,
+		MatSelectModule,
+		MatButtonModule,
+		MatIconModule
+	],
 	templateUrl: './recipe-management.html',
 	styleUrl: './recipe-management.scss',
 })

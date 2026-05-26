@@ -1,13 +1,14 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, effect, inject, signal } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { CommonModule } from '@angular/common';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/auth-service';
 import { RecipeService } from '../../core/recipe-service';
-import { IngredientsFrontendService } from '../../core/ingredients-frontend-service';
 import { Ingredient, RecipeCreatePayload, RecipeVisibility } from '../../../backend/model';
 import { DEFAULT_RECIPE_IMAGE } from '../../core/user-form-validation';
 import { SearchIngredient } from '../recipe-management/search-ingredient/search-ingredient';
@@ -18,12 +19,14 @@ import {MatCard} from '@angular/material/card';
 	selector: 'app-create-recipe',
 	standalone: true,
 	imports: [
+		CommonModule,
 		FormsModule,
 		ReactiveFormsModule,
 		MatFormFieldModule,
 		MatInputModule,
 		MatSelectModule,
-		CommonModule,
+		MatButtonModule,
+		MatIconModule,
 		SearchIngredient,
 		MatCard
 	],
@@ -33,7 +36,7 @@ import {MatCard} from '@angular/material/card';
 export class CreateRecipe {
 	private readonly recipeService = inject(RecipeService);
 	private readonly authService = inject(AuthService);
-	private readonly ingredientService = inject(IngredientsFrontendService);
+	//private readonly ingredientService = inject(IngredientsFrontendService);
 
 	protected readonly currentUser = this.authService.currentUser;
 	protected readonly isCreating = signal(false);

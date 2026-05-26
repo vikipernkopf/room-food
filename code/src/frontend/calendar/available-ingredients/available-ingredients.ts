@@ -1,5 +1,6 @@
 import { Component, effect, Input, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { MatButton } from '@angular/material/button';
 import { AuthService } from '../../core/auth-service';
 import { IngredientsFrontendService } from '../../core/ingredients-frontend-service';
 import { MealService } from '../../core/meal-service';

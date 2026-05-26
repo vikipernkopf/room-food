@@ -439,19 +439,17 @@ section {
 			overflow: hidden !important;
 		}
 
-		.meal-type-panel {
-			margin-top: 0.8rem !important;
-			margin-left: -0.9rem !important;
-		}
-
-		.recipe-panel {
-			margin-top: 0.8rem !important;
-			margin-left: -0.9rem !important;
-		}
-
+		.meal-type-panel,
+		.recipe-panel,
 		.responsible-panel {
 			margin-top: 0.8rem !important;
-			margin-left: -0.9rem !important;
+			margin-left: 0 !important; /* let CDK position the panel */
+
+			/* match the inner padding of the select trigger so list items line up visually */
+			.mdc-list {
+				padding-left: 85rem !important; /* same as .mat-mdc-select trigger left padding */
+				padding-right: 1rem !important;
+			}
 		}
 
 		.mat-mdc-select-panel .mdc-list {
