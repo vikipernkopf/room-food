@@ -503,6 +503,8 @@ export class MealManagement implements OnChanges {
 	protected saveMeal(): void {
 		this.clearErrors();
 
+		//TODO
+
 		const user = this.authService.currentUser();
 		const currentUsername = user?.username;
 		const effectiveRoomCode = this.overviewMode ? this.selectedRoomCode : this.roomCode;

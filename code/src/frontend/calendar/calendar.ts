@@ -1,6 +1,14 @@
 // noinspection GrazieInspection
 
-import { Component, effect, inject, OnInit, signal, WritableSignal } from '@angular/core';
+import {
+	Component,
+	effect,
+	inject,
+	OnInit,
+	signal,
+	viewChild,
+	WritableSignal
+} from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { MealManagement } from '../meal-management/meal-management';
 import { MealService } from '../core/meal-service';
@@ -50,6 +58,8 @@ export class Calendar implements OnInit {
 	protected readonly currentUser = this.authService.currentUser;
 	private hasRedirected = false;
 	private lastProcessedCode: string = ''; // track which code we've already processed
+
+	private availableIngredientsTab = viewChild(AvailableIngredients);
 
 	constructor(private route: ActivatedRoute, private router: Router,
 		private mealService: MealService, private roomService: RoomService) {
@@ -141,6 +151,9 @@ export class Calendar implements OnInit {
 			},
 			error: err => console.error('Error loading meals', err)
 		});
+
+		console.log(this.availableIngredientsTab);
+		this.availableIngredientsTab()?.updateIngredients();
 	}
 
 	renderWeek(): void {
