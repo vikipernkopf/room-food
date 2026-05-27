@@ -215,4 +215,8 @@ export class AvailableIngredients implements OnInit {
 		this.newIngredientAmount.set(0);
 		this.ingredientError.set('');
 	}
+
+	async updateIngredients(){
+		this.loadIngredients();
+	}
 }
