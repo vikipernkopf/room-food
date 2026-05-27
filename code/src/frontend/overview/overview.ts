@@ -1,5 +1,5 @@
 import { Component, OnInit, signal, effect, inject } from '@angular/core';
-import { MealManagement } from '../room-view/meal-management/meal-management';
+import { MealManagement } from '../meal-management/meal-management';
 import { MealService } from '../core/meal-service';
 import { Meal } from '../../backend/model';
 import { AuthService } from '../core/auth-service';

@@ -63,7 +63,7 @@ body {
 	background: white !important;
 }
 
-.mat-mdc-select-panel{
-	margin-left: -0.9rem;
+.mat-mdc-select-panel {
+	/* Avoid forcing a global horizontal offset — specific components use panelClass to control alignment */
 	background: white !important;
 }

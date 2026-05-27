@@ -4,7 +4,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { MealManagement } from './meal-management';
-import { Meal } from '../../../backend/model';
+import { Meal } from '../../backend/model';
 
 describe('Meal', () => {
 	let component: MealManagement;

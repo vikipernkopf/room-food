@@ -54,7 +54,7 @@ export class MealService {
 		return mealsSignal;
 	}
 
-	public getAllMealsForRoom(room: string | null): WritableSignal<Meal[]> {
+	/*public getAllMealsForRoom(room: string | null): WritableSignal<Meal[]> {
 		const mealsSignal = signal<Meal[]>([]);
 
 		if (!room) {
@@ -81,7 +81,7 @@ export class MealService {
 		});
 
 		return mealsSignal;
-	}
+	}*/
 
 	public getMealsByUsername(username: string): Observable<Meal[]> {
 		const apiUrl = `${this.apiBase}/meals/${username}`;
@@ -128,12 +128,14 @@ export class MealService {
 		}>(apiUrl);
 	}
 
-	public addEatingUser(mealId: number, username: string): Observable<{ mealId: number; username: string; added: boolean }> {
+	public addEatingUser(mealId: number, username: string):
+		Observable<{ mealId: number; username: string; added: boolean }> {
 		const apiUrl = `${this.apiBase}/meal/${mealId}/eating-user/${username}`;
 		return this.http.post<{ mealId: number; username: string; added: boolean }>(apiUrl, {});
 	}
 
-	public removeEatingUser(mealId: number, username: string): Observable<{ mealId: number; username: string; removed: boolean }> {
+	public removeEatingUser(mealId: number, username: string):
+		Observable<{ mealId: number; username: string; removed: boolean }> {
 		const apiUrl = `${this.apiBase}/meal/${mealId}/eating-user/${username}`;
 		return this.http.delete<{ mealId: number; username: string; removed: boolean }>(apiUrl);
 	}
@@ -146,6 +148,33 @@ export class MealService {
 		return this.http.get<{
 			mealId: number;
 			eatingUsers: string[]
+		}>(apiUrl);
+	}
+
+	public assignIngredientToUser(mealId: number, ingredientName: string, username: string):
+		Observable<{ mealId: number; ingredientName: string; username: string }> {
+		const apiUrl = `${this.apiBase}/meal/${mealId}/ingredient-assignment`;
+		return this.http.post<{ mealId: number; ingredientName: string; username: string }>(apiUrl, {
+			ingredientName,
+			username
+		});
+	}
+
+	public removeIngredientAssignment(mealId: number, ingredientName: string, username: string):
+		Observable<{ mealId: number; ingredientName: string; username: string; removed: boolean }> {
+		const apiUrl = `${this.apiBase}/meal/${mealId}/ingredient-assignment/${encodeURIComponent(ingredientName)}
+			/${encodeURIComponent(username)}`;
+		return this.http.delete<{ mealId: number; ingredientName: string; username: string; removed: boolean }>(apiUrl);
+	}
+
+	public getIngredientAssignments(mealId: number): Observable<{
+		mealId: number;
+		ingredientAssignments: { [key: string]: string[] }
+	}> {
+		const apiUrl = `${this.apiBase}/meal/${mealId}/ingredient-assignments`;
+		return this.http.get<{
+			mealId: number;
+			ingredientAssignments: { [key: string]: string[] }
 		}>(apiUrl);
 	}
 }

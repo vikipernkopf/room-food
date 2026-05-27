@@ -60,8 +60,11 @@ export type Meal = {
 	responsible: string,
 	responsibleUsers?: string[],
 	recipeIds?: number[],
-	cooked: boolean
-	eatingUsernames?: string[]
+	cooked: boolean,
+	eatingUsernames?: string[],
+	ingredientAssignments?: {
+		[ingredientName: string]: string[]
+	} // Map of ingredient names to assigned usernames
 }
 
 export enum Role {
@@ -74,7 +77,14 @@ export type Ingredient = {
 	name: string;
 	measurement: string;
 	amount: number;
+	assignedTo?: string; // username of who should buy this ingredient
 };
+
+/*export type IngredientAssignment = {
+	mealId: number;
+	ingredientName: string;
+	assignedToUsername: string;
+};*/
 
 export type RecipeVisibility = 'public' | 'private';
 

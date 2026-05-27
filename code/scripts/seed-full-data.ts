@@ -1,4 +1,5 @@
-import * as BetterSqlite3 from 'better-sqlite3';
+//@ts-ignore
+import BetterSqlite3 from 'better-sqlite3';
 import { join } from 'node:path';
 
 /**
@@ -23,11 +24,12 @@ function seedFullData(dbPath: string): void {
 		// =========== USERS ===========
 		console.log('\n👥 Creating sample users...');
 
+		// Passwords: alice123, bob123, charlie123, diana123 (bcrypt hashes)
 		const users = [
-			{ username: 'alice', hashedPassword: 'hashed_password_1', first_name: 'Alice', last_name: 'Smith' },
-			{ username: 'bob', hashedPassword: 'hashed_password_2', first_name: 'Bob', last_name: 'Johnson' },
-			{ username: 'charlie', hashedPassword: 'hashed_password_3', first_name: 'Charlie', last_name: 'Brown' },
-			{ username: 'diana', hashedPassword: 'hashed_password_4', first_name: 'Diana', last_name: 'Prince' },
+			{ username: 'alice', hashedPassword: '$2b$10$5oSUBSHnDLYTrYstMniF3eYzEXG4xEpRQ.m9EYn2YWodz4/12nJVK', first_name: 'Alice', last_name: 'Smith' }, // alice123
+			{ username: 'bob', hashedPassword: '$2b$10$mOmAONOdMa4TBWjSAK6wSeRXP8aBAeEfy7g3Ql5UtGoy/S/XJUWuC', first_name: 'Bob', last_name: 'Johnson' }, // bob123
+			{ username: 'charlie', hashedPassword: '$2b$10$Aj0WicMS4dEI.dK5Cbe6x.0ypFYbO1Re/nngKEM3oYFgFAf2qyi5O', first_name: 'Charlie', last_name: 'Brown' }, // charlie123
+			{ username: 'diana', hashedPassword: '$2b$10$K0g34fpwYY2A2Y3JkpqDhuPsFTkOXtYOEJjmEpYvVggwijcdyTp7m', first_name: 'Diana', last_name: 'Prince' }, // diana123
 		];
 
 		const insertUser = db.prepare(`
@@ -306,8 +308,25 @@ function seedFullData(dbPath: string): void {
 
 		console.log('\n💻 Sample Login Credentials:');
 		for (const username of Array.from(createdUsers.keys())) {
+			let password = '';
+			if (username === 'alice') {
+				password = 'alice123';
+			} else {
+				if (username === 'bob') {
+					password = 'bob123';
+				} else {
+					if (username === 'charlie') {
+									password = 'charlie123';
+					} else {
+						if (username === 'diana') {
+							password = 'diana123';
+						}
+					}
+				}
+			}
+
 			console.log(`   Username: ${username}`);
-			console.log(`   Password: (use any password - demo database)`);
+			console.log(`   Password: ${password}`);
 		}
 
 	} catch (error) {

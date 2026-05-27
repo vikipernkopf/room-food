@@ -132,10 +132,10 @@
 							</mat-select-trigger>
 							<div class="recipe-search-option">
 								<input matInput type="text" placeholder="Search recipes (e.g. Pasta)"
-								[value]="recipeSearchTerm"
-								(input)="onRecipeSearchChange($any($event.target).value)"
-								(click)="$event.stopPropagation()" (mousedown)="$event.stopPropagation()"
-								(keydown)="onRecipeSearchKeydown($event)">
+									[value]="recipeSearchTerm"
+									(input)="onRecipeSearchChange($any($event.target).value)"
+									(click)="$event.stopPropagation()" (mousedown)="$event.stopPropagation()"
+									(keydown)="onRecipeSearchKeydown($event)">
 							</div>
 							@for (recipe of filteredRecipes; track recipe.id) {
 								<mat-option [value]="recipe.id">{{ recipe.name }}</mat-option>
@@ -170,6 +170,7 @@
 							<div class="error-text field-error">{{ roomMembersLoadError }}</div>
 						}
 					</div>
+
 
 					<!-- Meal Type -->
 					<div class="field-group field-group--full">
@@ -304,6 +305,7 @@
 								<th>Ingredient</th>
 								<th>Amount</th>
 								<th>Unit</th>
+								<th>Assigned To</th>
 							</tr>
 							</thead>
 							<tbody>
@@ -312,6 +314,34 @@
 										<td>{{ ing.ingredientName }}</td>
 										<td>{{ ing.amount }}</td>
 										<td>{{ ing.measurement }}</td>
+										<td class="more-ingredient-assignment">
+											<div class="more-ingredient-users">
+												@for (user of getAssignedUsersForIngredient(ing.ingredientName); track user) {
+													<span class="more-ingredient-user-chip">
+														{{ user }}
+														<button type="button" class="remove-assignment-btn"
+															(click)="removeIngredientAssignment(ing.ingredientName, user)"
+															title="Remove assignment">
+															×
+														</button>
+													</span>
+												}
+											</div>
+											@if (isViewMode() || !isEditMode) {
+												<!-- Do not show input in view mode or when creating new meal -->
+											} @else {
+												<mat-select class="more-ingredient-select"
+													placeholder="Assign to user"
+													[(ngModel)]="ingredientAssignmentDropdown"
+													(ngModelChange)="assignIngredientToUser(ing.ingredientName, $any($event))"
+													name="ingredientAssign_{{ ing.ingredientName }}">
+													<mat-option value="">Select user</mat-option>
+													@for (member of availableRoomMembers; track member) {
+														<mat-option [value]="member">{{ member }}</mat-option>
+													}
+												</mat-select>
+											}
+										</td>
 									</tr>
 								}
 							</tbody>

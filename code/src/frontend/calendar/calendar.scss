@@ -1,4 +1,4 @@
-﻿@use "../../styles/theme" as *;
+﻿@use "../styles/theme" as *;
 
 $hour-height: 65px;
 
@@ -6,15 +6,16 @@ $hour-height: 65px;
 	display: flex;
 	flex-direction: row;
 	width: 100%;
+	justify-content: space-between;
 }
 
 .ingredient-list {
-	width: 30%;
 	background: $color-white;
 	box-shadow: 0 2px 6px $color-overlay-20;
 	padding-left: 1.5rem;
 	padding-right: 1.5rem;
 	padding-top: 2rem;
+	display: flex;
 }
 
 .overview {

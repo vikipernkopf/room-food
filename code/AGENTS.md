@@ -11,7 +11,7 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - Treat `code/AGENTS.md` as the TypeScript/Angular convention source for implementation details.
 - The Angular app is standalone-component based and signal-heavy. Match nearby files rather than introducing NgModules.
 - Representative patterns: `code/src/frontend/login/login.ts`, `code/src/frontend/profile/profile.ts`,
-  `code/src/frontend/rooms/rooms.ts`, `code/src/frontend/room-view/room-view.ts`.
+  `code/src/frontend/rooms/rooms.ts`.
 - Current feature patterns also live in `code/src/frontend/room-management-view/room-management-view.ts`,
   `code/src/frontend/room-management-view/edit-room/edit-room.ts`, `code/src/frontend/room-view/calendar/calendar.ts`,
   `code/src/frontend/recipes/recipe-management/recipe-management.ts`,
@@ -52,8 +52,7 @@ You are an expert in TypeScript, Angular, and scalable web application developme
   `window.__API_URL` / `window.API_URL` → `environment.apiUrl` → `/api`.
 - Frontend services call REST endpoints such as `/api/login`, `/api/signup`, `/api/room/:code/members`,
   `/api/meals/:username`, `/api/meal/:id`, `/api/recipes/raw`, and `/api/recipes/:id`.
-- Route-driven views use `ActivatedRoute`, `effect()`, and signals to reload data when params change; see
-  `room-view.ts` and `room-management-view.ts`.
+- Route-driven views use `ActivatedRoute`, `effect()`, and signals to reload data when params change; see `room-management-view.ts`.
 
 ## Workflow Commands
 

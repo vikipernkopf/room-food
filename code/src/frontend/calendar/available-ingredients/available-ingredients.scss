@@ -1,18 +1,16 @@
-@use "../../../styles/theme" as *;
+@use "../../styles/theme" as *;
 
 h2 {
 	color: $color-text-main;
 	margin-bottom: 1.5rem;
 }
 
-// Container for the list
+// Container for the list - single column (one ingredient per row)
 ul {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 12px;
-	padding: 0;
-	margin: 0;
-	list-style: none;
+    display: block;
+    padding: 0;
+    margin: 0;
+    list-style: none;
 }
 
 // The "Small Horizontal Panel"
@@ -20,6 +18,9 @@ li {
 	display: flex;
 	align-items: center;
 	padding: 10px 16px;
+	width: 100%;
+	box-sizing: border-box;
+	margin-bottom: 12px;
 
 	// Background and Border
 	background-color: $color-lighter-gray;
@@ -43,9 +44,9 @@ li {
 	}
 
 	// Target text segments without needing classes in HTML
-	// First segment (Amount)
-	&:first-child, b, strong {
-		// Adding weight and color to the amount
+	// First segment (Amount) - only target amount and name inside the li
+	> b, > strong {
+		// Adding weight and color to the amount and ingredient name
 		color: $color-green-4;
 		font-weight: 700;
 		margin-right: 6px;
