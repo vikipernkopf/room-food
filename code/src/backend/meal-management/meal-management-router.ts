@@ -7,17 +7,53 @@ import { Meal } from '../model';
 export const mealManagementRouter = express.Router();
 
 function normalizeRecipeIds(recipeIds: unknown): number[] | null {
-	if (recipeIds === undefined) return [];
-	if (!Array.isArray(recipeIds)) return null;
+	if (recipeIds === undefined) {
+		return [];
+	}
+	if (!Array.isArray(recipeIds)) {
+		return null;
+	}
 	const filteredRecipeIds = recipeIds.filter(recipeId => Number.isInteger(recipeId) && recipeId > 0) as number[];
 	return Array.from(new Set(filteredRecipeIds));
 }
 
 function normalizeResponsibleUsers(responsibleUsers: unknown): string[] | null {
-	if (responsibleUsers === undefined) return [];
-	if (!Array.isArray(responsibleUsers)) return null;
-	const filteredUsers = responsibleUsers.filter(user => typeof user === 'string' && user.trim().length > 0) as string[];
+	if (responsibleUsers === undefined) {
+		return [];
+	}
+	if (!Array.isArray(responsibleUsers)) {
+		return null;
+	}
+	const filteredUsers = responsibleUsers.filter(
+		user => typeof user === 'string' && user.trim().length > 0) as string[];
 	return Array.from(new Set(filteredUsers));
+}
+
+function normalizeIngredientAssignments(input: unknown): {
+	[key: string]: string[]
+} | null {
+	if (input === undefined) {
+		return {};
+	}
+	if (input === null || typeof input !== 'object' || Array.isArray(input)) {
+		return null;
+	}
+
+	const result: {
+		[key: string]: string[]
+	} = {};
+
+	for (const key of Object.keys(input as any)) {
+		const val = (input as any)[key];
+		if (!Array.isArray(val)) {
+			return null;
+		}
+		const filtered = val.filter((u: any) => typeof u === 'string' && u.trim().length > 0)
+		.map((u: string) => u.trim());
+		result[key] = Array.from(new Set(filtered));
+	}
+
+	return result;
 }
 
 // ----------------------- Meal CRUD ------------------------------
@@ -34,6 +70,7 @@ mealManagementRouter.post('/meal', async (req, res): Promise<void> => {
 	} = req.body;
 	const recipeIds = normalizeRecipeIds(req.body?.recipeIds);
 	const responsibleUsers = normalizeResponsibleUsers(req.body?.responsibleUsers);
+	const ingredientAssignments = normalizeIngredientAssignments(req.body?.ingredientAssignments);
 
 	if (recipeIds === null) {
 		res.status(StatusCodes.BAD_REQUEST).json({ error: 'recipeIds must be an array of numeric ids' });
@@ -41,6 +78,11 @@ mealManagementRouter.post('/meal', async (req, res): Promise<void> => {
 	}
 	if (responsibleUsers === null) {
 		res.status(StatusCodes.BAD_REQUEST).json({ error: 'responsibleUsers must be an array of usernames' });
+		return;
+	}
+	if (ingredientAssignments === null) {
+		res.status(StatusCodes.BAD_REQUEST)
+		.json({ error: 'ingredientAssignments must be an object mapping ingredientName -> string[]' });
 		return;
 	}
 	if (!time || !endTime || !name || !mealType || !room || !responsible) {
@@ -61,7 +103,8 @@ mealManagementRouter.post('/meal', async (req, res): Promise<void> => {
 			responsibleUsers,
 			recipeIds,
 			cooked: !!cooked,
-			eatingUsernames: []
+			eatingUsernames: [],
+			ingredientAssignments
 		} as Meal;
 
 		console.log('Creating meal with:', meal);
@@ -86,7 +129,10 @@ mealManagementRouter.post('/meal', async (req, res): Promise<void> => {
 		}
 
 		unit.complete(true);
-		res.status(StatusCodes.CREATED).json({ ...meal, id: result });
+		res.status(StatusCodes.CREATED).json({
+			...meal,
+			id: result
+		});
 		console.log('Created meal:', meal.name);
 	} catch (error) {
 		unit.complete(false);
@@ -115,11 +161,27 @@ mealManagementRouter.put('/meal/:id', async (req, res): Promise<void> => {
 	}
 	const responsibleUsers = normalizeResponsibleUsers(updatedMeal?.responsibleUsers);
 	if (responsibleUsers === null) {
-		res.status(StatusCodes.BAD_REQUEST).json({ error: 'updatedMeal.responsibleUsers must be an array of usernames' });
+		res.status(StatusCodes.BAD_REQUEST)
+		.json({ error: 'updatedMeal.responsibleUsers must be an array of usernames' });
 		return;
 	}
 
-	const requiredUpdated = updatedMeal.time && updatedMeal.endTime && updatedMeal.name && updatedMeal.mealType && updatedMeal.room && updatedMeal.responsible;
+	// ingredientAssignments is optional on update; only process if provided
+	let ingredientAssignmentsNormalized: {
+		[key: string]: string[]
+	} | undefined;
+	if (Object.prototype.hasOwnProperty.call(updatedMeal, 'ingredientAssignments')) {
+		const tmp = normalizeIngredientAssignments(updatedMeal.ingredientAssignments);
+		if (tmp === null) {
+			res.status(StatusCodes.BAD_REQUEST)
+			.json({ error: 'updatedMeal.ingredientAssignments must be an object mapping ingredientName -> string[]' });
+			return;
+		}
+		ingredientAssignmentsNormalized = tmp;
+	}
+
+	const requiredUpdated = updatedMeal.time && updatedMeal.endTime && updatedMeal.name && updatedMeal.mealType
+		&& updatedMeal.room && updatedMeal.responsible;
 	if (!requiredUpdated) {
 		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Missing required meal fields' });
 		return;
@@ -141,16 +203,40 @@ mealManagementRouter.put('/meal/:id', async (req, res): Promise<void> => {
 			eatingUsernames: []
 		} as Meal;
 
+		// attach ingredientAssignments only if provided in request
+		if (ingredientAssignmentsNormalized !== undefined) {
+			(updated as any).ingredientAssignments = ingredientAssignmentsNormalized;
+		}
+
 		const mealManagementService = new MealManagementService(unit);
 		const result = mealManagementService.updateMeal(mealId, updated);
 
-		if (result === 'not_found') { unit.complete(false); res.status(StatusCodes.NOT_FOUND).json({ error: 'Meal not found' }); return; }
-		if (result === 'room_not_found') { unit.complete(false); res.status(StatusCodes.CONFLICT).json({ error: 'Room not found' }); return; }
-		if (result === 'recipe_not_found') { unit.complete(false); res.status(StatusCodes.NOT_FOUND).json({ error: 'One or more selected recipes were not found' }); return; }
-		if (result === 'error') { unit.complete(false); res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to update meal' }); return; }
+		if (result === 'not_found') {
+			unit.complete(false);
+			res.status(StatusCodes.NOT_FOUND).json({ error: 'Meal not found' });
+			return;
+		}
+		if (result === 'room_not_found') {
+			unit.complete(false);
+			res.status(StatusCodes.CONFLICT).json({ error: 'Room not found' });
+			return;
+		}
+		if (result === 'recipe_not_found') {
+			unit.complete(false);
+			res.status(StatusCodes.NOT_FOUND).json({ error: 'One or more selected recipes were not found' });
+			return;
+		}
+		if (result === 'error') {
+			unit.complete(false);
+			res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to update meal' });
+			return;
+		}
 
 		unit.complete(true);
-		res.status(StatusCodes.OK).json({ ...updated, id: mealId });
+		res.status(StatusCodes.OK).json({
+			...updated,
+			id: mealId
+		});
 	} catch (error) {
 		unit.complete(false);
 		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to update meal' });
@@ -170,11 +256,22 @@ mealManagementRouter.delete('/meal/:id', async (req, res): Promise<void> => {
 		const mealManagementService = new MealManagementService(unit);
 		const result = mealManagementService.deleteMeal(mealId);
 
-		if (result === 'not_found') { unit.complete(false); res.status(StatusCodes.NOT_FOUND).json({ error: 'Meal not found' }); return; }
-		if (result === 'error') { unit.complete(false); res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to delete meal' }); return; }
+		if (result === 'not_found') {
+			unit.complete(false);
+			res.status(StatusCodes.NOT_FOUND).json({ error: 'Meal not found' });
+			return;
+		}
+		if (result === 'error') {
+			unit.complete(false);
+			res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to delete meal' });
+			return;
+		}
 
 		unit.complete(true);
-		res.status(StatusCodes.OK).json({ id: mealId, deleted: true });
+		res.status(StatusCodes.OK).json({
+			id: mealId,
+			deleted: true
+		});
 	} catch (_error) {
 		unit.complete(false);
 		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to delete meal' });
@@ -201,10 +298,26 @@ mealManagementRouter.post('/meal/:mealId/eating-user/:username', async (req, res
 		const mealManagementService = new MealManagementService(unit);
 		const result = mealManagementService.addEatingUserByUsername(mealId, username);
 
-		if (result === 'meal_not_found') { unit.complete(false); res.status(StatusCodes.NOT_FOUND).json({ error: 'Meal not found' }); return; }
-		if (result === 'user_not_found') { unit.complete(false); res.status(StatusCodes.NOT_FOUND).json({ error: 'User not found' }); return; }
-		if (result === 'already_eating') { unit.complete(false); res.status(StatusCodes.CONFLICT).json({ error: 'User is already eating this meal' }); return; }
-		if (result === 'error') { unit.complete(false); res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to add user' }); return; }
+		if (result === 'meal_not_found') {
+			unit.complete(false);
+			res.status(StatusCodes.NOT_FOUND).json({ error: 'Meal not found' });
+			return;
+		}
+		if (result === 'user_not_found') {
+			unit.complete(false);
+			res.status(StatusCodes.NOT_FOUND).json({ error: 'User not found' });
+			return;
+		}
+		if (result === 'already_eating') {
+			unit.complete(false);
+			res.status(StatusCodes.CONFLICT).json({ error: 'User is already eating this meal' });
+			return;
+		}
+		if (result === 'error') {
+			unit.complete(false);
+			res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to add user' });
+			return;
+		}
 
 		unit.complete(true);
 		res.status(StatusCodes.OK).json();
@@ -232,13 +345,33 @@ mealManagementRouter.delete('/meal/:mealId/eating-user/:username', async (req, r
 		const mealManagementService = new MealManagementService(unit);
 		const result = mealManagementService.removeEatingUserByUsername(mealId, username);
 
-		if (result === 'meal_not_found') { unit.complete(false); res.status(StatusCodes.NOT_FOUND).json({ error: 'Meal not found' }); return; }
-		if (result === 'user_not_found') { unit.complete(false); res.status(StatusCodes.NOT_FOUND).json({ error: 'User not found' }); return; }
-		if (result === 'not_eating') { unit.complete(false); res.status(StatusCodes.CONFLICT).json({ error: 'User is not eating this meal' }); return; }
-		if (result === 'error') { unit.complete(false); res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to remove user' }); return; }
+		if (result === 'meal_not_found') {
+			unit.complete(false);
+			res.status(StatusCodes.NOT_FOUND).json({ error: 'Meal not found' });
+			return;
+		}
+		if (result === 'user_not_found') {
+			unit.complete(false);
+			res.status(StatusCodes.NOT_FOUND).json({ error: 'User not found' });
+			return;
+		}
+		if (result === 'not_eating') {
+			unit.complete(false);
+			res.status(StatusCodes.CONFLICT).json({ error: 'User is not eating this meal' });
+			return;
+		}
+		if (result === 'error') {
+			unit.complete(false);
+			res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to remove user' });
+			return;
+		}
 
 		unit.complete(true);
-		res.status(StatusCodes.OK).json({ mealId, username, removed: true });
+		res.status(StatusCodes.OK).json({
+			mealId,
+			username,
+			removed: true
+		});
 	} catch (error) {
 		unit.complete(false);
 		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to remove user from eating list' });
@@ -258,12 +391,171 @@ mealManagementRouter.get('/meal/:mealId/eating-users', async (req, res): Promise
 		const mealManagementService = new MealManagementService(unit);
 		const result = mealManagementService.getEatingUsers(mealId);
 
-		if (result === 'meal_not_found') { unit.complete(false); res.status(StatusCodes.NOT_FOUND).json({ error: 'Meal not found' }); return; }
+		if (result === 'meal_not_found') {
+			unit.complete(false);
+			res.status(StatusCodes.NOT_FOUND).json({ error: 'Meal not found' });
+			return;
+		}
 
 		unit.complete(true);
-		res.status(StatusCodes.OK).json({ mealId, eatingUsers: result });
+		res.status(StatusCodes.OK).json({
+			mealId,
+			eatingUsers: result
+		});
 	} catch (error) {
 		unit.complete(false);
 		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to get eating users' });
+	}
+});
+
+// ----------------------- Ingredient Assignment endpoints ------------------------------
+
+mealManagementRouter.post('/meal/:mealId/ingredient-assignment', async (req, res): Promise<void> => {
+	const mealId = Number(req.params.mealId);
+	const {
+		ingredientName,
+		username
+	} = req.body;
+
+	if (!Number.isInteger(mealId) || mealId <= 0) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid meal id' });
+		return;
+	}
+	if (!ingredientName || typeof ingredientName !== 'string') {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid ingredient name' });
+		return;
+	}
+	if (!username || typeof username !== 'string') {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid username' });
+		return;
+	}
+
+	const unit = new Unit(false);
+	try {
+		const mealManagementService = new MealManagementService(unit);
+		const result = mealManagementService.assignIngredientToUser(mealId, ingredientName.trim(), username.trim());
+
+		if (result === 'meal_not_found') {
+			unit.complete(false);
+			res.status(StatusCodes.NOT_FOUND).json({ error: 'Meal not found' });
+			return;
+		}
+		if (result === 'user_not_found') {
+			unit.complete(false);
+			res.status(StatusCodes.NOT_FOUND).json({ error: 'User not found' });
+			return;
+		}
+		if (result === 'already_assigned') {
+			unit.complete(false);
+			res.status(StatusCodes.CONFLICT).json({ error: 'Ingredient already assigned to this user' });
+			return;
+		}
+		if (result === 'error') {
+			unit.complete(false);
+			res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to assign ingredient' });
+			return;
+		}
+
+		unit.complete(true);
+		res.status(StatusCodes.OK).json();
+	} catch (error) {
+		unit.complete(false);
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to assign ingredient to user' });
+	}
+});
+
+mealManagementRouter.delete('/meal/:mealId/ingredient-assignment/:ingredientName/:username',
+	async (req, res): Promise<void> => {
+		const mealId = Number(req.params.mealId);
+		const ingredientName = req.params.ingredientName?.trim();
+		const username = req.params.username?.trim();
+
+		if (!Number.isInteger(mealId) || mealId <= 0) {
+			res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid meal id' });
+			return;
+		}
+		if (!ingredientName) {
+			res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid ingredient name' });
+			return;
+		}
+		if (!username) {
+			res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid username' });
+			return;
+		}
+
+		const unit = new Unit(false);
+		try {
+			const mealManagementService = new MealManagementService(unit);
+			const result = mealManagementService.removeIngredientAssignment(mealId, ingredientName, username);
+
+			if (result === 'meal_not_found') {
+				unit.complete(false);
+				res.status(StatusCodes.NOT_FOUND).json({ error: 'Meal not found' });
+				return;
+			}
+			if (result === 'user_not_found') {
+				unit.complete(false);
+				res.status(StatusCodes.NOT_FOUND).json({ error: 'User not found' });
+				return;
+			}
+			if (result === 'not_assigned') {
+				unit.complete(false);
+				res.status(StatusCodes.CONFLICT).json({ error: 'Ingredient is not assigned to this user' });
+				return;
+			}
+			if (result === 'error') {
+				unit.complete(false);
+				res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to remove assignment' });
+				return;
+			}
+
+			unit.complete(true);
+			res.status(StatusCodes.OK).json({
+				mealId,
+				ingredientName,
+				username,
+				removed: true
+			});
+		} catch (error) {
+			unit.complete(false);
+			res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to remove ingredient assignment' });
+		}
+	});
+
+mealManagementRouter.get('/meal/:mealId/ingredient-assignments', async (req, res): Promise<void> => {
+	const mealId = Number(req.params.mealId);
+
+	if (!Number.isInteger(mealId) || mealId <= 0) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid meal id' });
+		return;
+	}
+
+	const unit = new Unit(false);
+	try {
+		const mealManagementService = new MealManagementService(unit);
+		const result = mealManagementService.getIngredientAssignmentsForMeal(mealId);
+
+		if (result === 'meal_not_found') {
+			unit.complete(false);
+			res.status(StatusCodes.NOT_FOUND).json({ error: 'Meal not found' });
+			return;
+		}
+
+		// Convert Map to object for JSON serialization
+		const assignmentObj: {
+			[key: string]: string[]
+		} = {};
+		for (const [ingredientName, usernames] of result.entries()) {
+			assignmentObj[ingredientName] = usernames;
+		}
+
+		unit.complete(true);
+		res.status(StatusCodes.OK).json({
+			mealId,
+			ingredientAssignments: assignmentObj
+		});
+	} catch (error) {
+		unit.complete(false);
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to get ingredient assignments' });
 	}
 });

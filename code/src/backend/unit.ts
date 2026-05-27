@@ -263,6 +263,7 @@ class DB {
 		DB.migrateMealTableToIncludeCooked(connection);
 		DB.migrateRecipeAndMealTables(connection);
 		DB.migrateIngredientsAndEating(connection);
+		DB.migrateMealIngredientAssignment(connection);
 	}
 
 	private static migrateRoomTableToProfilePicture(connection: BetterSqlite3.Database): void {
@@ -613,7 +614,8 @@ class DB {
 
 					constraint pk_saved_recipe primary key (user_id, recipe_id),
 					constraint fk_saved_recipe_user_id foreign key (user_id) references User (id) ON DELETE CASCADE,
-					constraint fk_saved_recipe_recipe_id foreign key (recipe_id) references Recipe (id) ON DELETE CASCADE
+					constraint fk_saved_recipe_recipe_id
+						foreign key (recipe_id) references Recipe (id) ON DELETE CASCADE
 				) strict
 			`);
 			}
@@ -637,30 +639,29 @@ class DB {
 			if (recipeIngredientNeedsFkRepair) {
 				console.log('Repairing RecipeIngredient FK to add ON DELETE CASCADE...');
 				connection.exec(`
-				alter table RecipeIngredient
-					rename to RecipeIngredient_legacy;
+					alter table RecipeIngredient
+						rename to RecipeIngredient_legacy;
 
-				create table RecipeIngredient
-				(
-					recipe_id        text not null,
-					ingredient_name  text not null,
-					measurement      text not null,
-					amount           text not null,
+					create table RecipeIngredient
+					(
+						recipe_id       text not null,
+						ingredient_name text not null,
+						measurement     text not null,
+						amount          text not null,
 
-					constraint fk_recipe foreign key (recipe_id) references Recipe (id) ON DELETE CASCADE
-				) strict;
+						constraint fk_recipe foreign key (recipe_id) references Recipe (id) ON DELETE CASCADE
+					) strict;
 
-				insert into RecipeIngredient(recipe_id, ingredient_name, measurement, amount)
-				select legacy.recipe_id, legacy.ingredient_name, legacy.measurement, legacy.amount
-				from RecipeIngredient_legacy legacy
-				where exists(
-					select 1
-					from Recipe r
-					where r.id = legacy.recipe_id
-				);
+					-- noinspection SqlMissingColumnAliases
+					insert into RecipeIngredient(recipe_id, ingredient_name, measurement, amount)
+					select legacy.recipe_id, legacy.ingredient_name, legacy.measurement, legacy.amount
+					from RecipeIngredient_legacy legacy
+					where exists(select 1
+					             from Recipe r
+					             where r.id = legacy.recipe_id);
 
-				drop table RecipeIngredient_legacy;
-			`);
+					drop table RecipeIngredient_legacy;
+				`);
 				console.log('✓ RecipeIngredient FK repair completed');
 			}
 
@@ -709,9 +710,28 @@ class DB {
 				constraint fk_meal_id foreign key (meal_id) references Meal (id) ON DELETE CASCADE,
 				constraint fk_username foreign key (user_id) references User (id) ON DELETE CASCADE
 			 )`
-		)
+		);
 
 		console.log('✓ Ingredient migration completed');
+	}
+
+	private static migrateMealIngredientAssignment(connection: BetterSqlite3.Database) {
+		console.log('Migrating MealIngredientAssignment table...');
+
+		connection.exec(
+			`create table if not exists MealIngredientAssignment
+			(
+				meal_id integer not null,
+				ingredient_name text not null,
+				assigned_to_username text not null,
+
+				constraint pk_meal_ingredient_assignment primary key (meal_id, ingredient_name, assigned_to_username),
+				constraint fk_meal_id foreign key (meal_id) references Meal (id) ON DELETE CASCADE,
+				constraint fk_username foreign key (assigned_to_username) references User (username) ON DELETE CASCADE
+			) strict`
+		);
+
+		console.log('✓ MealIngredientAssignment migration completed');
 	}
 
 	private static migrateMealTableToIncludeCooked(connection: BetterSqlite3.Database): void {

@@ -6,6 +6,7 @@
 
 section {
 	display: flex;
+	width: 100%;
 	justify-content: center;
 	align-items: flex-start;
 	min-height: calc(100vh - 4.5rem);
@@ -69,13 +70,13 @@ section {
 }
 
 .meal-management-container {
-	overflow: visible !important;
+	overflow: auto;
 	background: $color-white;
 	padding: 1rem 1rem;
 	border-radius: 1rem;
 	border: 1px solid $color-input-bg;
 	width: 100%;
-	max-width: 860px;
+	max-height: 90vh;
 	box-shadow: 0 10px 25px $color-overlay-3;
 
 	.save-btn {
@@ -113,9 +114,6 @@ section {
 	grid-template-columns: 1fr 1fr;
 	gap: 1.2rem;
 	margin-bottom: 1.2rem;
-	@media (max-width: 640px) {
-		grid-template-columns: 1fr;
-	}
 }
 
 .field-group--full {
@@ -787,6 +785,28 @@ section {
 	flex-direction: column;
 	gap: 2rem;
 	padding: 1rem 0;
+	max-height: 70vh;
+	overflow-y: auto;
+	overflow-x: hidden;
+
+	/* Custom scrollbar styling for better appearance */
+	&::-webkit-scrollbar {
+		width: 8px;
+	}
+
+	&::-webkit-scrollbar-track {
+		background-color: $color-lighter-gray;
+		border-radius: 4px;
+	}
+
+	&::-webkit-scrollbar-thumb {
+		background-color: $color-light-gray;
+		border-radius: 4px;
+
+		&:hover {
+			background-color: $color-blue-gray;
+		}
+	}
 }
 
 .section-title {
@@ -1113,4 +1133,57 @@ section {
 	padding: 10px;
 	background: $color-lighter-gray;
 	border-radius: 8px;
+}
+
+.more-ingredient-assignment {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	align-items: flex-start;
+}
+
+.more-ingredient-users {
+	display: flex;
+	gap: 0.4rem;
+	flex-wrap: wrap;
+	width: 100%;
+}
+
+.more-ingredient-user-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4rem;
+	padding: 0.3rem 0.5rem;
+	border-radius: 4px;
+	background-color: $color-orange-2-overlay-12;
+	color: $color-orange-2;
+	font-size: 0.8rem;
+	font-weight: 500;
+	border: 1px solid $color-orange-2-overlay-20;
+	white-space: nowrap;
+}
+
+.remove-assignment-btn {
+	background: none;
+	border: none;
+	color: inherit;
+	cursor: pointer;
+	font-size: 1rem;
+	font-weight: 600;
+	padding: 0;
+	line-height: 1;
+	transition: opacity 0.2s ease;
+
+	&:hover {
+		opacity: 0.7;
+	}
+}
+
+.more-ingredient-select {
+	width: 100%;
+	padding: 0.4rem 0.6rem !important;
+	font-size: 0.85rem;
+	border: 1px solid $color-light-gray !important;
+	border-radius: 4px !important;
+	background-color: $color-input-bg !important;
 }
