@@ -69,7 +69,7 @@
 								class="field-input-ingredient"
 								[value]="currentIngredientAmount()"
 								(input)="currentIngredientAmount.set($any($event.target).value)"
-								placeholder="1">
+								placeholder="">
 						</div>
 
 						<div class="ingredient-field">
@@ -79,7 +79,7 @@
 								type="text"
 								[value]="currentIngredientMeasurement()"
 								(input)="currentIngredientMeasurement.set($any($event.target).value)"
-								placeholder="cups">
+								placeholder="e.g. kg">
 						</div>
 
 						<button type="button" class="btn-add-ingredient" (click)="addIngredient()" title="Add ingredient">

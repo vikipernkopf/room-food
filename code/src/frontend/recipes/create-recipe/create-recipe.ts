@@ -88,7 +88,9 @@ export class CreateRecipe {
 
 	onIngredientSelected(ingredient: Ingredient) {
 		this.currentIngredientName.set(ingredient.name);
-		this.currentIngredientMeasurement.set(ingredient.measurement);
+		if(ingredient.measurement!=='') {
+			this.currentIngredientMeasurement.set(ingredient.measurement);
+		}
 	}
 
 	addIngredient() {
@@ -97,15 +99,27 @@ export class CreateRecipe {
 		const amount = Number(this.currentIngredientAmount());
 
 		if (!name || !measurement || !amount || amount <= 0) {
+			console.log(name);
+			console.log(measurement);
+			console.log(amount);
 			this.ingredientError.set('Please fill in all ingredient fields with valid values');
 			return;
 		}
 
 		const newIngredient = { name, measurement, amount };
-		this.ingredients.update(list => [...list, newIngredient]);
+
+		const found = this.ingredients().find(s => { return s.name===newIngredient.name})
+
+		if(found){
+			found.amount=newIngredient.amount;
+			found.measurement=newIngredient.measurement;
+			this.ingredients.update(list => list);
+		}
+		else {
+			this.ingredients.update(list => [...list, newIngredient]);
+		}
 
 		// Reset ingredient form
-		this.currentIngredientName.set('');
 		this.currentIngredientMeasurement.set('');
 		this.currentIngredientAmount.set('');
 		this.ingredientError.set('');
