@@ -14,7 +14,6 @@ import { AuthService } from '../../../core/auth-service';
 })
 export class SearchIngredient {
 	@Output() ingredientSelected = new EventEmitter<Ingredient>();
-
 	private readonly authService = inject(AuthService);
 	private readonly ingredientService = inject(IngredientsFrontendService);
 
@@ -51,6 +50,9 @@ export class SearchIngredient {
 				this.isLoading.set(false);
 			}
 		});
+		this.ingredientSelected.emit({name: value,
+			measurement: '',
+			amount: 4});
 	}
 
 	selectOption(option: Ingredient) {

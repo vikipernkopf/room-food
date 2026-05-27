@@ -69,16 +69,14 @@ export class AvailableIngredients implements OnInit {
 						(m.recipeIds || []).forEach(rid => recipeIds.push(rid));
 					});
 
-					// Deduplicate recipe ids
-					const uniq = Array.from(new Set(recipeIds));
-
 					// Fetch ingredients for all recipes in parallel
-					const promises = uniq.map(rid =>
+					const promises = recipeIds.map(rid =>
 						firstValueFrom(
 							this.ingredientsFrontendService.getIngredientsForRecipe(rid)
 						)
 					);
 					const results = await Promise.all(promises);
+					console.log(results);
 
 					// Flatten and normalize backend shape (some endpoints return ingredientName)
 					const allRaw = results.flat();
@@ -91,6 +89,7 @@ export class AvailableIngredients implements OnInit {
 					// Aggregate by name + measurement
 					const map = new Map<string, Ingredient>();
 					all.forEach(ing => {
+
 						const key = `${ing.name}||${ing.measurement}`;
 						const existing = map.get(key);
 						if (existing) {
