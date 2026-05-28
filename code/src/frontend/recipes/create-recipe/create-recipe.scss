@@ -1,4 +1,5 @@
 @use "../../styles/theme" as *;
+@use "../../styles/form-style";
 
 /* ===== PAGE WRAPPER ===== */
 .create-recipe-container {
@@ -74,12 +75,6 @@
 	display: flex;
 	flex-direction: column;
 	gap: 8px;
-
-	label {
-		font-size: 14px;
-		font-weight: 500;
-		color: $color-text-main;
-	}
 }
 
 .form-row {
@@ -151,12 +146,6 @@
 	}
 }
 
-.field-error {
-	margin: 0;
-	font-size: 12px;
-	color: $color-red;
-	font-weight: 500;
-}
 
 /* ===== INGREDIENTS SECTION ===== */
 .ingredients-input-group {

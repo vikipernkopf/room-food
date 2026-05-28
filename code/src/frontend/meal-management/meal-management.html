@@ -3,8 +3,8 @@
 		<!-- VIEW MODE - Display Meal Details -->
 		@if (isViewMode()) {
 			@if (!showMore()) {
-				<div class="modal-header">
-					<h2>{{ dish }}</h2>
+				<div class="header-container">
+					<h2 class="header">{{ dish }}</h2>
 					<button class="btn-close" type="button" (click)="closePopup()">x</button>
 				</div>
 				<div class="view-meal-type">
@@ -77,289 +77,296 @@
 				<div class="view-status-toggle">
 					<mat-checkbox name="cookedCheckbox" color="primary" [checked]="isCooked"
 						(click)="$event.preventDefault(); cookedCheckBox()">
-						Meal Prepared
+						Prepared?
 					</mat-checkbox>
 				</div>
 
 				<div class="action-row">
-					<button mat-flat-button type="button" class="save-btn" (click)="editButton()">
+					<button type="button" class="btn-primary" (click)="editButton()">
 						Edit Meal
 					</button>
 				</div>
 			}
 		} @else {
 			<!-- EDIT MODE - Meal Form -->
-			@if (!showMore()) {
-				<div class="modal-header">
-					@if (isEditMode) {
-						<h2>Edit Meal</h2>
-					} @else {
-						<h2>Plan a Meal</h2>
-					}
-					<button class="btn-close" type="button" (click)="closePopup()">x</button>
-				</div>
-
-				<div class="form-grid">
-					<!-- Dish Name -->
-					<div class="field-group field-group--full">
-						<label class="field-label" for="dish">Dish Name</label>
-						<input id="dish" matInput name="dish" placeholder="e.g. Pasta Bolognese" [(ngModel)]="dish"
-							(input)="clearErrors()">
+			<div class="field-group meal-form">
+				@if (!showMore()) {
+					<div class="header-container">
+						@if (isEditMode) {
+							<h2 class="header">Edit Meal</h2>
+						} @else {
+							<h2 class="header">Plan a Meal</h2>
+						}
+						<button class="btn-close" type="button" (click)="closePopup()">x</button>
 					</div>
 
-					<!-- Room Selection (Overview Mode Only) -->
-					@if (overviewMode) {
+					<div class="form-grid scrollable">
+						<!-- Dish Name -->
 						<div class="field-group field-group--full">
-							<label class="field-label" for="roomCode">Room</label>
-							<mat-select id="roomCode" panelClass="meal-type-panel" placeholder="Select room"
-								[disableOptionCentering]="true" [(ngModel)]="selectedRoomCode" name="roomCode"
-								(ngModelChange)="onRoomSelectionChange($any($event))">
-								@for (room of availableRooms; track room.code) {
-									<mat-option [value]="room.code">{{ room.roomName }}</mat-option>
+							<label class="field-label" for="dish">Dish Name</label>
+							<input id="dish" class="input-field" matInput name="dish" placeholder="e.g. Pasta Bolognese"
+								[(ngModel)]="dish" (input)="clearErrors()">
+						</div>
+
+						<!-- Room Selection (Overview Mode Only) -->
+						@if (overviewMode) {
+							<div class="field-group field-group--full">
+								<label class="field-label">Room</label>
+								<mat-select class="select-input" panelClass="meal-type-panel" placeholder="Select room"
+									[disableOptionCentering]="true" [(ngModel)]="selectedRoomCode" name="roomCode"
+									(ngModelChange)="onRoomSelectionChange($any($event))">
+									@for (room of availableRooms; track room.code) {
+										<mat-option [value]="room.code">{{ room.roomName }}</mat-option>
+									}
+								</mat-select>
+							</div>
+						}
+
+						<!-- Recipes Selection -->
+						<div class="field-group field-group--full">
+							<label class="field-label">Recipes</label>
+							<mat-select class="select-input" panelClass="meal-type-panel recipe-panel"
+								placeholder="Select recipes"
+								[disableOptionCentering]="true" [(ngModel)]="selectedRecipeIds" name="recipeIds"
+								multiple (ngModelChange)="onRecipeSelectionChange($any($event))">
+								<mat-select-trigger>
+									{{ getSelectedRecipeLabel() || 'Select recipes' }}
+								</mat-select-trigger>
+								<div class="search-field-option">
+									<input matInput class="input-field" type="text"
+										placeholder="Search recipes (e.g. Pasta)" [value]="recipeSearchTerm"
+										(input)="onRecipeSearchChange($any($event.target).value)"
+										(click)="$event.stopPropagation()" (mousedown)="$event.stopPropagation()"
+										(keydown)="onRecipeSearchKeydown($event)">
+								</div>
+								@for (recipe of filteredRecipes; track recipe.id) {
+									<mat-option [value]="recipe.id">{{ recipe.name }}</mat-option>
+								}
+								@if (!filteredRecipes.length) {
+									<div class="search-empty-option">No matching recipes found</div>
+								}
+							</mat-select>
+							@if (recipesLoadError) {
+								<div class="error-text field-error">{{ recipesLoadError }}</div>
+							}
+						</div>
+
+						<!-- Responsible Users Selection -->
+						<div class="field-group field-group--full">
+							<label class="field-label">Responsible Users</label>
+							<mat-select class="select-input" panelClass="meal-type-panel responsible-panel"
+								placeholder="Select responsible users" [disableOptionCentering]="true"
+								[(ngModel)]="selectedResponsibleUsers" name="responsibleUsers" multiple
+								(ngModelChange)="onResponsibleUsersChange($any($event))">
+								<mat-select-trigger>
+									{{ getSelectedResponsibleUsersLabel() || 'Select responsible users' }}
+								</mat-select-trigger>
+								@for (member of availableRoomMembers; track member) {
+									<mat-option [value]="member">{{ member }}</mat-option>
+								}
+								@if (!availableRoomMembers.length) {
+									<mat-option class="recipe-empty-option" disabled>No room members found</mat-option>
+								}
+							</mat-select>
+							@if (roomMembersLoadError) {
+								<div class="error-text field-error">{{ roomMembersLoadError }}</div>
+							}
+						</div>
+
+						<!-- Meal Type -->
+						<div class="field-group field-group--full">
+							<label class="field-label">Meal Type</label>
+							<mat-select class="select-input" panelClass="meal-type-panel" placeholder="Select meal type"
+								[disableOptionCentering]="true" [(ngModel)]="selectedValue" name="food">
+								@for (type of mealTypes; track type) {
+									<mat-option [value]="type.value">{{ type.viewValue }}</mat-option>
 								}
 							</mat-select>
 						</div>
-					}
 
-					<!-- Recipes Selection -->
-					<div class="field-group field-group--full">
-						<label class="field-label" for="mealRecipes">Recipes</label>
-						<mat-select id="mealRecipes" panelClass="meal-type-panel recipe-panel"
-							placeholder="Select recipes" [disableOptionCentering]="true" [(ngModel)]="selectedRecipeIds"
-							name="recipeIds" multiple (ngModelChange)="onRecipeSelectionChange($any($event))">
-							<mat-select-trigger>
-								{{ getSelectedRecipeLabel() || 'Select recipes' }}
-							</mat-select-trigger>
-							<div class="recipe-search-option">
-								<input matInput type="text" placeholder="Search recipes (e.g. Pasta)"
-									[value]="recipeSearchTerm"
-									(input)="onRecipeSearchChange($any($event.target).value)"
-									(click)="$event.stopPropagation()" (mousedown)="$event.stopPropagation()"
-									(keydown)="onRecipeSearchKeydown($event)">
+						<!-- Start Time -->
+						<div class="field-group">
+							<label class="field-label" for="startTime">Start Time</label>
+							<div class="input-with-icon">
+								<input id="startTime" class="input-field" matInput [matTimepicker]="startPicker"
+									[(ngModel)]="selectedStartTime" name="startTime">
+								<mat-timepicker-toggle matIconSuffix [for]="startPicker"></mat-timepicker-toggle>
+								<mat-timepicker interval="15min" #startPicker></mat-timepicker>
 							</div>
-							@for (recipe of filteredRecipes; track recipe.id) {
-								<mat-option [value]="recipe.id">{{ recipe.name }}</mat-option>
+							@if (timeErrors.start) {
+								<div class="field-error">{{ timeErrors.start }}</div>
 							}
-							@if (!filteredRecipes.length) {
-								<div class="recipe-empty-option">No matching recipes found</div>
-							}
-						</mat-select>
-						@if (recipesLoadError) {
-							<div class="error-text field-error">{{ recipesLoadError }}</div>
-						}
-					</div>
-
-					<!-- Responsible Users Selection -->
-					<div class="field-group field-group--full">
-						<label class="field-label" for="responsibleUsers">Responsible Users</label>
-						<mat-select id="responsibleUsers" panelClass="meal-type-panel responsible-panel"
-							placeholder="Select responsible users" [disableOptionCentering]="true"
-							[(ngModel)]="selectedResponsibleUsers" name="responsibleUsers" multiple
-							(ngModelChange)="onResponsibleUsersChange($any($event))">
-							<mat-select-trigger>
-								{{ getSelectedResponsibleUsersLabel() || 'Select responsible users' }}
-							</mat-select-trigger>
-							@for (member of availableRoomMembers; track member) {
-								<mat-option [value]="member">{{ member }}</mat-option>
-							}
-							@if (!availableRoomMembers.length) {
-								<mat-option class="recipe-empty-option" disabled>No room members found</mat-option>
-							}
-						</mat-select>
-						@if (roomMembersLoadError) {
-							<div class="error-text field-error">{{ roomMembersLoadError }}</div>
-						}
-					</div>
-
-
-					<!-- Meal Type -->
-					<div class="field-group field-group--full">
-						<label class="field-label" for="mealType">Meal Type</label>
-						<mat-select id="mealType" panelClass="meal-type-panel" placeholder="Select meal type"
-							[disableOptionCentering]="true" [(ngModel)]="selectedValue" name="food">
-							@for (type of mealTypes; track type) {
-								<mat-option [value]="type.value">{{ type.viewValue }}</mat-option>
-							}
-						</mat-select>
-					</div>
-
-					<!-- Start Time -->
-					<div class="field-group">
-						<label class="field-label" for="startTime">Start Time</label>
-						<div class="input-with-icon">
-							<input id="startTime" matInput [matTimepicker]="startPicker" [(ngModel)]="selectedStartTime"
-								   name="startTime">
-							<mat-timepicker-toggle matIconSuffix [for]="startPicker"></mat-timepicker-toggle>
-							<mat-timepicker interval="15min" #startPicker></mat-timepicker>
 						</div>
-						@if (timeErrors.start) {
-							<div class="field-error">{{ timeErrors.start }}</div>
-						}
-					</div>
 
-					<!-- End Time -->
-					<div class="field-group">
-						<label class="field-label" for="endTime">End Time</label>
-						<div class="input-with-icon">
-							<input id="endTime" matInput [matTimepicker]="endPicker" [(ngModel)]="selectedEndTime"
-								   name="endTime">
-							<mat-timepicker-toggle matIconSuffix [for]="endPicker"></mat-timepicker-toggle>
-							<mat-timepicker interval="15min" #endPicker></mat-timepicker>
+						<!-- End Time -->
+						<div class="field-group">
+							<label class="field-label" for="endTime">End Time</label>
+							<div class="input-with-icon">
+								<input id="endTime" class="input-field" matInput [matTimepicker]="endPicker"
+									[(ngModel)]="selectedEndTime" name="endTime">
+								<mat-timepicker-toggle matIconSuffix [for]="endPicker"></mat-timepicker-toggle>
+								<mat-timepicker interval="15min" #endPicker></mat-timepicker>
+							</div>
+							@if (timeErrors.end) {
+								<div class="field-error">{{ timeErrors.end }}</div>
+							}
 						</div>
-						@if (timeErrors.end) {
-							<div class="field-error">{{ timeErrors.end }}</div>
-						}
-					</div>
 
-					<!-- Date Selection -->
-					<div class="field-group">
-						<label class="field-label" for="mealDate">Date</label>
-						<div class="input-with-icon">
-							<input id="mealDate" matInput placeholder="Select date" [matDatepicker]="datepicker"
-								[(ngModel)]="selectedDate" name="date">
-							<mat-datepicker-toggle matIconSuffix [for]="datepicker"></mat-datepicker-toggle>
-							<mat-datepicker #datepicker panelClass="meal-datepicker-panel"></mat-datepicker>
+						<!-- Date Selection -->
+						<div class="field-group">
+							<label class="field-label" for="mealDate">Date</label>
+							<div class="input-with-icon">
+								<input id="mealDate" class="input-field" matInput placeholder="Select date"
+									[matDatepicker]="datepicker" [(ngModel)]="selectedDate" name="date">
+								<mat-datepicker-toggle matIconSuffix [for]="datepicker"></mat-datepicker-toggle>
+								<mat-datepicker #datepicker panelClass="meal-datepicker-panel"></mat-datepicker>
+							</div>
+						</div>
+
+						<!-- More Button -->
+						<div class="more-row">
+							<button type="button" class="more-link" (click)="showMore.set(true)">
+								More →
+							</button>
 						</div>
 					</div>
 
-					<!-- More Button -->
-					<div class="more-row">
-						<button type="button" class="more-link" (click)="showMore.set(true)">
-							More →
+					<!-- Action Buttons -->
+					<div class="action-row">
+						<button type="button" class="save-btn" (click)="saveMeal()"
+							[disabled]="isSubmitting || timeErrors.start || timeErrors.end">
+							{{ isEditMode ? 'Update Meal' : 'Save Meal' }}
 						</button>
+						@if (isEditMode) {
+							<button type="button" class="delete-btn" (click)="deleteMeal()" [disabled]="isSubmitting">
+								Delete Meal
+							</button>
+						}
 					</div>
-				</div>
 
-				<!-- Action Buttons -->
-				<div class="action-row">
-					<button mat-flat-button type="button" class="save-btn" (click)="saveMeal()"
-						[disabled]="isSubmitting || timeErrors.start || timeErrors.end">
-						{{ isEditMode ? 'Update Meal' : 'Save Meal' }}
-					</button>
-					@if (isEditMode) {
-						<button mat-stroked-button type="button" class="delete-btn" (click)="deleteMeal()"
-							[disabled]="isSubmitting">
-							Delete Meal
-						</button>
+					<!-- Error Messages -->
+					@if (showError) {
+						<div class="error-text">Please fill out all the fields</div>
 					}
-				</div>
-
-				<!-- Error Messages -->
-				@if (showError) {
-					<div class="error-text">Please fill out all the fields</div>
+					@if (backendError) {
+						<div class="error-text">{{ backendError }}</div>
+					}
+					<hr>
 				}
-				@if (backendError) {
-					<div class="error-text">{{ backendError }}</div>
-				}
-				<hr>
-			}
+			</div>
 		}
 
 		<!-- MORE TAB - Eating People & Ingredients -->
 		@if (showMore()) {
-			<div class="modal-header">
-				<button type="button" class="back-link" (click)="showMore.set(false)">← Back</button>
-				<button class="btn-close" type="button" (click)="closePopup()">x</button>
-			</div>
+			<div class="more-tab">
+				<div class="header-container">
+					<button type="button" class="back-link" (click)="showMore.set(false)">← Back</button>
+					<button class="btn-close" type="button" (click)="closePopup()">x</button>
+				</div>
 
-			<div class="more-content">
+				<div class="more-content scrollable">
 
-				<div class="more-section">
-					<h3 class="more-section__title">Who's Eating</h3>
+					<div class="more-section">
+						<h3 class="more-section__title">Who's Eating?</h3>
 
-					<div class="more-eating-counter">
-						<button mat-button type="button" class="more-counter-btn"
-							(click)="removeCurrentUserFromEating()"
-							[disabled]="!isCurrentUserEating() || !mealToEdit?.id">−
-						</button>
+						<div class="more-eating-list">
+							<div class="more-eating-row" [class.more-eating-row--disabled]="!isCurrentUserEating()">
+								<span class="more-eating-name">{{ currentUser()?.username }}</span>
 
-						<button mat-button type="button" class="more-counter-btn" (click)="addCurrentUserToEating()"
-							[disabled]="isCurrentUserEating() || !mealToEdit?.id">+
-						</button>
+								<div class="more-eating-actions">
+									<button mat-button type="button" class="more-counter-btn"
+										(click)="removeCurrentUserFromEating()"
+										[disabled]="!isCurrentUserEating() || !mealToEdit?.id">−
+									</button>
+
+									<button mat-button type="button" class="more-counter-btn"
+										(click)="addCurrentUserToEating()"
+										[disabled]="isCurrentUserEating() || !mealToEdit?.id">+
+									</button>
+								</div>
+							</div>
+
+							@for (person of otherEatingPeopleArray(); track person) {
+								<div class="more-eating-row">
+									<span class="more-eating-name">{{ person }}</span>
+								</div>
+							}
+						</div>
 					</div>
 
-					<div class="more-eating-list" [class.more-eating-list--grid]="eatingPeople().size > 4">
-						@for (person of eatingPeopleArray(); track person) {
-							<div class="more-eating-chip">{{ person }}</div>
+					<div class="more-section">
+						<h3 class="more-section__title">Ingredients needed</h3>
+
+						@if (ingredientsLoading) {
+							<p class="more-ingredients-empty">Loading ingredients...</p>
+						} @else if (scaledIngredients.length === 0) {
+							<p class="more-ingredients-empty">
+								{{ selectedRecipeIds.length === 0 ? 'No recipes selected yet.'
+								: 'No ingredients found for the selected recipes.' }} </p>
+						} @else {
+							<div class="more-ingredients-note">
+								Scaled for {{ eatingPeople().size }}
+								{{ eatingPeople().size === 1 ? 'person' : 'people' }}
+							</div>
+							<table class="more-ingredients-table">
+								<thead>
+								<tr>
+									<th>Ingredient</th>
+									<th>Amount</th>
+									<th>Unit</th>
+									<th>Assigned To</th>
+								</tr>
+								</thead>
+								<tbody>
+									@for (ing of scaledIngredients; track ing.ingredientName) {
+										<tr>
+											<td>{{ ing.ingredientName }}</td>
+											<td>{{ ing.amount }}</td>
+											<td>{{ ing.measurement }}</td>
+											<td class="more-ingredient-assignment">
+												<div class="more-ingredient-users">
+													@for (user of getAssignedUsersForIngredient(
+														ing.ingredientName); track user) {
+														<span class="more-ingredient-user-chip">
+														{{ user }}
+															<button type="button" class="remove-assignment-btn"
+																(click)="removeIngredientAssignment(ing.ingredientName, user)"
+																title="Remove assignment">
+															x
+															</button>
+														</span>
+													}
+												</div>
+												@if (!isViewMode() && isEditMode) {
+													<mat-select class="more-ingredient-select select-input"
+														placeholder="Assign to user"
+														[(ngModel)]="ingredientAssignmentDropdown"
+														(ngModelChange)="assignIngredientToUser(ing.ingredientName, $any($event))"
+														name="ingredientAssign_{{ ing.ingredientName }}">
+														<mat-option value="">Select user</mat-option>
+														@for (member of availableRoomMembers; track member) {
+															<mat-option [value]="member">{{ member }}</mat-option>
+														}
+													</mat-select>
+												}
+											</td>
+										</tr>
+									}
+								</tbody>
+							</table>
 						}
 					</div>
-				</div>
 
-				<div class="more-section">
-					<h3 class="more-section__title">Ingredients needed</h3>
-
-					@if (ingredientsLoading) {
-						<p class="more-ingredients-empty">Loading ingredients...</p>
-					} @else if (scaledIngredients.length === 0) {
-						<p class="more-ingredients-empty">
-							{{ selectedRecipeIds.length === 0 ? 'No recipes selected yet.'
-							: 'No ingredients found for the selected recipes.' }} </p>
-					} @else {
-						<div class="more-ingredients-note">
-							Scaled for {{ eatingPeople().size }}
-							{{ eatingPeople().size === 1 ? 'person' : 'people' }}
-						</div>
-						<table class="more-ingredients-table">
-							<thead>
-							<tr>
-								<th>Ingredient</th>
-								<th>Amount</th>
-								<th>Unit</th>
-								<th>Assigned To</th>
-							</tr>
-							</thead>
-							<tbody>
-								@for (ing of scaledIngredients; track ing.ingredientName) {
-									<tr>
-										<td>{{ ing.ingredientName }}</td>
-										<td>{{ ing.amount }}</td>
-										<td>{{ ing.measurement }}</td>
-										<td class="more-ingredient-assignment">
-											<div class="more-ingredient-users">
-												@for (user of getAssignedUsersForIngredient(ing.ingredientName); track user) {
-													<span class="more-ingredient-user-chip">
-														{{ user }}
-														<button type="button" class="remove-assignment-btn"
-															(click)="removeIngredientAssignment(ing.ingredientName, user)"
-															title="Remove assignment">
-															×
-														</button>
-													</span>
-												}
-											</div>
-											@if (isViewMode() || !isEditMode) {
-												<!-- Do not show input in view mode or when creating new meal -->
-											} @else {
-												<mat-select class="more-ingredient-select"
-													placeholder="Assign to user"
-													[(ngModel)]="ingredientAssignmentDropdown"
-													(ngModelChange)="assignIngredientToUser(ing.ingredientName, $any($event))"
-													name="ingredientAssign_{{ ing.ingredientName }}">
-													<mat-option value="">Select user</mat-option>
-													@for (member of availableRoomMembers; track member) {
-														<mat-option [value]="member">{{ member }}</mat-option>
-													}
-												</mat-select>
-											}
-										</td>
-									</tr>
-								}
-							</tbody>
-						</table>
-					}
-				</div>
-
-				<div class="action-row">
-					<button mat-flat-button type="button" class="save-btn" (click)="saveMeal()"
-						[disabled]="isSubmitting">
-						{{ isEditMode ? 'Update Meal' : 'Save Meal' }}
-					</button>
-					@if (isEditMode) {
-						<button mat-stroked-button type="button" class="delete-btn" (click)="deleteMeal()"
-							[disabled]="isSubmitting">
-							Delete Meal
+					<div class="action-row">
+						<button type="button" class="save-btn" (click)="saveMeal()" [disabled]="isSubmitting">
+							{{ isEditMode ? 'Update Meal' : 'Save Meal' }}
 						</button>
-					}
+						@if (isEditMode) {
+							<button type="button" class="delete-btn" (click)="deleteMeal()" [disabled]="isSubmitting">
+								Delete Meal
+							</button>
+						}
+					</div>
 				</div>
 			</div>
 		}

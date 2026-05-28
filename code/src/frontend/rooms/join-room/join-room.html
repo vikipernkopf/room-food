@@ -6,7 +6,7 @@
 
 		<div class="form-grid">
 			<div class="field-group field-group--full">
-				<label for="roomCode">Room Code</label>
+				<label for="roomCode" class="field-label">Room Code</label>
 				<input
 					formControlName="roomCode"
 					id="roomCode"
@@ -16,14 +16,14 @@
 
 				@if (roomJoinForm.get('roomCode'); as roomCodeControl) {
 					@if (roomCodeControl.touched && roomCodeControl.invalid) {
-						<aside>
+						<span class="field-error">
 							@if (roomCodeControl.hasError('required')) {
-								<span>Room code is required</span>
+								Room code is required
 							}
 							@if (roomCodeControl.hasError('minlength')) {
-								<span>Room code must be at least 2 characters</span>
+								Room code must be at least 2 characters
 							}
-						</aside>
+						</span>
 					}
 				}
 			</div>
@@ -36,7 +36,7 @@
 			<span>{{ joinRoomStatus() || ' ' }}</span>
 		</div>
 
-		<button type="submit" [disabled]="isLoading">
+		<button type="submit" class="btn-primary" [disabled]="isLoading">
 			{{ isLoading ? 'Requesting to join room…' : 'Join room' }}
 		</button>
 

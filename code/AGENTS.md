@@ -1,4 +1,3 @@
-
 You are an expert in TypeScript, Angular, and scalable web application development. You write functional, maintainable, performant, and accessible code following Angular and TypeScript best practices.
 
 ## General Rules
@@ -100,6 +99,7 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - Do NOT use the `@HostBinding` and `@HostListener` decorators. Put host bindings inside the `host` object of the `@Component` or `@Directive` decorator instead
 - Use `NgOptimizedImage` for all static images.
   - `NgOptimizedImage` does not work for inline base64 images.
+- Never use deprecated APIs or patterns. For example, do not use `ngClass` or `ngStyle`, use `class` and `style` bindings instead. Do not use `*ngIf`, `*ngFor`, or `*ngSwitch`, use the native control flow directives (`@if`, `@for`, `@switch`) instead.
 
 ### Angular 21 and Signal-forms (recommended)
 
@@ -194,6 +194,14 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - Avoid hardcoded colors; always use theme variables like `$color-orange-2`, `$color-input-bg`, etc.
 - Component styles are scoped to the component and don't leak globally
 - For dynamic styling, use Angular's `class` bindings instead of `ngClass` or `style` attributes
+- For all forms (login, signup, profile, create/join room, create recipe, meal management), import and extend `code/src/frontend/styles/form-style.scss`. This file provides:
+  - Base form grid layouts (`.form-grid`, `.form-grid--single-column`)
+  - Field group and input styling (`.field-group`, `.field-label`)
+  - Buttons and actions (`.btn-primary`, `.btn-secondary`, `.delete-btn`, `.action-row`)
+  - Error states and validation feedback (`.field-error`, `.field-success`)
+  - View-mode/read-only display elements (`.view-meta`, `.view-card`, `.view-list`, `.view-text-box`)
+  - Material selector, datepicker, and timepicker overrides
+  - Do not override form-style.scss globally; only extend specific classes in component-level `.scss` files for component-specific tweaks.
 
 ## Services
 

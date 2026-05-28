@@ -1,9 +1,9 @@
 ﻿@use "../styles/theme" as *;
+@use "../styles/form-style";
 
-* {
-	font-family: "Inter", sans-serif;
-}
-
+// ---------------------------------------------------------
+// 1. BASE LAYOUT & CONTAINERS
+// ---------------------------------------------------------
 section {
 	display: flex;
 	width: 100%;
@@ -15,45 +15,6 @@ section {
 	box-sizing: border-box;
 }
 
-.recipe-empty-option {
-	margin: 1rem 1rem 0.8rem;
-	color: $color-light-gray;
-	width: auto;
-}
-
-.recipe-search-option {
-	opacity: 1 !important;
-	background-color: $color-white !important;
-	cursor: default;
-	min-height: auto;
-	pointer-events: auto !important;
-	width: auto;
-}
-
-.recipe-search-option input {
-	margin: 0.5rem 0.8rem;
-	padding: 0.65rem 0.85rem;
-	border: 1px solid $color-light-gray;
-	border-radius: 10px;
-	background-color: $color-input-bg;
-	color: $color-text-main;
-	font-size: 0.95rem;
-	transition: border-color 0.3s ease, background-color 0.3s ease;
-	width: stretch;
-
-	&:focus {
-		outline: none;
-		border-color: $color-orange-2;
-		background-color: $color-white;
-	}
-
-	&::placeholder {
-		color: $color-blue-gray;
-	}
-
-	opacity: 1 !important;
-}
-
 :host-context(.modal-card) section,
 :host-context(.modal-overlay) section {
 	min-height: 0;
@@ -61,333 +22,381 @@ section {
 	background-color: $color-transparent;
 }
 
-.recipe-image {
-	width: 100%;
-	height: 8rem;
-	object-fit: cover;
-	border-radius: 0.75rem;
-	border: 1px solid $color-light-gray;
-}
-
 .meal-management-container {
 	overflow: auto;
 	background: $color-white;
-	padding: 1rem 1rem;
+	padding: 1rem;
 	border-radius: 1rem;
 	border: 1px solid $color-input-bg;
 	width: 100%;
 	max-height: 90vh;
 	box-shadow: 0 10px 25px $color-overlay-3;
-
-	.save-btn {
-		width: 100%;
-		padding: 0.75rem 1rem;
-		border: none;
-		border-radius: 12px;
-		background-color: $color-orange-2;
-		color: $color-white;
-		font-size: 1rem;
-		font-weight: 600;
-		cursor: pointer;
-		transition: background-color 0.3s ease;
-		margin-top: 1.2rem;
-
-		&:hover:not(:disabled) {
-			background-color: $color-orange-1;
-		}
-
-		&:disabled {
-			opacity: 0.6;
-			cursor: not-allowed;
-		}
-	}
-
-	hr {
-		margin: 1rem 0 0 0;
-		border: none;
-		border-top: 1px solid $color-light-gray;
-	}
 }
 
-.form-grid {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 1.2rem;
-	margin-bottom: 1.2rem;
-}
-
-.field-group--full {
-	grid-column: 1 / -1; /* This forces the element to stretch across all columns */
-}
-
-.field-group {
+.meal-form {
 	display: flex;
 	flex-direction: column;
-	position: relative;
+	max-height: 80vh;
+}
 
-	&--full {
-		grid-column: 1 / -1;
-	}
+// ---------------------------------------------------------
+// 3. BUTTONS & ACTIONS
+// ---------------------------------------------------------
 
-	&--start-time {
-		grid-column: 1;
-	}
+// ---------------------------------------------------------
+// 4. ERROR STATES
+// ---------------------------------------------------------
 
-	&--end-time {
-		grid-column: 2;
-	}
+// ---------------------------------------------------------
+// 5. VIEW MODE
+// ---------------------------------------------------------
+.view-meal-type {
+	display: inline-block;
+	font-size: 0.78rem;
+	font-weight: 600;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+	color: $color-orange-2;
+	background-color: $color-orange-2-overlay-12;
+	border-radius: 999px;
+	padding: 0.2rem 0.75rem;
+	margin-bottom: 1rem;
+}
 
-	label {
-		color: $color-label-gray;
-		font-size: 0.9rem;
-		font-weight: 600;
-		margin-bottom: 0.4rem;
-	}
+.view-meta {
+	display: flex;
+	flex-direction: column;
+	gap: 0.35rem;
+	margin-bottom: 1.2rem;
+	padding: 0.75rem 1rem;
+	background-color: $color-input-bg;
+	border-radius: 10px;
+	border: 1px solid $color-light-gray;
 
-	input,
-	select,
-	::ng-deep mat-select {
-		padding: 0.65rem 0.85rem;
-		border: 1px solid $color-light-gray;
-		border-radius: 10px;
-		background-color: $color-input-bg;
+	&__who,
+	&__date,
+	&__time,
+	&__room {
+		font-size: 0.92rem;
 		color: $color-text-main;
-		font-size: 0.95rem;
-		transition: border-color 0.3s ease, background-color 0.3s ease;
-
-		&:focus {
-			outline: none;
-			border-color: $color-orange-2;
-			background-color: $color-white;
-		}
-
-		&:disabled {
-			background-color: $color-light-gray;
-			cursor: not-allowed;
-		}
-
-		&::placeholder {
-			color: $color-blue-gray;
-		}
-	}
-
-	.input-with-icon {
-		position: relative;
 		display: flex;
-		align-items: center;
+		align-items: baseline;
+		gap: 0.4rem;
 
-		input {
-			padding-right: 2.5rem;
-			width: 100%;
-		}
+		.view-icon {
+			width: 1rem;
+			height: 1rem;
+			fill: $color-orange-2;
+			flex-shrink: 0;
 
-		::ng-deep mat-datepicker-toggle,
-		::ng-deep mat-timepicker-toggle {
-			position: absolute;
-			right: 0.5rem;
-			top: 50%;
-			transform: translateY(-50%);
-			pointer-events: all;
-
-			button {
-				background: none;
-				border: none;
-				padding: 0;
-				width: 2rem;
-				height: 2rem;
-				cursor: pointer;
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				border-radius: 50%;
-
-				.mat-icon {
-					color: $color-orange-2;
-					font-size: 1.2rem;
-					width: 1.2rem;
-					height: 1.2rem;
-				}
-
-				&:hover {
-					background-color: $color-orange-2-overlay-5;
-					border-radius: 50%;
-				}
+			&.mat-icon {
+				font-size: 0.92rem;
+				line-height: 1;
+				width: auto;
+				height: auto;
+				overflow: visible;
 			}
 		}
 	}
 
-	::ng-deep mat-select {
-		position: relative;
-		padding: 0.65rem 0.625rem 0.65rem 0.85rem;
-		display: block;
-		width: 100%;
-		height: auto;
-		min-height: 0;
-		box-sizing: border-box;
+	&__who {
+		font-weight: 600;
+	}
 
-		&:focus {
-			outline: none;
-			border-color: $color-orange-2;
-			background-color: $color-white;
-		}
-
-		&:disabled {
-			background-color: $color-light-gray;
-			cursor: not-allowed;
-		}
-
-		.mat-mdc-select-trigger {
-			padding: 0;
-			color: $color-text-main;
-			font-size: 0.95rem;
-			line-height: 1.2;
-			display: flex;
-			align-items: center;
-		}
-
-		.mat-mdc-select-value,
-		.mat-mdc-select-value-text,
-		.mat-mdc-select-min-line {
-			color: $color-text-main;
-		}
-
-		.mat-mdc-select-arrow {
-			color: $color-text-main;
-			margin-right: 0;
-		}
-
-		.mat-mdc-select-arrow-wrapper {
-			position: absolute;
-			right: 0;
-			top: 50%;
-			transform: translateY(-50%);
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			width: 1.5rem;
-			height: 1.5rem;
-			border-radius: 50%;
-			transition: background-color 0.2s ease;
-		}
-
-		&:hover .mat-mdc-select-arrow-wrapper {
-			background-color: $color-orange-2-overlay-5;
-		}
+	&__date,
+	&__time,
+	&__room {
+		color: $color-label-gray;
 	}
 }
 
-.field-group--time-row {
-	grid-column: 1 / -1; // Spans full grid width automatically
-	display: flex;
-	flex-direction: row;
-	gap: 16px;          // The space separating the start time and end time boxes
-	width: 100%;
-	margin-bottom: 0;   // Prevents double spacing layout issues
+.view-recipes {
+	margin-bottom: 1rem;
 
-	.time-split-input {
-		flex: 1;        // Forces both time inputs to take up exactly 50% width each
+	&__title {
+		font-size: 0.9rem;
+		font-weight: 600;
+		color: $color-label-gray;
+		margin: 0 0 0.6rem 0;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+	}
+
+	&__list {
 		display: flex;
 		flex-direction: column;
+		gap: 0.6rem;
 	}
 }
 
-.btn-close {
-	border: none;
-	background: $color-transparent;
-	font-size: 1.3rem;
-	line-height: 1;
-	color: $color-orange-2;
-	cursor: pointer;
-	padding: 0;
-	width: 1.9rem;
-	height: 1.9rem;
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	opacity: 100% !important;
-	border-radius: 100%;
-
-	&:hover {
-		background: $color-orange-2-overlay-12 !important;
-	}
-}
-
-.modal-header {
+.view-recipe-card {
 	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	margin-bottom: 0.9rem;
-	padding-bottom: 0.6rem;
-	border-bottom: 1px solid $color-light-gray;
+	gap: 0.75rem;
+	align-items: flex-start;
+	background-color: $color-input-bg;
+	border: 1px solid $color-light-gray;
+	border-radius: 10px;
+	overflow: hidden;
+	padding: 0 1rem;
 
-	h2 {
-		margin: 0;
-		font-size: 1.5rem;
-		color: $color-green-4;
+	&__image {
+		width: 5rem;
+		height: 5rem;
+		object-fit: cover;
+		flex-shrink: 0;
+	}
+
+	&__body {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		gap: 0.25rem;
+		padding: 0.6rem 0;
+	}
+
+	&__name {
+		font-size: 0.95rem;
+		font-weight: 600;
+		color: $color-text-main;
+	}
+
+	&__desc {
+		font-size: 0.85rem;
+		color: $color-label-gray;
+		line-height: 1.4;
 	}
 }
 
-.action-row {
-	display: flex;
-	flex-wrap: wrap;
-	justify-content: center;
-	margin-top: 1.2rem;
+.view-ingredients {
+	margin-bottom: 1rem;
 
-	.save-btn {
-		flex: 1 1 100%;
-	}
-
-	.delete-btn {
-		padding: 0;
-		border: none;
-		background: transparent;
-		color: $color-red;
+	&__title {
 		font-size: 0.9rem;
-		font-weight: 500;
-		cursor: pointer;
-		text-decoration: none;
-		transition: color 0.3s ease;
-		margin-top: 0.4rem;
+		font-weight: 600;
+		color: $color-label-gray;
+		margin: 0 0 0.6rem 0;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+	}
 
-		&:hover:not(:disabled) {
-			color: $color-red;
-			text-decoration: none;
-		}
-
-		&:focus-visible {
-			outline: 2px solid $color-red-overlay-25;
-			outline-offset: 2px;
-			border-radius: 4px;
-		}
-
-		&:disabled {
-			opacity: 0.6;
-			cursor: not-allowed;
-		}
+	&__text {
+		padding: 0.75rem 1rem;
+		background-color: $color-input-bg;
+		border: 1px solid $color-light-gray;
+		border-radius: 10px;
+		font-size: 0.95rem;
+		color: $color-text-main;
+		line-height: 1.5;
+		white-space: pre-wrap;
+		word-wrap: break-word;
+		margin: 0;
 	}
 }
 
-.error-text {
-	color: $color-red;
+.view-status-toggle {
+	margin: 20px 0;
+	padding: 10px;
+	background: $color-lighter-gray;
+	border-radius: 8px;
+}
+
+// ---------------------------------------------------------
+// 6. MORE TAB & INGREDIENT ASSIGNMENTS
+// ---------------------------------------------------------
+.more-content {
+	display: flex;
+	flex-direction: column;
+	gap: 1.5rem;
+	padding: 0.5rem 0 1rem;
+	max-height: 70vh;
+	width: 100%;
+}
+
+.more-section {
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+	min-width: 50%;
+
+	&__title {
+		font-size: 0.9rem;
+		font-weight: 600;
+		color: $color-label-gray;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		margin: 0;
+	}
+}
+
+.more-eating-list {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.more-eating-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0.6rem 0.8rem;
+	border-radius: 0.5rem;
+	background-color: $color-orange-2-overlay-12;
+	border: 1px solid $color-orange-2-overlay-20;
+	color: $color-orange-2;
 	font-size: 0.9rem;
 	font-weight: 500;
-	margin-top: 0.8rem;
-	text-align: center;
+	min-height: 2.75rem;
+	box-sizing: border-box;
+
+	&--disabled {
+		background-color: $color-input-bg;
+		border-color: $color-light-gray;
+		color: $color-label-gray;
+	}
 }
 
-.field-error {
-	display: block;
-	width: 100%;
-	color: $color-red;
+.more-eating-name {
+	flex-grow: 1;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.more-eating-actions {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.more-counter-btn {
+	width: 1.75rem;
+	height: 1.75rem;
+	min-width: 1.75rem;
+	border: 1.5px solid $color-orange-2;
+	border-radius: 0.4rem;
+	background-color: $color-white;
+	color: $color-orange-2;
+	font-size: 1.1rem;
+	font-weight: 600;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0;
+	cursor: pointer;
+	transition: all 0.2s ease;
+
+	&:hover:not([disabled]) {
+		background-color: $color-orange-2;
+		color: $color-white;
+	}
+
+	&[disabled] {
+		opacity: 0.3;
+		cursor: not-allowed;
+		border-color: $color-light-gray;
+		color: $color-light-gray;
+		background-color: transparent;
+	}
+}
+
+.more-ingredients-empty {
 	font-size: 0.85rem;
-	font-weight: 500;
-	margin-top: 0.4rem;
-	text-align: left;    /* Changed from center to left */
+	color: var(--text-secondary, #888);
+	margin: 0.5rem 0;
 }
 
-	/* Material Component Custom Styling */
+.more-ingredients-note {
+	font-size: 0.75rem;
+	color: var(--text-secondary, #888);
+	margin-bottom: 0.5rem;
+}
+
+.more-ingredients-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 0.85rem;
+	flex-direction: column;
+	justify-content: space-between;
+
+	th {
+		text-align: left;
+		padding: 0.4rem 0.5rem;
+		border-bottom: 1px solid var(--border, #e0e0e0);
+		font-weight: 500;
+	}
+
+	td {
+		padding: 0.4rem 0.5rem;
+		border-bottom: 1px solid var(--border-light, #f0f0f0);
+	}
+
+	tr:last-child td {
+		border-bottom: none;
+	}
+}
+
+.more-ingredient-assignment {
+	display: flex;
+	flex-direction: row;
+	gap: 0.5rem;
+	align-items: center;
+	justify-content: flex-start;
+}
+
+.more-ingredient-users {
+	display: flex;
+	align-items: center;
+	gap: 0.4rem;
+	flex-wrap: wrap;
+	width: 100%;
+}
+
+.more-ingredient-user-chip {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.4rem;
+	padding: 0.3rem 0.5rem;
+	border-radius: 4px;
+	background-color: $color-orange-2-overlay-12;
+	color: $color-orange-2;
+	font-size: 0.8rem;
+	font-weight: 500;
+	border: 1px solid $color-orange-2-overlay-20;
+	white-space: nowrap;
+
+	.remove-assignment-btn {
+		background: none;
+		border: none;
+		color: inherit;
+		cursor: pointer;
+		font-size: 1rem;
+		font-weight: 600;
+		padding: 0;
+		line-height: 1;
+		transition: opacity 0.2s ease;
+
+		&:hover {
+			opacity: 0.7;
+		}
+	}
+}
+
+::ng-deep mat-select.more-ingredient-select {
+	font-size: 0.85rem !important;
+	border: 1px solid $color-light-gray !important;
+	border-radius: 4px !important;
+	background-color: $color-input-bg !important;
+
+	mat-mdc-select-trigger {
+		padding: 0.4rem 0.6rem !important;
+	}
+}
+
+// ---------------------------------------------------------
+// 7. MATERIAL DEEP OVERRIDES (CDK & ANGULAR MATERIAL)
+// ---------------------------------------------------------
 ::ng-deep {
-	/* Material Select Base Styling */
 	.mat-mdc-select {
 		background-color: $color-input-bg !important;
 		border: 1px solid $color-light-gray !important;
@@ -399,7 +408,6 @@ section {
 		align-items: center;
 	}
 
-	/* Material Input Base Styling */
 	.mat-mdc-text-field-wrapper {
 		padding-bottom: 0;
 	}
@@ -412,7 +420,6 @@ section {
 		display: none !important;
 	}
 
-	/* CDK Overlay Container - Core Material Panel Styling */
 	.cdk-overlay-container {
 		.mat-datepicker-content,
 		.mat-timepicker-content,
@@ -441,11 +448,10 @@ section {
 		.recipe-panel,
 		.responsible-panel {
 			margin-top: 0.8rem !important;
-			margin-left: 0 !important; /* let CDK position the panel */
+			margin-left: 0 !important;
 
-			/* match the inner padding of the select trigger so list items line up visually */
 			.mdc-list {
-				padding-left: 85rem !important; /* same as .mat-mdc-select trigger left padding */
+				padding-left: 0.85rem !important;
 				padding-right: 1rem !important;
 			}
 		}
@@ -522,39 +528,23 @@ section {
 			color: $color-text-main !important;
 		}
 
-		/* Recipe selector: checkbox style only, without orange row selection. */
 		.recipe-panel .mat-mdc-option.mdc-list-item--selected:not(.mdc-list-item--disabled),
-		.recipe-panel .mat-mdc-option[aria-selected="true"]:not(.mdc-list-item--disabled) {
-			background-color: $color-white !important;
-			color: $color-text-main !important;
-		}
-
-		.recipe-panel .mat-pseudo-checkbox {
-			border: 1px solid $color-light-gray !important;
-			border-radius: 4px;
-			background-color: $color-white !important;
-		}
-
-		.recipe-panel .mat-pseudo-checkbox.mat-pseudo-checkbox-checked,
-		.recipe-panel .mat-pseudo-checkbox.mat-pseudo-checkbox-indeterminate {
-			background-color: $color-orange-2 !important;
-			border-color: $color-orange-2 !important;
-			color: $color-white !important;
-		}
-
-		/* Responsible users selector: checkbox style matching recipes. */
+		.recipe-panel .mat-mdc-option[aria-selected="true"]:not(.mdc-list-item--disabled),
 		.responsible-panel .mat-mdc-option.mdc-list-item--selected:not(.mdc-list-item--disabled),
 		.responsible-panel .mat-mdc-option[aria-selected="true"]:not(.mdc-list-item--disabled) {
 			background-color: $color-white !important;
 			color: $color-text-main !important;
 		}
 
+		.recipe-panel .mat-pseudo-checkbox,
 		.responsible-panel .mat-pseudo-checkbox {
 			border: 1px solid $color-light-gray !important;
 			border-radius: 4px;
 			background-color: $color-white !important;
 		}
 
+		.recipe-panel .mat-pseudo-checkbox.mat-pseudo-checkbox-checked,
+		.recipe-panel .mat-pseudo-checkbox.mat-pseudo-checkbox-indeterminate,
 		.responsible-panel .mat-pseudo-checkbox.mat-pseudo-checkbox-checked,
 		.responsible-panel .mat-pseudo-checkbox.mat-pseudo-checkbox-indeterminate {
 			background-color: $color-orange-2 !important;
@@ -562,14 +552,10 @@ section {
 			color: $color-white !important;
 		}
 
-		/* Keep hover row color consistent between recipe and responsible selectors. */
 		.recipe-panel .mat-mdc-option.mat-mdc-option-active:not(.mdc-list-item--disabled),
 		.recipe-panel .mat-mdc-option:hover:not(.mdc-list-item--disabled),
 		.responsible-panel .mat-mdc-option.mat-mdc-option-active:not(.mdc-list-item--disabled),
-		.responsible-panel .mat-mdc-option:hover:not(.mdc-list-item--disabled) {
-			background-color: $color-orange-2-overlay-12 !important;
-		}
-
+		.responsible-panel .mat-mdc-option:hover:not(.mdc-list-item--disabled),
 		.mat-mdc-option.mat-mdc-option-active:not(.mdc-list-item--disabled),
 		.mat-mdc-option:hover:not(.mdc-list-item--disabled) {
 			background-color: $color-orange-2-overlay-12 !important;
@@ -589,7 +575,6 @@ section {
 			color: $color-text-main;
 		}
 
-		/* Target the real cdk datepicker panel directly, but keep day cells transparent. */
 		.meal-datepicker-panel,
 		.meal-datepicker-panel .mat-calendar,
 		.meal-datepicker-panel .mat-calendar-content,
@@ -630,560 +615,7 @@ section {
 			border-radius: 999px !important;
 			box-shadow: 0 6px 14px $color-overlay-10;
 			opacity: 1 !important;
-			padding: 8px 16px 8px 16px !important;
+			padding: 8px 16px !important;
 		}
 	}
-}
-
-.view-meal-type {
-	display: inline-block;
-	font-size: 0.78rem;
-	font-weight: 600;
-	letter-spacing: 0.05em;
-	text-transform: uppercase;
-	color: $color-orange-2;
-	background-color: $color-orange-2-overlay-12;
-	border-radius: 999px;
-	padding: 0.2rem 0.75rem;
-	margin-bottom: 1rem;
-}
-
-.view-icon {
-	width: 1rem;
-	height: 1rem;
-	fill: $color-orange-2;
-	flex-shrink: 0;
-}
-
-.view-meta {
-	display: flex;
-	flex-direction: column;
-	gap: 0.35rem;
-	margin-bottom: 1.2rem;
-	padding: 0.75rem 1rem;
-	background-color: $color-input-bg;
-	border-radius: 10px;
-	border: 1px solid $color-light-gray;
-
-	&__who,
-	&__date,
-	&__time,
-	&__room {
-		font-size: 0.92rem;
-		color: $color-text-main;
-		display: flex;
-		align-items: baseline;
-		gap: 0.4rem;
-
-		mat-icon {
-			font-size: 0.92rem;
-			line-height: 1;
-			width: auto;
-			height: auto;
-			overflow: visible;
-			flex-shrink: 0;
-		}
-	}
-
-	&__who {
-		font-weight: 600;
-	}
-
-	&__date,
-	&__time,
-	&__room {
-		color: $color-label-gray;
-	}
-}
-
-.view-recipes {
-	margin-bottom: 1rem;
-
-	&__title {
-		font-size: 0.9rem;
-		font-weight: 600;
-		color: $color-label-gray;
-		margin: 0 0 0.6rem 0;
-		text-transform: uppercase;
-		letter-spacing: 0.04em;
-	}
-
-	&__list {
-		display: flex;
-		flex-direction: column;
-		gap: 0.6rem;
-	}
-}
-
-.view-recipe-card {
-	display: flex;
-	gap: 0.75rem;
-	align-items: flex-start;
-	background-color: $color-input-bg;
-	border: 1px solid $color-light-gray;
-	border-radius: 10px;
-	overflow: hidden;
-	padding-left: 1rem;
-	padding-right: 1rem;
-
-	&__image {
-		width: 5rem;
-		height: 5rem;
-		object-fit: cover;
-		flex-shrink: 0;
-	}
-
-	&__body {
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		gap: 0.25rem;
-		padding: 0.6rem 0.75rem 0.6rem 0;
-	}
-
-	&__name {
-		font-size: 0.95rem;
-		font-weight: 600;
-		color: $color-text-main;
-	}
-
-	&__desc {
-		font-size: 0.85rem;
-		color: $color-label-gray;
-		line-height: 1.4;
-	}
-}
-
-.more-link, .back-link {
-	background: none;
-	border: none;
-	color: $color-orange-2;
-	font-size: 15px;
-	cursor: pointer;
-	padding: 0;
-	font-weight: 500;
-
-	&:hover {
-		color: $color-orange-1;
-		text-decoration: underline;
-	}
-
-	&:active {
-		color: $color-orange-3;
-	}
-}
-
-.more-row {
-	display: flex;
-	justify-content: center;
-	margin-top: 8px;
-}
-
-/* More Content Sections */
-.more-content {
-	display: flex;
-	flex-direction: column;
-	gap: 2rem;
-	padding: 1rem 0;
-	max-height: 70vh;
-	overflow-y: auto;
-	overflow-x: hidden;
-
-	/* Custom scrollbar styling for better appearance */
-	&::-webkit-scrollbar {
-		width: 8px;
-	}
-
-	&::-webkit-scrollbar-track {
-		background-color: $color-lighter-gray;
-		border-radius: 4px;
-	}
-
-	&::-webkit-scrollbar-thumb {
-		background-color: $color-light-gray;
-		border-radius: 4px;
-
-		&:hover {
-			background-color: $color-blue-gray;
-		}
-	}
-}
-
-.section-title {
-	font-size: 1rem;
-	font-weight: 600;
-	color: $color-text-main;
-	margin: 0 0 1rem 0;
-}
-
-/* Eating People Section */
-.eating-people-section {
-	display: flex;
-	flex-direction: column;
-	gap: 1rem;
-}
-
-.eating-people-list {
-	display: flex;
-	flex-direction: column;
-	gap: 0.75rem;
-}
-
-.eating-person-item {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	padding: 0.75rem 1rem;
-	border-radius: 0.5rem;
-	border: 1px solid $color-light-gray;
-	background-color: $color-input-bg;
-	transition: all 0.2s ease;
-
-	&:hover {
-		border-color: $color-blue-gray;
-		background-color: $color-lighter-gray;
-	}
-}
-
-.person-name {
-	font-size: 0.95rem;
-	font-weight: 500;
-	color: $color-text-main;
-}
-
-.person-actions {
-	display: flex;
-	gap: 0.5rem;
-}
-
-.add-btn,
-.remove-btn {
-	padding: 0.25rem 0.5rem;
-	min-width: 2rem;
-	min-height: 2rem;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	border-radius: 0.25rem;
-	transition: all 0.2s ease;
-
-	&:not([disabled]) {
-		cursor: pointer;
-	}
-}
-
-.add-btn {
-	background-color: transparent;
-	color: $color-green-2;
-
-	&:hover:not([disabled]) {
-		background-color: rgba($color-green-2, 0.1);
-		color: $color-green-3;
-	}
-
-	&:active:not([disabled]) {
-		background-color: rgba($color-green-2, 0.15);
-	}
-}
-
-.remove-btn {
-	background-color: transparent;
-	color: $color-red;
-
-	&:hover:not([disabled]) {
-		background-color: rgba($color-red, 0.1);
-		color: $color-red-dark;
-	}
-
-	&:active:not([disabled]) {
-		background-color: rgba($color-red, 0.15);
-	}
-
-	&[disabled] {
-		cursor: not-allowed;
-		opacity: 0.5;
-	}
-}
-
-.add-icon,
-.remove-icon {
-	font-size: 1.25rem;
-	font-weight: 600;
-	line-height: 1;
-}
-
-.empty-message {
-	padding: 1rem;
-	text-align: center;
-	color: $color-gray;
-	font-size: 0.9rem;
-	background-color: $color-lighter-gray;
-	border-radius: 0.5rem;
-	margin: 0;
-}
-
-/* Ingredients Section */
-.ingredients-section {
-	display: flex;
-	flex-direction: column;
-	gap: 0.75rem;
-}
-
-.ingredients-input {
-	padding: 0.75rem;
-	border: 1px solid $color-light-gray;
-	border-radius: 0.5rem;
-	background-color: $color-input-bg;
-	font-family: "Inter", sans-serif;
-	font-size: 0.95rem;
-	color: $color-text-main;
-	resize: vertical;
-	transition: all 0.2s ease;
-
-	&:focus {
-		outline: none;
-		border-color: $color-blue-gray;
-		background-color: $color-white;
-		box-shadow: 0 0 0 3px rgba($color-blue-gray, 0.1);
-	}
-
-	&::placeholder {
-		color: $color-label-gray;
-	}
-}
-
-.more-content {
-	display: flex;
-	flex-direction: column;
-	gap: 1.5rem;
-	padding: 0.5rem 0 1rem;
-}
-
-.more-section {
-	display: flex;
-	flex-direction: column;
-	gap: 0.75rem;
-
-	&__title {
-		font-size: 0.9rem;
-		font-weight: 600;
-		color: $color-label-gray;
-		text-transform: uppercase;
-		letter-spacing: 0.04em;
-		margin: 0;
-	}
-}
-
-.more-eating-counter {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 1rem;
-	padding: 0.75rem;
-	border-radius: 0.75rem;
-	background-color: $color-input-bg;
-	border: 1px solid $color-light-gray;
-}
-
-.more-counter-btn {
-	width: 2.75rem;
-	height: 2.75rem;
-	border: 2px solid $color-orange-2;
-	border-radius: 1rem;
-	background-color: $color-white;
-	color: $color-orange-2;
-	font-size: 1.3rem;
-	font-weight: 600;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	cursor: pointer;
-	transition: all 0.2s ease;
-
-	&:hover:not([disabled]) {
-		background-color: $color-orange-2;
-		color: $color-white;
-		transform: scale(1.05);
-	}
-
-	&:active:not([disabled]) { transform: scale(0.95); }
-
-	&[disabled] {
-		opacity: 0.4;
-		cursor: not-allowed;
-		border-color: $color-light-gray;
-		color: $color-light-gray;
-		&:hover { background-color: $color-white; color: $color-light-gray; }
-	}
-}
-
-.more-counter-value {
-	font-size: 1.3rem;
-	font-weight: 700;
-	color: $color-text-main;
-	min-width: 1.8rem;
-	text-align: center;
-}
-
-.more-eating-list {
-	display: flex;
-	flex-direction: column;
-	gap: 0.4rem;
-	margin-top: 0.8rem;
-
-	&--grid {
-		display: grid;
-		grid-template-columns: repeat(2, 1fr);
-	}
-}
-
-.more-eating-chip {
-	padding: 0.4rem 0.6rem;
-	border-radius: 0.4rem;
-	background-color: $color-orange-2-overlay-12;
-	color: $color-orange-2;
-	font-size: 0.85rem;
-	font-weight: 500;
-	text-align: center;
-	border: 1px solid $color-orange-2-overlay-20;
-	transition: all 0.2s ease;
-	&:hover { background-color: $color-orange-2-overlay-20; }
-}
-
-.more-ingredients {
-	padding: 0.6rem;
-	border: 1px solid $color-light-gray;
-	border-radius: 0.4rem;
-	background-color: $color-input-bg;
-	font-size: 0.9rem;
-	color: $color-text-main;
-	resize: vertical;
-	transition: all 0.2s ease;
-	&:focus {
-		outline: 0;
-		border-color: $color-blue-gray;
-		background-color: $color-white;
-		box-shadow: 0 0 0 2px rgba($color-blue-gray, 0.08);
-	}
-	&::placeholder { color: $color-label-gray; }
-}
-
-.more-ingredients-empty {
-	font-size: 14px;
-	color: var(--text-secondary, #888);
-	margin: 8px 0;
-}
-
-.more-ingredients-note {
-	font-size: 12px;
-	color: var(--text-secondary, #888);
-	margin-bottom: 8px;
-}
-
-.more-ingredients-table {
-	width: 100%;
-	border-collapse: collapse;
-	font-size: 14px;
-
-	th {
-		text-align: left;
-		padding: 6px 8px;
-		border-bottom: 1px solid var(--border, #e0e0e0);
-		font-weight: 500;
-	}
-
-	td {
-		padding: 6px 8px;
-		border-bottom: 1px solid var(--border-light, #f0f0f0);
-	}
-
-	tr:last-child td {
-		border-bottom: none;
-	}
-}
-
-.view-ingredients {
-	margin-bottom: 1rem;
-
-	&__title {
-		font-size: 0.9rem;
-		font-weight: 600;
-		color: $color-label-gray;
-		margin: 0 0 0.6rem 0;
-		text-transform: uppercase;
-		letter-spacing: 0.04em;
-	}
-
-	&__text {
-		padding: 0.75rem 1rem;
-		background-color: $color-input-bg;
-		border: 1px solid $color-light-gray;
-		border-radius: 10px;
-		font-size: 0.95rem;
-		color: $color-text-main;
-		line-height: 1.5;
-		white-space: pre-wrap;
-		word-wrap: break-word;
-		margin: 0;
-	}
-}
-
-.view-status-toggle {
-	margin: 20px 0;
-	padding: 10px;
-	background: $color-lighter-gray;
-	border-radius: 8px;
-}
-
-.more-ingredient-assignment {
-	display: flex;
-	flex-direction: column;
-	gap: 0.5rem;
-	align-items: flex-start;
-}
-
-.more-ingredient-users {
-	display: flex;
-	gap: 0.4rem;
-	flex-wrap: wrap;
-	width: 100%;
-}
-
-.more-ingredient-user-chip {
-	display: inline-flex;
-	align-items: center;
-	gap: 0.4rem;
-	padding: 0.3rem 0.5rem;
-	border-radius: 4px;
-	background-color: $color-orange-2-overlay-12;
-	color: $color-orange-2;
-	font-size: 0.8rem;
-	font-weight: 500;
-	border: 1px solid $color-orange-2-overlay-20;
-	white-space: nowrap;
-}
-
-.remove-assignment-btn {
-	background: none;
-	border: none;
-	color: inherit;
-	cursor: pointer;
-	font-size: 1rem;
-	font-weight: 600;
-	padding: 0;
-	line-height: 1;
-	transition: opacity 0.2s ease;
-
-	&:hover {
-		opacity: 0.7;
-	}
-}
-
-.more-ingredient-select {
-	width: 100%;
-	padding: 0.4rem 0.6rem !important;
-	font-size: 0.85rem;
-	border: 1px solid $color-light-gray !important;
-	border-radius: 4px !important;
-	background-color: $color-input-bg !important;
 }

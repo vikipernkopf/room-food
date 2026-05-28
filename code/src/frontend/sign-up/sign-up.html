@@ -6,173 +6,171 @@
 
 		<div class="form-grid">
 			<div class="field-group">
-				<label for="username">Username</label>
+				<label for="username" class="field-label">Username</label>
 				<input [formField]="signUpForm.username" id="username" type="text" placeholder="e.g. AlexJohnson"
 					autocomplete="username">
 
-				@if (fieldTouchedAndInvalid(signUpForm.username)) {
-					<aside>
-						@if (fieldHasError(signUpForm.username, 'required')) {
-							<span>Username is required</span>
-						}
-						@if (fieldHasError(signUpForm.username, 'pattern')) {
-							<span>No spaces or special characters allowed</span>
-						}
-					</aside>
-				}
-			</div>
-
-			<div class="field-group">
-				<label for="email">E-mail</label>
-				<input [formField]="signUpForm.email" id="email" type="email" placeholder="e.g. alex@example.com"
-					autocomplete="email">
-
-				@if (fieldTouchedAndInvalid(signUpForm.email)) {
-					<aside>
-						@if (fieldHasError(signUpForm.email, 'required')) {
-							<span>E-mail is required</span>
-						}
-						@if (fieldHasError(signUpForm.email, 'email') || fieldHasError(signUpForm.email, 'pattern')) {
-							<span>Enter a valid e-mail address</span>
-						}
-					</aside>
-				}
-			</div>
-
-			<div class="field-group">
-				<label for="firstName">First name</label>
-				<input [formField]="signUpForm.firstName" id="firstName" type="text" placeholder="First name"
-					autocomplete="given-name">
-
-				@if (fieldTouchedAndInvalid(signUpForm.firstName)) {
-					<aside>
-						@if (fieldHasError(signUpForm.firstName, 'required') ||
-						fieldHasError(signUpForm.firstName, 'requiredTrimmed')) {
-							<span>First name is required</span>
-						}
-						@if (fieldHasError(signUpForm.firstName, 'maxLength')) {
-							<span>First name must be at most 50 characters</span>
-						}
-					</aside>
-				}
-			</div>
-
-			<div class="field-group">
-				<label for="lastName">Last name</label>
-				<input [formField]="signUpForm.lastName" id="lastName" type="text" placeholder="Last name"
-					autocomplete="family-name">
-
-				@if (fieldTouchedAndInvalid(signUpForm.lastName)) {
-					<aside>
-						@if (fieldHasError(signUpForm.lastName, 'required') ||
-						fieldHasError(signUpForm.lastName, 'requiredTrimmed')) {
-							<span>Last name is required</span>
-						}
-						@if (fieldHasError(signUpForm.lastName, 'maxLength')) {
-							<span>Last name must be at most 50 characters</span>
-						}
-					</aside>
-				}
-			</div>
-
-			<div class="field-group">
-				<label for="dob">Date of birth</label>
-				<input [formField]="signUpForm.dob" id="dob" type="date" autocomplete="bday">
-
-				@if (fieldTouchedAndInvalid(signUpForm.dob)) {
-					<aside>
-						@if (fieldHasError(signUpForm.dob, 'required') ||
-						fieldHasError(signUpForm.dob, 'requiredTrimmed')) {
-							<span>Date of birth is required</span>
-						}
-					</aside>
-				}
-			</div>
-
-			<div class="field-group">
-				<label for="profilePicture">Profile picture URL</label>
-				<input [formField]="signUpForm.profilePicture" id="profilePicture" type="url" placeholder="https://..."
-					autocomplete="photo">
-			</div>
-
-			<div class="field-group field-group--full">
-				<label for="bio">Bio</label>
-				<textarea [formField]="signUpForm.bio" id="bio" rows="3" placeholder="Tell others a bit about yourself"
-					autocomplete="off"></textarea>
-				@if (fieldTouchedAndInvalid(signUpForm.bio)) {
-					<aside>
-						@if (fieldHasError(signUpForm.bio, 'maxLength')) {
-							<span>Bio must be at most 100 characters</span>
-						}
-					</aside>
-				}
-			</div>
-
-			<div class="field-group field-group--full">
-				<label for="password">Password</label>
-				<div class="password-input-wrap">
-					<input [formField]="signUpForm.password" id="password" [type]="showPassword ? 'text' : 'password'"
-						placeholder="Password" autocomplete="new-password">
-					<button class="password-toggle" type="button" (click)="togglePasswordVisibility()"
-						[attr.aria-label]="showPassword ? 'Hide password' : 'Show password'">
-						<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-							<path
-								d="M12 5c-5.5 0-9.8 4.3-10.9 6 1.1 1.7 5.4 6 10.9 6s9.8-4.3 10.9-6c-1.1-1.7-5.4-6-10.9-6zm0 10a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/>
-						</svg>
-					</button>
-				</div>
-				@if (fieldTouchedAndInvalid(signUpForm.password)) {
-					<aside>
-						@if (fieldHasError(signUpForm.password, 'required')) {
-							<span>Password is required</span>
-						}
-						@if (fieldHasError(signUpForm.password, 'minLength')) {
-							<span>Password must be at least 8 characters</span>
-						}
-						@if (fieldHasError(signUpForm.password, 'pattern')) {
-							<span>
-								Password must contain at least one number and one special character
-								(!&#64;#$%^&*)
-							</span>
-						}
-					</aside>
-				}
-			</div>
-
-			<div class="field-group field-group--full">
-				<label for="repeatPassword">Repeat password</label>
-				<div class="password-input-wrap">
-					<input [formField]="signUpForm.repeatPassword" id="repeatPassword"
-						[type]="showRepeatPassword ? 'text' : 'password'" placeholder="Repeat password"
-						autocomplete="new-password">
-					<button class="password-toggle" type="button" (click)="toggleRepeatPasswordVisibility()"
-						[attr.aria-label]="showRepeatPassword ? 'Hide repeated password' : 'Show repeated password'">
-						<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-							<path
-								d="M12 5c-5.5 0-9.8 4.3-10.9 6 1.1 1.7 5.4 6 10.9 6s9.8-4.3 10.9-6c-1.1-1.7-5.4-6-10.9-6zm0 10a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/>
-						</svg>
-					</button>
-				</div>
-				@if (fieldTouchedAndInvalid(signUpForm.repeatPassword)) {
-					<aside>
-						@if (fieldHasError(signUpForm.repeatPassword, 'required')) {
-							<span>Please repeat your password</span>
-						}
-						@if (fieldHasError(signUpForm.repeatPassword, 'passwordMismatch')) {
-							<span>Passwords do not match</span>
-						}
-					</aside>
-				}
-			</div>
+			@if (fieldTouchedAndInvalid(signUpForm.username)) {
+				<span class="field-error">
+					@if (fieldHasError(signUpForm.username, 'required')) {
+						Username is required
+					}
+					@if (fieldHasError(signUpForm.username, 'pattern')) {
+						No spaces or special characters allowed
+					}
+				</span>
+			}
 		</div>
 
-		<div class="error-msg">
-			<span>{{ signUpError() }}</span>
+		<div class="field-group">
+			<label for="email" class="field-label">E-mail</label>
+			<input [formField]="signUpForm.email" id="email" type="email" placeholder="e.g. alex@example.com"
+				autocomplete="email">
+
+			@if (fieldTouchedAndInvalid(signUpForm.email)) {
+				<span class="field-error">
+					@if (fieldHasError(signUpForm.email, 'required')) {
+						E-mail is required
+					}
+					@if (fieldHasError(signUpForm.email, 'email') || fieldHasError(signUpForm.email, 'pattern')) {
+						Enter a valid e-mail address
+					}
+				</span>
+			}
 		</div>
 
-		<button class="submit-btn" type="submit">
-			Sign up
-		</button>
+		<div class="field-group">
+			<label for="firstName" class="field-label">First name</label>
+			<input [formField]="signUpForm.firstName" id="firstName" type="text" placeholder="First name"
+				autocomplete="given-name">
+
+			@if (fieldTouchedAndInvalid(signUpForm.firstName)) {
+				<span class="field-error">
+					@if (fieldHasError(signUpForm.firstName, 'required') ||
+					fieldHasError(signUpForm.firstName, 'requiredTrimmed')) {
+						First name is required
+					}
+					@if (fieldHasError(signUpForm.firstName, 'maxLength')) {
+						First name must be at most 50 characters
+					}
+				</span>
+			}
+		</div>
+
+		<div class="field-group">
+			<label for="lastName" class="field-label">Last name</label>
+			<input [formField]="signUpForm.lastName" id="lastName" type="text" placeholder="Last name"
+				autocomplete="family-name">
+
+			@if (fieldTouchedAndInvalid(signUpForm.lastName)) {
+				<span class="field-error">
+					@if (fieldHasError(signUpForm.lastName, 'required') ||
+					fieldHasError(signUpForm.lastName, 'requiredTrimmed')) {
+						Last name is required
+					}
+					@if (fieldHasError(signUpForm.lastName, 'maxLength')) {
+						Last name must be at most 50 characters
+					}
+				</span>
+			}
+		</div>
+
+		<div class="field-group">
+			<label for="dob" class="field-label">Date of birth</label>
+			<input [formField]="signUpForm.dob" id="dob" type="date" autocomplete="bday">
+
+			@if (fieldTouchedAndInvalid(signUpForm.dob)) {
+				<span class="field-error">
+					@if (fieldHasError(signUpForm.dob, 'required') ||
+					fieldHasError(signUpForm.dob, 'requiredTrimmed')) {
+						Date of birth is required
+					}
+				</span>
+			}
+		</div>
+
+		<div class="field-group">
+			<label for="profilePicture" class="field-label">Profile picture URL</label>
+			<input [formField]="signUpForm.profilePicture" id="profilePicture" type="url" placeholder="https://..."
+				autocomplete="photo">
+		</div>
+
+		<div class="field-group field-group--full">
+			<label for="bio" class="field-label">Bio</label>
+			<textarea [formField]="signUpForm.bio" id="bio" rows="3" placeholder="Tell others a bit about yourself"
+				autocomplete="off"></textarea>
+			@if (fieldTouchedAndInvalid(signUpForm.bio)) {
+				<span class="field-error">
+					@if (fieldHasError(signUpForm.bio, 'maxLength')) {
+						Bio must be at most 100 characters
+					}
+				</span>
+			}
+		</div>
+
+		<div class="field-group field-group--full">
+			<label for="password" class="field-label">Password</label>
+			<div class="input-with-icon">
+				<input [formField]="signUpForm.password" id="password" [type]="showPassword ? 'text' : 'password'"
+					placeholder="Password" autocomplete="new-password">
+				<button class="password-toggle" type="button" (click)="togglePasswordVisibility()"
+					[attr.aria-label]="showPassword ? 'Hide password' : 'Show password'">
+					<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+						<path
+							d="M12 5c-5.5 0-9.8 4.3-10.9 6 1.1 1.7 5.4 6 10.9 6s9.8-4.3 10.9-6c-1.1-1.7-5.4-6-10.9-6zm0 10a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/>
+					</svg>
+				</button>
+			</div>
+			@if (fieldTouchedAndInvalid(signUpForm.password)) {
+				<span class="field-error">
+					@if (fieldHasError(signUpForm.password, 'required')) {
+						Password is required
+					}
+					@if (fieldHasError(signUpForm.password, 'minLength')) {
+						Password must be at least 8 characters
+					}
+					@if (fieldHasError(signUpForm.password, 'pattern')) {
+						Password must contain at least one number and one special character
+						(!&#64;#$%^&*)
+					}
+				</span>
+			}
+		</div>
+
+		<div class="field-group field-group--full">
+			<label for="repeatPassword" class="field-label">Repeat password</label>
+			<div class="input-with-icon">
+				<input [formField]="signUpForm.repeatPassword" id="repeatPassword"
+					[type]="showRepeatPassword ? 'text' : 'password'" placeholder="Repeat password"
+					autocomplete="new-password">
+				<button class="password-toggle" type="button" (click)="toggleRepeatPasswordVisibility()"
+					[attr.aria-label]="showRepeatPassword ? 'Hide repeated password' : 'Show repeated password'">
+					<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+						<path
+							d="M12 5c-5.5 0-9.8 4.3-10.9 6 1.1 1.7 5.4 6 10.9 6s9.8-4.3 10.9-6c-1.1-1.7-5.4-6-10.9-6zm0 10a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/>
+					</svg>
+				</button>
+			</div>
+			@if (fieldTouchedAndInvalid(signUpForm.repeatPassword)) {
+				<span class="field-error">
+					@if (fieldHasError(signUpForm.repeatPassword, 'required')) {
+						Please repeat your password
+					}
+					@if (fieldHasError(signUpForm.repeatPassword, 'passwordMismatch')) {
+						Passwords do not match
+					}
+				</span>
+			}
+		</div>
+		</div>
+
+	<div class="error-msg">
+		<span>{{ signUpError() }}</span>
+	</div>
+
+	<button class="btn-primary" type="submit">
+		Sign up
+	</button>
 
 		<nav>
 			<a [routerLink]="['/login']" [queryParams]="loginQueryParams">Already have an account?</a>

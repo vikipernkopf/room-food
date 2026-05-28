@@ -5,26 +5,26 @@
 		</header>
 
 		<div class="field-group">
-			<label for="identifier">Username or e-mail</label>
+			<label for="identifier" class="field-label">Username or e-mail</label>
 			<input formControlName="identifier" id="identifier" type="text" placeholder="e.g. alex123 or alex@example.com" autocomplete="username">
 
 			@if (loginForm.get('identifier')?.touched && loginForm.get('identifier')?.invalid) {
-				<aside>
+				<span class="field-error">
 					@if (loginForm.get('identifier')?.hasError('required')) {
-						<span>Username or e-mail is required</span>
+						Username or e-mail is required
 					}
-				</aside>
+				</span>
 			}
 		</div>
 		<div class="field-group">
-			<label for="password">Password</label>
+			<label for="password" class="field-label">Password</label>
 			<input formControlName="password" id="password" type="password" placeholder="Password" autocomplete="current-password">
 			@if (loginForm.get('password')?.touched && loginForm.get('password')?.invalid) {
-				<aside>
+				<span class="field-error">
 					@if (loginForm.get('password')?.hasError('required')) {
-						<span>Password is required</span>
+						Password is required
 					}
-				</aside>
+				</span>
 			}
 		</div>
 
@@ -32,7 +32,7 @@
 			<span>{{ loginError() }}</span>
 		</div>
 
-		<button type="submit">
+		<button type="submit" class="btn-primary">
 			Log in
 		</button>
 
