@@ -1,12 +1,14 @@
 <section>
-	<form class="login-container" [formGroup]="loginForm" (ngSubmit)="onFormSubmit()" autocomplete="on">
-		<header>
-			<h4>Log in</h4>
+	<form class="login-container form-grid form-grid--single-column" [formGroup]="loginForm" (ngSubmit)="onFormSubmit()"
+		autocomplete="on">
+		<header class="header-container">
+			<h2 class="header">Log in</h2>
 		</header>
 
 		<div class="field-group">
 			<label for="identifier" class="field-label">Username or e-mail</label>
-			<input formControlName="identifier" id="identifier" type="text" placeholder="e.g. alex123 or alex@example.com" autocomplete="username">
+			<input class="input-field" formControlName="identifier" id="identifier" type="text"
+				placeholder="e.g. alex123 or alex@example.com" autocomplete="username">
 
 			@if (loginForm.get('identifier')?.touched && loginForm.get('identifier')?.invalid) {
 				<span class="field-error">
@@ -18,7 +20,8 @@
 		</div>
 		<div class="field-group">
 			<label for="password" class="field-label">Password</label>
-			<input formControlName="password" id="password" type="password" placeholder="Password" autocomplete="current-password">
+			<input class="input-field" formControlName="password" id="password" type="password" placeholder="Password"
+				autocomplete="current-password">
 			@if (loginForm.get('password')?.touched && loginForm.get('password')?.invalid) {
 				<span class="field-error">
 					@if (loginForm.get('password')?.hasError('required')) {
@@ -32,13 +35,15 @@
 			<span>{{ loginError() }}</span>
 		</div>
 
-		<button type="submit" class="btn-primary">
-			Log in
-		</button>
+		<div class="action-row">
+			<button type="submit" class="btn-primary">
+				Log in
+			</button>
 
-		<nav>
-			<a [routerLink]="['/signup']" [queryParams]="signUpQueryParams">Create a new account</a>
-		</nav>
+			<button class="btn-secondary" [routerLink]="['/signup']" [queryParams]="signUpQueryParams">
+				Create a new account
+			</button>
+		</div>
 
 		<hr>
 	</form>
