@@ -291,5 +291,7 @@ export class Calendar implements OnInit {
 				cooked: updatedMeal.cooked
 			};
 		}
+
+		this.availableIngredientsTab()?.updateIngredients();
 	}
 }

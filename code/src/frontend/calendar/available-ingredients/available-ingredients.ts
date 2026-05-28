@@ -78,6 +78,7 @@ export class AvailableIngredients implements OnInit {
 				try {
 					const recipeIds: number[] = [];
 					meals.forEach(m => {
+						if(m.cooked) return;
 						(m.recipeIds || []).forEach(rid => recipeIds.push(rid));
 					});
 
