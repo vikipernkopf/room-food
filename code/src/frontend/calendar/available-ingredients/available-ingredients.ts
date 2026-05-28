@@ -217,6 +217,31 @@ export class AvailableIngredients implements OnInit {
 		this.ingredientError.set('');
 	}
 
+	public async removeIngredients(ingredients:Ingredient[]): Promise<void>{
+		//console.log(`REMOVING ${ingredients}`);
+		for (const i of ingredients) {
+			const existing = this.availableIngredients().find(i2 => i2.name==i.name);
+			//console.log(i);
+			if(existing){
+				//console.log(`exists ${existing}`);
+				existing.amount-=i.amount;
+				//console.log(`exists am ${existing.amount}`);
+				await firstValueFrom(
+					this.ingredientsFrontendService.
+					deleteIngredientFromRoom(this.roomCode, existing.name, existing.measurement)
+				);
+
+				if(existing.amount>0){
+					await firstValueFrom(
+						this.ingredientsFrontendService.
+						addIngredientToRoom(this.roomCode, existing)
+					);
+					this.availableIngredients.update(v => v.filter(i2 => i2.name!==i.name));
+				}
+			}
+		}
+	}
+
 	async updateIngredients(){
 		this.loadIngredients();
 	}

@@ -929,6 +929,8 @@ export class MealManagement implements OnChanges {
 	}
 
 	protected cookedCheckBox(): void {
+		if(this.isCooked) return;
+
 		this.isCooked = !this.isCooked;
 		this.isCookedUpdateInProgress = true;
 		const mealId = this.mealToEdit?.id;
