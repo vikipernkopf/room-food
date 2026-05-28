@@ -77,7 +77,13 @@ export class AvailableIngredients implements OnInit {
 			next: async meals => {
 				try {
 					const recipeIds: number[] = [];
-					meals.forEach(m => {
+					const now = new Date();
+
+					const futureMeals = meals.filter(m =>
+						new Date(m.time) >= now
+					);
+
+					futureMeals.forEach(m => {
 						(m.recipeIds || []).forEach(rid => recipeIds.push(rid));
 					});
 
