@@ -75,7 +75,7 @@
 				}
 
 				<div class="view-status-toggle">
-					<mat-checkbox name="cookedCheckbox" color="primary" [checked]="isCooked"
+					<mat-checkbox name="cookedCheckbox" color="primary" [checked]="isCooked" [disabled]="isCooked"
 						(click)="$event.preventDefault(); cookedCheckBox()">
 						Meal Prepared
 					</mat-checkbox>
