@@ -1,5 +1,16 @@
 @use "../../styles/theme" as *;
 
+.ingredients-container {
+	display: flex;
+	flex-direction: column;
+	gap: 2rem;
+}
+
+.ingredients-section {
+	display: flex;
+	flex-direction: column;
+}
+
 h2 {
 	color: $color-text-main;
 	margin-bottom: 1.5rem;
@@ -17,16 +28,16 @@ ul {
 li {
 	display: flex;
 	align-items: center;
-	padding: 10px 16px;
+	padding: 0.625rem 1rem;
 	width: 100%;
 	box-sizing: border-box;
-	margin-bottom: 12px;
+	margin-bottom: 0.75rem;
 
 	// Background and Border
 	background-color: $color-lighter-gray;
 	border: 1px solid $color-light-gray;
 	border-left: 4px solid $color-green-3; // Using Green 3 for the accent
-	border-radius: 6px;
+	border-radius: 0.375rem;
 
 	// Typography
 	color: $color-text-main;
@@ -37,7 +48,7 @@ li {
 	transition: all 0.2s ease-in-out;
 
 	&:hover {
-		transform: translateY(-2px);
+		transform: translateY(-0.125rem);
 		background-color: $color-white;
 		border-color: $color-green-2;
 		box-shadow: 0 4px 6px $color-overlay-10;
@@ -49,23 +60,379 @@ li {
 		// Adding weight and color to the amount and ingredient name
 		color: $color-green-4;
 		font-weight: 700;
-		margin-right: 6px;
 	}
 
-	// Middle segment (Measurement)
-	span {
-		color: $color-label-gray;
-		margin-right: 8px;
+	> span {
+		margin: 0 0.5rem;
+		color: $color-gray;
 	}
 }
 
-// Loading and Empty states
-p {
-	color: $color-gray;
-	font-style: italic;
+// Available ingredient with delete button
+li.available-ingredient {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 0.625rem 1rem;
+
+	.ingredient-info {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		flex: 1;
+
+		> b, > strong {
+			color: $color-green-4;
+			font-weight: 700;
+		}
+
+		> span {
+			margin: 0 0.5rem;
+			color: $color-gray;
+		}
+	}
+
+	.delete-btn {
+		background-color: transparent;
+		border: none;
+		color: $color-red;
+		font-size: 1.5rem;
+		cursor: pointer;
+		padding: 0;
+		width: 1.5rem;
+		height: 1.5rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 0.25rem;
+		transition: all 0.2s ease-in-out;
+
+		&:hover {
+			background-color: $color-red-overlay-8;
+			color: $color-red-dark;
+		}
+
+		&:active {
+			transform: scale(0.95);
+		}
+	}
+}
+
+// Add ingredient form section
+.add-ingredient-section {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+	margin-top: 1rem;
+	padding-top: 1rem;
+	border-top: 1px solid $color-light-gray;
+}
+
+.toggle-form-btn {
+	background-color: $color-green-2;
+	color: $color-white;
+	border: none;
+	padding: 0.625rem 1rem;
+	border-radius: 0.375rem;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.2s ease-in-out;
+	font-size: 0.95rem;
+
+	&:hover {
+		background-color: $color-green-3;
+		box-shadow: 0 2px 6px rgba($color-green-3, 0.3);
+	}
+
+	&:active {
+		transform: scale(0.98);
+	}
+
+	&:disabled {
+		background-color: $color-light-gray;
+		color: $color-gray;
+		cursor: not-allowed;
+	}
+}
+
+.add-ingredient-form {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
 	padding: 1rem;
 	background-color: $color-lighter-gray;
-	border-radius: 4px;
+	border: 1px solid $color-light-gray;
+	border-radius: 0.375rem;
+}
+
+.form-group {
+	display: flex;
+	flex-direction: column;
+	gap: 0.375rem;
+
+	label {
+		font-weight: 600;
+		color: $color-text-main;
+		font-size: 0.9rem;
+	}
+
+	input {
+		padding: 0.625rem 0.75rem;
+		border: 1px solid $color-light-gray;
+		border-radius: 0.375rem;
+		font-size: 0.9rem;
+		color: $color-text-main;
+		background-color: $color-white;
+		transition: all 0.2s ease-in-out;
+
+		&:focus {
+			outline: none;
+			border-color: $color-green-3;
+			box-shadow: 0 0 0 3px rgba($color-green-3, 0.1);
+		}
+
+		&:disabled {
+			background-color: $color-lighter-gray;
+			color: $color-gray;
+			cursor: not-allowed;
+		}
+	}
+}
+
+.form-actions {
+	display: flex;
+	gap: 0.75rem;
+	justify-content: flex-end;
+}
+
+.save-btn {
+	background-color: $color-green-2;
+	color: $color-white;
+	border: none;
+	padding: 0.625rem 1.25rem;
+	border-radius: 0.375rem;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.2s ease-in-out;
+	font-size: 0.9rem;
+
+	&:hover {
+		background-color: $color-green-3;
+		box-shadow: 0 2px 4px rgba($color-green-3, 0.3);
+	}
+
+	&:active {
+		transform: scale(0.98);
+	}
+
+	&:disabled {
+		background-color: $color-light-gray;
+		color: $color-gray;
+		cursor: not-allowed;
+	}
+}
+
+.cancel-btn {
+	background-color: $color-lighter-gray;
+	color: $color-text-main;
+	border: 1px solid $color-light-gray;
+	padding: 0.625rem 1.25rem;
+	border-radius: 0.375rem;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.2s ease-in-out;
+	font-size: 0.9rem;
+
+	&:hover {
+		background-color: $color-white;
+		border-color: $color-gray;
+	}
+
+	&:active {
+		transform: scale(0.98);
+	}
+
+	&:disabled {
+		background-color: $color-lighter-gray;
+		color: $color-gray;
+		cursor: not-allowed;
+	}
+}
+
+/* ===== INGREDIENTS SECTION ===== */
+.ingredients-input-group {
+	background-color: $color-lighter-gray;
+	padding: 0.5rem;
+	border-radius: 0.625rem;
+	margin-bottom: 1rem;
+	border: 0.09375rem solid $color-light-gray;
+}
+
+.ingredient-input-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.2rem;
+	flex-direction: column;
+	align-items: flex-start;
+}
+
+.ingredient-field {
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+
+	label {
+		font-size: 0.875rem;
+		font-weight: 500;
+		color: $color-text-main;
+		display: block;
+		height: 1.25rem; // fixes label height so all fields align at bottom
+		line-height: 1.25rem;
+	}
+
+	// make plain inputs match search input height exactly
+	.field-input-ingredient {
+		width: 100%;
+		padding: 0.75rem 1rem;
+		border: 0.09375rem solid $color-light-gray;
+		border-radius: 0.625rem;
+		font-size: 0.875rem;
+		font-family: inherit;
+		outline: none;
+		box-sizing: border-box;
+		background: $color-input-bg;
+		transition: all 0.2s ease;
+		height: 2.875rem; // match search-input height (12px padding top+bottom + 14px font)
+
+		&:focus {
+			border-color: $color-blue-gray;
+			background-color: $color-lighter-gray;
+		}
+
+		&::placeholder {
+			color: $color-gray;
+		}
+	}
+
+	// force app-search-ingredient to fill the field
+	app-search-ingredient {
+		display: block;
+		width: 100%;
+	}
+}
+
+.btn-add-ingredient {
+	flex: 0 0 auto;
+	align-self: flex-end;
+	background-color: $color-green-2;
+	color: $color-white;
+	border: none;
+	border-radius: 0.625rem;
+	font-size: 1.25rem;
+	font-weight: bold;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	height: 2.875rem; // same height as inputs
+	width: 2.875rem;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	line-height: 1;
+
+	&:hover:not(:disabled) {
+		background-color: $color-green-3;
+		box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.15);
+	}
+
+	&:active:not(:disabled) {
+		background-color: $color-green-4;
+	}
+
+	&:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+	}
+}
+
+.ingredients-list {
+	border: 0.09375rem solid $color-light-gray;
+	border-radius: 0.625rem;
+	overflow: hidden;
+}
+
+.ingredients-header {
+	display: flex;
+	gap: 1rem;
+	padding: 1rem 1.5rem;
+	background-color: $color-lighter-gray;
+	border-bottom: 0.0625rem solid $color-light-gray;
+	font-weight: 600;
+	color: $color-text-main;
+	font-size: 0.875rem;
+
+	.col-name        { flex: 2; display: flex; align-items: center; min-width: 0; }
+	.col-measurement { flex: 1.5; display: flex; align-items: center; min-width: 0; }
+	.col-amount      { flex: 1; display: flex; align-items: center; min-width: 0; }
+	.col-action      { flex: 0 0 2.875rem; display: flex; align-items: center; }
+}
+
+.ingredient-item {
+	display: flex;
+	gap: 1rem;
+	padding: 1rem 1.5rem;
+	border-bottom: 0.0625rem solid $color-light-gray;
+	align-items: center;
+	transition: background-color 0.2s ease;
+
+	&:last-child {
+		border-bottom: none;
+	}
+
+	.col-name        { flex: 2; font-size: 0.875rem; color: $color-text-main; min-width: 0; }
+	.col-measurement { flex: 1.5; font-size: 0.875rem; color: $color-text-main; min-width: 0; }
+	.col-amount      { flex: 1; font-size: 0.875rem; color: $color-text-main; min-width: 0; }
+	.col-action      { flex: 0 0 2.875rem; }
+}
+
+.btn-remove {
+	background-color: $color-red;
+	color: $color-white;
+	border: none;
+	border-radius: 0.375rem;
+	width: 2rem;
+	height: 2rem;
+	font-size: 1.125rem;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	line-height: 1;
+	flex-shrink: 0;
+
+	&:hover:not(:disabled) {
+		background-color: $color-red-dark;
+		box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.15);
+	}
+
+	&:active:not(:disabled) {
+		transform: scale(0.95);
+	}
+
+	&:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+	}
+}
+
+.no-ingredients {
+	margin: 0;
+	padding: 2rem 1.5rem;
+	text-align: center;
+	color: $color-gray;
+	font-style: italic;
+	font-size: 0.875rem;
 }
 
 .header-row {

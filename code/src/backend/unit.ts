@@ -254,7 +254,8 @@ class DB {
 				 measurement text not null,
 				 amount text not null,
 
-				 constraint fk_recipe foreign key (room_code) references Room(code) ON DELETE CASCADE
+				 constraint pk_room_ingredient primary key (room_code, ingredient_name, measurement),
+				 constraint fk_room_code foreign key (room_code) references Room(code) ON DELETE CASCADE
 
 			 ) strict`
 		);

@@ -188,3 +188,135 @@ ingredientsRouter.get('/ingredients/:username', async (req, res): Promise<void> 
 		});
 	}
 });
+
+// Room Ingredients endpoints
+ingredientsRouter.get('/room/:roomCode/ingredients', async (req, res): Promise<void> => {
+	const { roomCode } = req.params;
+
+	if (!roomCode) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Room code is required' });
+		return;
+	}
+
+	const unit = new Unit(true);
+
+	try {
+		const ingredientsService = new IngredientsService(unit);
+		const ingredients = ingredientsService.getIngredientsForRoom(roomCode);
+
+		unit.complete();
+		res.status(StatusCodes.OK).json(ingredients || []);
+	} catch (error) {
+		unit.complete();
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to fetch room ingredients' });
+		console.error('Error fetching room ingredients:', error);
+	}
+});
+
+ingredientsRouter.post('/room/:roomCode/ingredients', async (req, res): Promise<void> => {
+	const { roomCode } = req.params;
+	const ingredient = (req.body as { ingredient?: Ingredient })?.ingredient;
+
+	if (!roomCode) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Room code is required' });
+		return;
+	}
+
+	if (!ingredient || !ingredient.name || ingredient.measurement === undefined || ingredient.amount === undefined) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Valid ingredient object with name, measurement, and amount is required' });
+		return;
+	}
+
+	const unit = new Unit(false);
+
+	try {
+		const ingredientsService = new IngredientsService(unit);
+		const success = ingredientsService.addIngredientToRoom(ingredient, roomCode);
+
+		if (!success) {
+			unit.complete(false);
+			res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to add ingredient to room' });
+			return;
+		}
+
+		unit.complete(true);
+		res.status(StatusCodes.CREATED).json({ roomCode, ingredient, added: true });
+	} catch (error) {
+		unit.complete(false);
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to add ingredient to room' });
+		console.error('Error adding ingredient to room:', error);
+	}
+});
+
+ingredientsRouter.delete('/room/:roomCode/ingredients/:ingredientName/:measurement', async (req, res): Promise<void> => {
+	const { roomCode, ingredientName, measurement } = req.params;
+
+	if (!roomCode || !ingredientName || !measurement) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Room code, ingredient name, and measurement are required' });
+		return;
+	}
+
+	const unit = new Unit(false);
+
+	try {
+		const ingredientsService = new IngredientsService(unit);
+		const success = ingredientsService.deleteIngredientFromRoom(
+			decodeURIComponent(ingredientName),
+			decodeURIComponent(measurement),
+			roomCode
+		);
+
+		if (!success) {
+			unit.complete(false);
+			res.status(StatusCodes.NOT_FOUND).json({ error: 'Ingredient not found in room' });
+			return;
+		}
+
+		unit.complete(true);
+		res.status(StatusCodes.OK).json({ success: true });
+	} catch (error) {
+		unit.complete(false);
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to delete ingredient from room' });
+		console.error('Error deleting ingredient from room:', error);
+	}
+});
+
+ingredientsRouter.put('/room/:roomCode/ingredients/:ingredientName/:measurement', async (req, res): Promise<void> => {
+	const { roomCode, ingredientName, measurement } = req.params;
+	const { amount } = req.body as { amount?: number };
+
+	if (!roomCode || !ingredientName || !measurement) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Room code, ingredient name, and measurement are required' });
+		return;
+	}
+
+	if (amount === undefined || typeof amount !== 'number') {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Valid amount is required' });
+		return;
+	}
+
+	const unit = new Unit(false);
+
+	try {
+		const ingredientsService = new IngredientsService(unit);
+		const success = ingredientsService.updateIngredientAmountInRoom(
+			decodeURIComponent(ingredientName),
+			decodeURIComponent(measurement),
+			roomCode,
+			amount
+		);
+
+		if (!success) {
+			unit.complete(false);
+			res.status(StatusCodes.NOT_FOUND).json({ error: 'Ingredient not found in room' });
+			return;
+		}
+
+		unit.complete(true);
+		res.status(StatusCodes.OK).json({ success: true });
+	} catch (error) {
+		unit.complete(false);
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to update ingredient amount in room' });
+		console.error('Error updating ingredient amount in room:', error);
+	}
+});
