@@ -1,0 +1,104 @@
+@if (isOpen()) {
+	<div class="modal-backdrop" (click)="closeModal()">
+		<div class="modal-panel" (click)="$event.stopPropagation()">
+
+			<div class="modal-header">
+				<h3>Shopping List</h3>
+				<button
+					class="btn-icon"
+					type="button"
+					(click)="closeModal()"
+					[disabled]="saving()"
+					aria-label="Close shopping list">
+					✕
+				</button>
+			</div>
+
+			<div class="modal-body">
+				@if (loading()) {
+					<p class="state-msg">Loading…</p>
+				}
+
+				@if (!loading() && ingredients().length === 0) {
+					<p class="state-msg">No ingredients to show.</p>
+				}
+
+				@if (!loading() && ingredients().length > 0) {
+					<div class="select-all-row">
+						<input
+							type="checkbox"
+							id="chk-all"
+							[checked]="allChecked()"
+							(change)="toggleAll()"
+							[disabled]="saving()" />
+						<label for="chk-all">
+							Select all <span class="counter">({{ checkedCount() }}/{{ ingredients().length }})</span>
+						</label>
+					</div>
+
+					<ul class="ing-list">
+						@for (ing of ingredients(); track ing.name + ing.measurement; let idx = $index) {
+							<li [class.is-bought]="ing.checked">
+								<input
+									type="checkbox"
+									[id]="'chk-' + idx"
+									[checked]="ing.checked"
+									(change)="toggle(idx)"
+									[disabled]="saving()" />
+								<label [for]="'chk-' + idx" class="ing-label">
+									<span class="ing-amount">{{ ing.amount }}</span>
+									<span class="ing-unit">{{ ing.measurement }}</span>
+									<span class="ing-name">{{ ing.name }}</span>
+									@if (ing.alreadyBought && ing.boughtBy) {
+										<span class="bought-by">by {{ ing.boughtBy }}</span>
+									}
+								</label>
+							</li>
+						}
+					</ul>
+				}
+
+				@if (error()) {
+					<p class="msg msg-error" role="alert">{{ error() }}</p>
+				}
+
+				@if (success()) {
+					<p class="msg msg-success" role="status">{{ success() }}</p>
+				}
+			</div>
+
+			<div class="modal-footer">
+				@if (hasBoughtItems()) {
+					<button
+						class="btn-ghost"
+						type="button"
+						(click)="clearAll()"
+						[disabled]="saving()">
+						Clear all
+					</button>
+				}
+				<div class="footer-right">
+					<button
+						class="btn-secondary"
+						type="button"
+						(click)="closeModal()"
+						[disabled]="saving()">
+						Cancel
+					</button>
+					<button
+						class="btn-primary"
+						type="button"
+						(click)="save()"
+						[disabled]="saving() || !canSave()">
+						@if (saving()) {
+							Saving…
+						} @else {
+							Save ({{ checkedCount() }})
+						}
+					</button>
+				</div>
+			</div>
+
+		</div>
+	</div>
+}
