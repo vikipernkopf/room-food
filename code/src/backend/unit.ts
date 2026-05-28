@@ -265,8 +265,43 @@ class DB {
 		DB.migrateRecipeAndMealTables(connection);
 		DB.migrateIngredientsAndEating(connection);
 		DB.migrateMealIngredientAssignment(connection);
+		DB.migrateShoppingTables(connection);
 	}
 
+	private static migrateShoppingTables(connection: BetterSqlite3.Database): void {
+		console.log('Migrating shopping tables...');
+
+		connection.exec(`
+    CREATE TABLE IF NOT EXISTS BoughtIngredient (
+      room_code          TEXT NOT NULL,
+      ingredient_name    TEXT NOT NULL,
+      measurement        TEXT NOT NULL,
+      amount             TEXT NOT NULL,
+      bought_by_username TEXT NOT NULL,
+      bought_at          TEXT NOT NULL,
+      CONSTRAINT pk_bought_ingredient
+        PRIMARY KEY (room_code, ingredient_name, measurement),
+      CONSTRAINT fk_bought_room
+        FOREIGN KEY (room_code) REFERENCES Room(code) ON DELETE CASCADE
+    ) STRICT
+  `);
+
+		connection.exec(`
+    CREATE TABLE IF NOT EXISTS PersonalBoughtIngredient (
+      username        TEXT NOT NULL,
+      ingredient_name TEXT NOT NULL,
+      measurement     TEXT NOT NULL,
+      amount          TEXT NOT NULL,
+      bought_at       TEXT NOT NULL,
+      CONSTRAINT pk_personal_bought
+        PRIMARY KEY (username, ingredient_name, measurement),
+      CONSTRAINT fk_personal_bought_user
+        FOREIGN KEY (username) REFERENCES User(username) ON DELETE CASCADE
+    ) STRICT
+  `);
+
+		console.log('✓ ShoppingModal tables migration completed');
+	}
 	private static migrateRoomTableToProfilePicture(connection: BetterSqlite3.Database): void {
 		const columns = connection.prepare(`pragma table_info(Room)`).all() as Array<{
 			name: string
