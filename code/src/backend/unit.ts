@@ -281,6 +281,7 @@ class DB {
 		DB.migrateMealIngredientAssignment(connection);
 		DB.migrateUserIngredientTable(connection);
 		DB.migrateShoppingTables(connection);
+		DB.migrateAmountToReal(connection);
 	}
 
 	private static migrateUserIngredientTable(connection: BetterSqlite3.Database): void {
@@ -817,6 +818,39 @@ class DB {
 			connection.exec(`alter table Meal add column cooked integer not null default 0;`);
 			console.log('✓ Meal cooked column migration completed');
 		}
+	}
+
+	public static migrateAmountToReal(connection: BetterSqlite3.Database): void {
+		connection.exec(`
+        	CREATE TABLE IF NOT EXISTS RoomIngredient_new (
+            	room_code       TEXT NOT NULL,
+            	ingredient_name TEXT NOT NULL,
+            	measurement     TEXT NOT NULL,
+            	amount          REAL NOT NULL,
+
+            	CONSTRAINT pk_room_ingredient PRIMARY KEY (room_code, ingredient_name, measurement),
+            	CONSTRAINT fk_room_code FOREIGN KEY (room_code) REFERENCES Room(code) ON DELETE CASCADE
+        	) STRICT;
+    	`);
+
+		const oldTableExists = connection
+		.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='RoomIngredient'")
+		.get();
+
+		if (oldTableExists) {
+			connection.exec(`
+				INSERT INTO RoomIngredient_new (room_code, ingredient_name, measurement, amount)
+				SELECT room_code,
+				       ingredient_name,
+				       measurement,
+				       CAST(amount AS REAL) as amount
+				FROM RoomIngredient;
+			`);
+
+			connection.exec(`DROP TABLE RoomIngredient;`);
+		}
+
+		connection.exec(`ALTER TABLE RoomIngredient_new RENAME TO RoomIngredient;`);
 	}
 
 	private static getLegacyRecipeAuthorExpr(

@@ -10,7 +10,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/auth-service';
 import { IngredientsFrontendService } from '../../core/ingredients-frontend-service';
-import { ShoppingModal } from '../../shopping/shopping-modal';
+import { Shopping } from '../../shopping/shopping';
 
 interface Ingredient {
 	name: string;
@@ -21,13 +21,13 @@ interface Ingredient {
 @Component({
 	selector: 'app-ingredient-list',
 	standalone: true,
-	imports: [CommonModule, ShoppingModal],
+	imports: [CommonModule, Shopping],
 	templateUrl: './ingredient-list.html',
 	styleUrl: './ingredient-list.scss',
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class IngredientList implements OnInit {
-	readonly shoppingModal = viewChild(ShoppingModal);
+	readonly shoppingModal = viewChild(Shopping);
 
 	readonly ingredients = signal<Ingredient[]>([]);
 	readonly loading = signal(true);

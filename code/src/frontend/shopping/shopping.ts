@@ -27,11 +27,11 @@ export type ShoppingMode = 'room' | 'personal';
 	selector: 'app-shopping-modal',
 	standalone: true,
 	imports: [CommonModule],
-	templateUrl: './shopping-modal.html',
-	styleUrl: './shopping-modal.scss',
+	templateUrl: './shopping.html',
+	styleUrl: './shopping.scss',
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ShoppingModal {
+export class Shopping {
 	readonly roomCode = input<string>('');
 	readonly mode = input<ShoppingMode>('room');
 	readonly close = output<void>();
