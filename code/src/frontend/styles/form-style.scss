@@ -18,10 +18,11 @@
 	grid-template-columns: repeat(2, 1fr);
 	gap: 1.2rem;
 	margin-bottom: 1.2rem;
+	width: 100%;
 
 	// Single-column form layout
 	&--single-column {
-		grid-template-columns: 1fr;
+		grid-template-columns: 1fr !important;
 	}
 }
 
@@ -32,12 +33,14 @@
 	padding-bottom: 0.6rem;
 	border-bottom: 1px solid $color-light-gray;
 	justify-content: space-between;
+	grid-column: 1 / -1;
 }
 
 .header {
 	margin: 0;
 	font-size: 1.5rem;
 	color: $color-green-4;
+	grid-column: 1 / -1;
 }
 
 hr {
@@ -439,15 +442,15 @@ textarea.input-field {
 	color: $color-red;
 	font-size: 0.9rem;
 	font-weight: 500;
-	margin-top: 0.8rem;
+	margin-top: 0.4rem;
 	text-align: center;
 }
 
 .success-text {
 	color: $color-green-2;
-	font-size: 0.9rem;
+	font-size: 0.4rem;
 	font-weight: 500;
-	margin-top: 0.8rem;
+	margin-top: 0.6rem;
 	text-align: center;
 }
 

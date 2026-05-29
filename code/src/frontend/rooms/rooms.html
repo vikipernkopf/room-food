@@ -1,5 +1,4 @@
-<div class="room-header">
-</div>
+<div class="room-header"></div>
 <div class="room-containers">
 	<div class="room-container">
 		@if (!currentUser()?.username) {
@@ -24,14 +23,16 @@
 		}
 	</div>
 </div>
+
 @if (roomsLoadError()) {
 	<p>{{ roomsLoadError() }}</p>
 }
+
 @if (activePopup) {
 	<div class="modal-overlay" (click)="onOverlayClick($event)">
 		<div class="modal-card" (click)="$event.stopPropagation()">
-			<div class="modal-header">
-				<h2>{{ activePopup === 'create' ? 'Create Room' : 'Join Room' }}</h2>
+			<div class="header-container">
+				<h2 class="header">{{ activePopup === 'create' ? 'Create Room' : 'Join Room' }}</h2>
 				<button class="btn-close" type="button" (click)="closePopup()">x</button>
 			</div>
 			@if (activePopup === 'create') {
