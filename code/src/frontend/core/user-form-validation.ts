@@ -15,8 +15,16 @@ export const BACKEND_EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PASSWORD_STRENGTH_PATTERN = /^(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/;
 
 export const requiredTrimmed: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
-	const value = typeof control.value === 'string' ? control.value.trim() : '';
-	return value.length > 0 ? null : { requiredTrimmed: true };
+	const val = control.value;
+
+	// If it's a valid Date object, it satisfies the "required" check
+	if (val instanceof Date) {
+		return isNaN(val.getTime()) ? { requiredTrimmed: true } : null;
+	}
+
+	// Otherwise fall back to the string trimming logic
+	const stringValue = typeof val === 'string' ? val.trim() : '';
+	return stringValue.length > 0 ? null : { requiredTrimmed: true };
 };
 
 export function profileFieldValidators(passwordRequired: boolean): {

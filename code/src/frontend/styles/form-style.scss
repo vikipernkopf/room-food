@@ -1,0 +1,697 @@
+@use "../styles/theme" as *;
+
+// ---------------------------------------------------------
+// FORM STYLES - REUSABLE ACROSS ALL FORMS
+// ---------------------------------------------------------
+// This stylesheet provides base form styling for all forms
+// across the application (login, signup, profile, meal mgmt,
+// create/join room, create recipe). Based on meal-management
+// view-mode styling, excludes popup-specific rules.
+// ---------------------------------------------------------
+
+// ---------------------------------------------------------
+// 1. FORM LAYOUT & STRUCTURE
+// ---------------------------------------------------------
+.form-grid {
+	display: grid;
+	flex-direction: column;
+	grid-template-columns: repeat(2, 1fr);
+	gap: 1.2rem;
+	margin-bottom: 1.2rem;
+	width: 100%;
+
+	// Single-column form layout
+	&--single-column {
+		grid-template-columns: 1fr !important;
+	}
+}
+
+.header-container {
+	display: flex;
+	align-items: flex-start;
+	margin-bottom: 0.9rem;
+	padding-bottom: 0.6rem;
+	border-bottom: 1px solid $color-light-gray;
+	justify-content: space-between;
+	grid-column: 1 / -1;
+}
+
+.header {
+	margin: 0;
+	font-size: 1.5rem;
+	color: $color-green-4;
+	grid-column: 1 / -1;
+}
+
+hr {
+	margin: 1rem 0 0 0;
+	border: none;
+	border-top: 1px solid $color-light-gray;
+}
+
+.scrollable {
+	overflow-y: auto;
+	overflow-x: hidden;
+	padding-right: 1rem !important;
+
+	&::-webkit-scrollbar {
+		width: 8px;
+	}
+
+	&::-webkit-scrollbar-track {
+		background-color: $color-lighter-gray;
+		border-radius: 4px;
+	}
+
+	&::-webkit-scrollbar-thumb {
+		background-color: $color-light-gray;
+		border-radius: 4px;
+
+		&:hover {
+			background-color: $color-blue-gray;
+		}
+	}
+}
+
+// ---------------------------------------------------------
+// 2. FORM FIELDS & INPUTS
+// ---------------------------------------------------------
+.field-group {
+	display: flex;
+	flex-direction: column;
+	position: relative;
+
+	&--full {
+		grid-column: 1 / -1;
+	}
+}
+
+.field-label {
+	color: $color-label-gray;
+	font-size: 0.9rem;
+	font-weight: 600;
+	margin-bottom: 0.4rem;
+}
+
+/*input,
+select,
+textarea*/
+.input-field {
+	border: 1px solid $color-light-gray;
+	border-radius: 10px;
+	background-color: $color-input-bg;
+	color: $color-text-main;
+	font-size: 0.95rem;
+	font-family: "Inter", sans-serif;
+	transition: border-color 0.3s ease, background-color 0.3s ease;
+	box-sizing: border-box;
+	padding: 0.65rem 0.85rem;
+
+	&:focus {
+		outline: none;
+		border-color: $color-orange-2;
+		background-color: $color-white;
+	}
+
+	&:disabled {
+		background-color: $color-light-gray;
+		cursor: not-allowed;
+	}
+
+	&::placeholder {
+		color: $color-blue-gray;
+	}
+}
+
+textarea.input-field {
+	resize: vertical;
+	min-height: 6rem;
+	line-height: 1.5;
+}
+
+.input-with-icon {
+	position: relative;
+	display: flex;
+	align-items: center;
+
+	input {
+		padding-right: 2.5rem;
+		width: 100%;
+	}
+
+	::ng-deep mat-datepicker-toggle,
+	::ng-deep mat-timepicker-toggle {
+		position: absolute;
+		right: 0.5rem;
+		top: 50%;
+		transform: translateY(-50%);
+		pointer-events: all;
+
+		button {
+			background: none;
+			border: none;
+			padding: 0;
+			width: 2rem;
+			height: 2rem;
+			cursor: pointer;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			border-radius: 50%;
+
+			.mat-icon {
+				color: $color-orange-2;
+				font-size: 1.2rem;
+				width: 1.2rem;
+				height: 1.2rem;
+			}
+
+			&:hover {
+				background-color: $color-orange-2-overlay-5;
+				border-radius: 50%;
+			}
+		}
+	}
+}
+
+::ng-deep mat-select.select-input {
+	position: relative;
+	display: flex;
+	width: 100%;
+	height: auto;
+	min-height: 0;
+	box-sizing: border-box;
+	align-items: center;
+	border: 1px solid $color-light-gray;
+	border-radius: 10px;
+	background-color: $color-input-bg;
+	color: $color-text-main;
+	font-size: 0.95rem;
+	transition: border-color 0.3s ease, background-color 0.3s ease;
+
+	&:focus {
+		outline: none;
+		border-color: $color-orange-2;
+		background-color: $color-white;
+	}
+
+	&:disabled {
+		background-color: $color-light-gray;
+		cursor: not-allowed;
+	}
+
+	&::placeholder {
+		color: $color-blue-gray;
+	}
+
+	.mat-mdc-select-trigger {
+		padding: 0.65rem 0.85rem;
+		box-sizing: border-box;
+		display: flex;
+		align-items: center;
+		width: 100%;
+		color: $color-text-main;
+		font-size: 0.95rem;
+		line-height: 1.2;
+		justify-content: space-between;
+	}
+
+	.mat-mdc-select-value,
+	.mat-mdc-select-value-text,
+	.mat-mdc-select-min-line,
+	.mat-mdc-select-arrow {
+		color: $color-text-main;
+	}
+
+	.mat-mdc-select-arrow {
+		margin-right: 0;
+	}
+
+	.mat-mdc-select-arrow-wrapper {
+		right: 0;
+		top: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 1.5rem;
+		height: 1.5rem;
+		border-radius: 50%;
+		transition: background-color 0.2s ease;
+		margin-left: 0.5rem;
+	}
+
+	&:hover .mat-mdc-select-arrow-wrapper {
+		background-color: $color-orange-2-overlay-5;
+	}
+}
+
+// Custom dropdown items
+.search-field-option {
+	opacity: 1 !important;
+	background-color: $color-white !important;
+	cursor: default;
+	min-height: auto;
+	pointer-events: auto !important;
+	width: auto;
+
+	input {
+		margin: 0.5rem 0.8rem;
+		padding: 0.65rem 0.85rem;
+		border: 1px solid $color-light-gray;
+		border-radius: 10px;
+		background-color: $color-input-bg;
+		color: $color-text-main;
+		font-size: 0.95rem;
+		font-family: "Inter", sans-serif;
+		transition: border-color 0.3s ease, background-color 0.3s ease;
+		width: stretch;
+
+		&:focus {
+			outline: none;
+			border-color: $color-orange-2;
+			background-color: $color-white;
+		}
+
+		&::placeholder {
+			color: $color-blue-gray;
+		}
+	}
+}
+
+.search-empty-option {
+	margin: 1rem 1rem 0.8rem;
+	color: $color-light-gray;
+	width: auto;
+}
+
+// ---------------------------------------------------------
+// 4. BUTTONS & ACTIONS
+// ---------------------------------------------------------
+.action-row {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	margin-top: 1.2rem;
+	gap: 1rem;
+	grid-column: 1 / -1;
+}
+
+.btn-primary,
+.save-btn {
+	padding: 0.75rem 1rem;
+	border: none;
+	border-radius: 12px;
+	background-color: $color-orange-2;
+	color: $color-white;
+	font-size: 1rem;
+	font-weight: 600;
+	cursor: pointer;
+	transition: background-color 0.3s ease;
+	width: 100%;
+
+	&:hover:not(:disabled) {
+		background-color: $color-orange-1;
+	}
+
+	&:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+	}
+}
+
+.btn-secondary {
+	padding: 0.75rem 1rem;
+	border: 1px solid $color-light-gray;
+	border-radius: 12px;
+	background-color: $color-white;
+	font-weight: 600;
+	cursor: pointer;
+	width: 100%;
+	color: $color-orange-2;
+	text-decoration: none;
+	font-size: 0.9rem;
+	transition: color 0.3s ease;
+
+	&:hover:not(:disabled) {
+		color: $color-orange-1;
+		text-decoration: underline;
+	}
+
+	&:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+	}
+}
+
+.delete-btn {
+	padding: 0;
+	border: none;
+	background: transparent;
+	color: $color-red;
+	font-size: 0.9rem;
+	font-weight: 500;
+	cursor: pointer;
+	transition: color 0.3s ease;
+	margin-top: 0.4rem;
+	text-decoration: none;
+
+	&:hover:not(:disabled) {
+		color: $color-red;
+		text-decoration: underline;
+	}
+
+	&:focus-visible {
+		outline: 2px solid $color-red-overlay-25;
+		outline-offset: 2px;
+		border-radius: 4px;
+	}
+
+	&:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+	}
+}
+
+.more-link,
+.back-link {
+	background: none;
+	border: none;
+	color: $color-orange-2;
+	font-size: 15px;
+	cursor: pointer;
+	padding: 0;
+	font-weight: 500;
+	transition: color 0.3s ease;
+
+	&:hover {
+		color: $color-orange-1;
+		text-decoration: underline;
+	}
+
+	&:active {
+		color: $color-orange-3;
+	}
+
+	&:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+	}
+}
+
+//close popups
+.btn-close {
+	border: none;
+	background: $color-transparent;
+	font-size: 1.3rem;
+	line-height: 1;
+	color: $color-orange-2;
+	cursor: pointer;
+	padding: 0;
+	width: 1.9rem;
+	height: 1.9rem;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	opacity: 1 !important;
+	border-radius: 50%;
+
+	&:hover {
+		background: $color-orange-2-overlay-12 !important;
+	}
+}
+
+//save or delete buttons
+.action-row {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	margin-top: 1.2rem;
+}
+
+//for more-> button
+.more-row {
+	display: flex;
+	justify-content: center;
+	margin-top: 8px;
+}
+
+// ---------------------------------------------------------
+// 5. ERROR STATES
+// ---------------------------------------------------------
+.error-text {
+	color: $color-red;
+	font-size: 0.9rem;
+	font-weight: 500;
+	margin-top: 0.4rem;
+	text-align: center;
+}
+
+.success-text {
+	color: $color-green-2;
+	font-size: 0.4rem;
+	font-weight: 500;
+	margin-top: 0.6rem;
+	text-align: center;
+}
+
+.field-error {
+	display: block;
+	width: 100%;
+	color: $color-red;
+	font-size: 0.85rem;
+	font-weight: 500;
+	margin-top: 0.4rem;
+	text-align: left;
+}
+
+.field-success {
+	display: block;
+	width: 100%;
+	color: $color-green-2;
+	font-size: 0.85rem;
+	font-weight: 500;
+	margin-top: 0.4rem;
+	text-align: left;
+}
+
+// ---------------------------------------------------------
+// 6. MATERIAL DEEP OVERRIDES (CDK & ANGULAR MATERIAL)
+// ---------------------------------------------------------
+// Component Styles
+::ng-deep {
+	.mat-mdc-form-field {
+		width: 100%;
+
+		.mat-mdc-text-field-wrapper {
+			padding-bottom: 0;
+		}
+
+		.mat-mdc-form-field-hint-wrapper {
+			display: none !important;
+		}
+	}
+
+	.mat-mdc-select {
+		background-color: $color-input-bg !important;
+		border: 1px solid $color-light-gray !important;
+		border-radius: 10px !important;
+
+		.mat-mdc-select-trigger {
+			display: flex;
+			align-items: center;
+		}
+	}
+
+	// Overlay Container Styles
+	.cdk-overlay-container {
+		// Angular Material Design Tokens
+		--mat-sys-primary: #{$color-orange-2};
+		--mat-sys-on-primary: #{$color-white};
+		--mat-sys-primary-container: #{$color-orange-2-overlay-20};
+		--mat-sys-on-primary-container: #{$color-text-main};
+		--mdc-theme-primary: #{$color-orange-2};
+
+		// Shared List Element Styling (Selectors, SVGs, Checkboxes)
+		%shared-icon-colors {
+			color: currentColor !important;
+			fill: currentColor !important;
+			border-color: currentColor !important;
+		}
+
+		// Shared Active/Selected State
+		%shared-selected-state {
+			background-color: $color-orange-2-overlay-20 !important;
+			color: $color-text-main !important;
+		}
+
+		// Shared Hover State
+		%shared-hover-state {
+			background-color: $color-orange-2-overlay-12 !important;
+		}
+
+		// Panels & Content Wrappers
+		.mat-datepicker-content,
+		.mat-timepicker-content,
+		.mat-timepicker-panel {
+			background-color: $color-white !important;
+			opacity: 1 !important;
+		}
+
+		.mat-datepicker-content {
+			box-shadow: 0 10px 25px $color-overlay-15;
+
+			.mat-calendar {
+				background-color: $color-white !important;
+			}
+		}
+
+		.mat-timepicker-panel,
+		.mat-mdc-select-panel {
+			overflow-y: auto !important;
+		}
+
+		.mat-mdc-select-panel,
+		.mat-mdc-select-panel-above {
+			border-radius: 12px !important;
+			overflow: hidden !important;
+		}
+
+		.mat-mdc-select-panel {
+			.mdc-list {
+				border-radius: inherit;
+				overflow: hidden;
+				padding-top: 0;
+				padding-bottom: 0;
+			}
+
+			.mat-mdc-option {
+				.mdc-list-item__end,
+				.mdc-list-item__end .mat-icon,
+				.mdc-list-item__end svg,
+				.mat-pseudo-checkbox,
+				.mat-pseudo-checkbox::after {
+					@extend %shared-icon-colors;
+				}
+			}
+		}
+
+		.mat-mdc-select-panel-above {
+			margin-bottom: 0 !important;
+		}
+
+		// Options & Selections
+		.mat-mdc-option {
+			background-color: $color-white;
+
+			// Add this hover block right here:
+			&:not(.mdc-list-item--disabled):hover {
+				background-color: $color-orange-2-overlay-12 !important;
+				color: $color-text-main !important;
+			}
+
+			&.mdc-list-item--selected:not(.mdc-list-item--disabled),
+			&[aria-selected="true"]:not(.mdc-list-item--disabled) {
+				@extend %shared-selected-state;
+			}
+		}
+
+		// Timepicker Specifics
+		.mat-timepicker-content {
+			border-radius: 14px;
+
+			&,
+			.mat-mdc-dialog-surface,
+			.mdc-dialog__surface,
+			.mat-timepicker-container {
+				background-color: $color-white !important;
+			}
+
+			.mat-timepicker-dial__item--active,
+			.mat-timepicker-option.mdc-list-item--selected,
+			.mat-timepicker-period-button.mat-mdc-button-base.mat-primary,
+			[aria-selected="true"],
+			[aria-pressed="true"] {
+				@extend %shared-selected-state;
+				border-radius: 999px;
+			}
+
+			.mat-timepicker-option {
+				.mdc-list-item__end,
+				.mdc-list-item__end .mat-icon,
+				.mdc-list-item__end svg,
+				.mat-pseudo-checkbox,
+				.mat-pseudo-checkbox::after {
+					@extend %shared-icon-colors;
+				}
+			}
+		}
+
+		.mat-timepicker-panel {
+			background-color: $color-white !important;
+			border-radius: 14px;
+		}
+
+		// Calendar Specifics
+		.mat-calendar-body-selected {
+			background-color: $color-orange-2 !important;
+			color: $color-white !important;
+		}
+
+		.mat-calendar-body-cell {
+			position: absolute;
+
+			// Force any internal state overlays to match the round geometry
+			&, &-content {
+				border-radius: 50% !important;
+			}
+		}
+
+		// Tooltip Specifics
+		.mat-mdc-tooltip-panel .mat-mdc-tooltip-surface {
+			background-color: $color-white !important;
+			color: $color-text-main !important;
+			border-radius: 999px !important;
+			box-shadow: 0 6px 14px $color-overlay-10;
+			opacity: 1 !important;
+			padding: 8px 16px !important;
+		}
+
+		// Reset the default angular material range/focus background overlays
+		.mat-calendar-body-cell-content {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			box-sizing: border-box;
+			border-radius: 50% !important;
+			transform: none !important;
+		}
+
+		// Calendar Specifics Interaction States
+		.mat-calendar-body-cell:not(.mat-calendar-body-disabled) {
+
+			// 1. Hover state
+			&:hover .mat-calendar-body-cell-content {
+				background-color: $color-orange-2-overlay-12 !important;
+				color: $color-text-main !important;
+			}
+
+			// 2. Focus, keyboard focus, and active/today states
+			&.cdk-focused .mat-calendar-body-cell-content:not(.mat-calendar-body-selected),
+			&.cdk-keyboard-focused .mat-calendar-body-cell-content:not(.mat-calendar-body-selected),
+			&.mat-calendar-body-active .mat-calendar-body-cell-content:not(.mat-calendar-body-selected) {
+				background-color: $color-orange-2-overlay-12 !important;
+				color: $color-text-main !important;
+			}
+		}
+
+		// Explicitly hide structural background blocks generated by native datepicker range extensions
+		.mat-calendar-body-cell-container {
+			background: none !important;
+		}
+
+		.mat-calendar-body-cell:hover,
+		.mat-calendar-body-cell-content:hover {
+			background: transparent !important;
+		}
+	}
+}

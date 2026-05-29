@@ -6,7 +6,7 @@
 		</div>
 		<form class="recipe-form" (ngSubmit)="saveRecipe()">
 			<div class="form-group">
-				<span>Recipe name</span>
+				<label class="field-label">Recipe name</label>
 				<mat-form-field class="recipe-field" subscriptSizing="dynamic">
 					<input matInput type="text" [formControl]="recipeNameControl" placeholder="Grandma's pasta">
 				</mat-form-field>
@@ -17,14 +17,14 @@
 				}
 			</div>
 			<div class="form-group">
-				<span>Description</span>
+				<label class="field-label">Description</label>
 				<mat-form-field class="recipe-field" subscriptSizing="dynamic">
 					<textarea matInput [formControl]="recipeDescriptionControl" rows="4"
 						placeholder="Describe the recipe"></textarea>
 				</mat-form-field>
 			</div>
 			<div class="form-group">
-				<span>Image URL</span>
+				<label class="field-label">Image URL</label>
 				<mat-form-field class="recipe-field" subscriptSizing="dynamic">
 					<input
 						matInput
@@ -34,7 +34,7 @@
 				</mat-form-field>
 			</div>
 			<div class="form-group">
-				<span>Visibility</span>
+				<label class="field-label">Visibility</label>
 				<mat-form-field class="recipe-field" subscriptSizing="dynamic">
 					<mat-select class="visibility-select" panelClass="visibility-panel" [disableOptionCentering]="true"
 						[formControl]="recipeVisibilityControl">
@@ -44,7 +44,7 @@
 				</mat-form-field>
 			</div>
 			<div class="form-group meal-type-group">
-				<span>Meal types</span>
+				<label class="field-label">Meal types</label>
 				<mat-form-field class="recipe-field" subscriptSizing="dynamic">
 					<mat-select class="meal-type-select" panelClass="meal-type-panel"
 						[disableOptionCentering]="true" [formControl]="recipeMealTypesControl" multiple>
@@ -55,9 +55,9 @@
 				</mat-form-field>
 			</div>
 			<div class="form-actions">
-				<button class="btn-submit" type="submit" [disabled]="creating()">{{ submitButtonLabel }}</button>
+				<button class="btn-primary" type="submit" [disabled]="creating()">{{ submitButtonLabel }}</button>
 				@if (isEditMode) {
-					<button class="btn-delete" type="button" (click)="deleteRecipe()"
+					<button class="delete-btn" type="button" (click)="deleteRecipe()"
 						[disabled]="creating()">
 						Delete Recipe
 					</button>

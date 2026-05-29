@@ -1,19 +1,19 @@
-import {Component, effect, inject, OnDestroy, signal, WritableSignal, DestroyRef} from '@angular/core';
-import {ActivatedRoute, Router, RouterLink} from '@angular/router';
-import {MatDivider} from '@angular/material/divider';
-import {MatCard} from '@angular/material/card';
-import {MatButton, MatIconButton} from '@angular/material/button';
-import {MatLabel} from '@angular/material/form-field';
-import {RoomService} from '../core/room-service';
-import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
-import {CommonModule} from '@angular/common';
-import {Role, User} from '../../backend/model';
-import {AuthService} from '../core/auth-service';
-import {firstValueFrom} from 'rxjs';
+import { Component, effect, inject, OnDestroy, signal, WritableSignal, DestroyRef } from '@angular/core';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { MatDivider } from '@angular/material/divider';
+import { MatCard } from '@angular/material/card';
+import { MatButton, MatIconButton } from '@angular/material/button';
+import { MatLabel } from '@angular/material/form-field';
+import { RoomService } from '../core/room-service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { CommonModule } from '@angular/common';
+import { Role, User } from '../../backend/model';
+import { AuthService } from '../core/auth-service';
+import { firstValueFrom } from 'rxjs';
 import { DEFAULT_ROOM_PICTURE } from '../core/user-form-validation';
-import {MatMenu, MatMenuItem, MatMenuTrigger} from '@angular/material/menu';
-import {EditRoom} from './edit-room/edit-room';
-import {MatSnackBar} from '@angular/material/snack-bar';
+import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
+import { EditRoom } from './edit-room/edit-room';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 interface Member {
 	username: string;
@@ -24,6 +24,7 @@ interface Request {
 	username: string;
 }
 
+//noinspection JSIgnoredPromiseFromCall
 @Component({
 	selector: 'app-room-management-view',
 	standalone: true,
@@ -50,7 +51,7 @@ export class RoomManagementView implements OnDestroy {
 	protected readonly members: WritableSignal<Member[]> = signal([]);
 	protected readonly requests: WritableSignal<Request[]> = signal([]);
 	protected readonly currentUser: WritableSignal<User | null>;
-	protected readonly sharedLink: WritableSignal<string> = signal("");
+	//protected readonly sharedLink: WritableSignal<string> = signal('');
 	protected readonly userRole: WritableSignal<Role> = signal(Role.Member);
 	public readonly isPopupVisible = signal<boolean>(false);
 	private authService: AuthService = inject(AuthService);
@@ -63,7 +64,7 @@ export class RoomManagementView implements OnDestroy {
 		private router: Router,
 		private roomService: RoomService) {
 
-		this.currentUser=this.authService.currentUser;
+		this.currentUser = this.authService.currentUser;
 		// Subscribe to route param 'code' and unsubscribe on destroy
 		this.route.paramMap
 		.pipe(takeUntilDestroyed(this.destroyRef))
@@ -168,9 +169,11 @@ export class RoomManagementView implements OnDestroy {
 			next: members => {
 				console.log('Successfully fetched members:', members);
 				const result: Member[] = [];
-				members.forEach(m =>{
-					result.push({username: m.username, role:m.role as Role})
-				})
+				members.forEach(m =>
+					result.push({
+						username: m.username,
+						role: m.role as Role
+					}));
 				this.members.set(result || []);
 			},
 			error: error => {
@@ -231,25 +234,27 @@ export class RoomManagementView implements OnDestroy {
 
 	protected async removeMember(username: string) {
 		const code = this.roomCode();
-		this.determineRole().then(async _ =>{
-			if((!(this.userRole()===Role.Owner) &&
-				!(this.userRole()===Role.Admin)))
-			{
+		this.determineRole().then(async _ => {
+			if (!(this.userRole() === Role.Owner) &&
+				!(this.userRole() === Role.Admin)) {
 				alert('Role insufficient');
-				return
+				return;
 			}
 
 			//I use confirm for now cuz i don't wanna do a popup but it can be changed later
-			if (!confirm(`Kick member ${username}?`)) return;
+			if (!confirm(`Kick member ${username}?`)) {
+				return;
+			}
 
 			console.log('Removing member:', username, 'from room:', code);
 
-			const result:boolean = (await firstValueFrom(this.roomService.removeMember(this.roomCode(), username, this.currentUser()?.username || ''))).success;
+			const result: boolean = (await firstValueFrom(
+				this.roomService.removeMember(this.roomCode(), username, this.currentUser()?.username || ''))).success;
 
 			console.log(result);
 
 			this.fetchMembers(this.roomCode());
-		})
+		});
 	}
 
 	ngOnDestroy() {
@@ -262,7 +267,7 @@ export class RoomManagementView implements OnDestroy {
 			const members = await firstValueFrom(this.roomService.getMembersPerRoom(this.roomCode()));
 			const current = this.currentUser();
 			const found = members?.find(m => m.username === current?.username);
-			if(found===undefined){
+			if (found === undefined) {
 				this.errorPage();
 				return;
 			}
@@ -271,7 +276,7 @@ export class RoomManagementView implements OnDestroy {
 			console.error('Error determining role:', err);
 		}
 
-		console.log(`user role: ${this.userRole()}`)
+		console.log(`user role: ${this.userRole()}`);
 	}
 
 	deleteRoom() {
@@ -283,11 +288,13 @@ export class RoomManagementView implements OnDestroy {
 		}
 
 		//I use confirm for now cuz i don't wanna do a popup but it can be changed later
-		if (!confirm(`Delete room ${code}? This action cannot be undone.`)) return;
+		if (!confirm(`Delete room ${code}? This action cannot be undone.`)) {
+			return;
+		}
 
-		this.determineRole().then(_ =>{
-			if(this.userRole()!=Role.Owner){
-				alert("You must be owner to delete room") // just in case
+		this.determineRole().then(_ => {
+			if (this.userRole() !== Role.Owner) {
+				alert('You must be owner to delete room'); // just in case
 				return;
 			}
 
@@ -306,7 +313,7 @@ export class RoomManagementView implements OnDestroy {
 					}
 				}
 			});
-		})
+		});
 	}
 
 	leaveRoom() {
@@ -317,11 +324,13 @@ export class RoomManagementView implements OnDestroy {
 			return;
 		}
 
-		if (!confirm(`Leave room ${code}?`)) return;
+		if (!confirm(`Leave room ${code}?`)) {
+			return;
+		}
 
 		this.determineRole().then(_ => {
 			if (this.userRole() === Role.Owner) {
-				alert("An owner can't leave a room. Please delegate the owner to someone else to leave.")
+				alert('An owner can\'t leave a room. Please delegate the owner to someone else to leave.');
 				return;
 			}
 
@@ -343,7 +352,7 @@ export class RoomManagementView implements OnDestroy {
 		});
 	}
 
-	errorPage(){
+	errorPage() {
 		if (!this.hasRedirected) {
 			console.log('Requirements to stay in room management view not fulfilled, redirecting to error');
 			this.hasRedirected = true;
@@ -366,12 +375,12 @@ export class RoomManagementView implements OnDestroy {
 		if (success) {
 			const code = this.roomCode();
 			this.roomService.getRoomName(code).subscribe({
-				next: (res) => {
+				next: res => {
 					if (res && res.roomName) {
 						this.roomName.set(res.roomName);
 					}
 				},
-				error: (err) => console.error('Failed to refresh room name:', err)
+				error: err => console.error('Failed to refresh room name:', err)
 			});
 			this.fetchMembers(code);
 		}
@@ -387,19 +396,15 @@ export class RoomManagementView implements OnDestroy {
 		}
 
 		this.roomService.updateMemberRole(code, member, newRole, current.username).subscribe({
-			next: () => {
-				this.fetchMembers(code);
-			},
-			error: err => {
-				console.error('Error updating role:', err);
-			}
-		})
+			next: () => this.fetchMembers(code),
+			error: err => console.error('Error updating role:', err)
+		});
 	}
 
 	copyShareLink() {
 		const link = `${window.location.origin}/join/${this.roomCode()}`;
 		navigator.clipboard.writeText(link);
-		this.snackBar.open("Link Copied!", '', {
+		this.snackBar.open('Link Copied!', '', {
 			duration: 2000,
 			horizontalPosition: 'center',
 			verticalPosition: 'bottom',

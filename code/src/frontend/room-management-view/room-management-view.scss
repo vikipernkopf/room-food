@@ -1,4 +1,5 @@
-﻿@use '../styles/theme' as *;
+﻿@use "../styles/theme" as *;
+@use "../styles/form-style" as *;
 
 /* ===== PAGE WRAPPER ===== */
 .page-wrapper {
@@ -10,7 +11,7 @@
 	justify-content: stretch;
 	padding: 0;
 	margin: 0;
-	font-family: 'Inter', sans-serif;
+	font-family: "Inter", sans-serif;
 	box-sizing: border-box;
 	overflow: hidden;
 }
@@ -98,7 +99,14 @@
 .info-row {
 	display: flex;
 	align-items: center;
+	justify-content: space-between;
 	gap: 8px;
+}
+
+.room-code-row {
+	gap: 0.5rem;
+	display: flex;
+	align-items: center;
 }
 
 .info-label {
@@ -119,7 +127,7 @@
 	padding: 3px 10px;
 	border-radius: 6px;
 	letter-spacing: 2px;
-	font-family: 'Inter', sans-serif;
+	font-family: "Inter", sans-serif;
 }
 
 /* ===== SECTION TITLE ===== */
@@ -215,7 +223,6 @@
 	background-color: $color-lighter-gray !important;
 }
 
-
 .member-role {
 	font-size: 12px;
 	color: $color-gray;
@@ -254,6 +261,12 @@
 	background-color: $color-red-overlay-8;
 }
 
+.leave-btn {
+	border: 1px solid $color-light-gray;
+	border-radius: 12px;
+	padding: 0.75rem 1rem;
+}
+
 .accept-btn {
 	color: $color-green-2;
 	font-size: 18px;
@@ -283,8 +296,7 @@
 	padding-top: 225px;
 }
 
-
-.leave-delete-div {
+.delete-div {
 	display: flex;
 	justify-content: flex-end; /* Pushes buttons to the right */
 	gap: 12px;
@@ -313,27 +325,8 @@
 	}
 }
 
-.leave-btn {
-	background-color: $color-white;
-	color: $color-red;
-	border: 1px solid $color-light-gray;
-
-	&:hover:not(:disabled) {
-		background-color: $color-lighter-gray;
-		border-color: $color-red;
-	}
-}
-
-.delete-btn {
-	background-color: $color-red;
-	color: $color-white !important;
-	// Using a simple rgba here if $color-red-overlay isn't handy
-	box-shadow: 0 4px 12px rgba(255, 0, 0, 0.15);
-
-	&:hover:not(:disabled) {
-		filter: brightness(1.1);
-		color: $color-red !important;
-	}
+.btn-secondary {
+	max-width: 10rem !important;
 }
 
 /* ===== REQUEST ITEM ===== */
@@ -424,14 +417,11 @@
 
 .member-profile-link {
 	text-decoration: none; /* Removes underline */
-	color: inherit;        /* Keeps your existing text color */
+	color: inherit; /* Keeps your existing text color */
 	transition: opacity 0.2s ease;
 }
 
 .member-profile-link:hover {
-	opacity: 0.7;          /* Slight fade effect on hover */
+	opacity: 0.7; /* Slight fade effect on hover */
 	cursor: pointer;
 }
-
-
-

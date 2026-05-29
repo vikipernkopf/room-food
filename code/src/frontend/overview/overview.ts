@@ -38,7 +38,12 @@ export class Overview implements OnInit {
 	selectedMeal: Meal | null = null;
 	selectedDateForPopup: Date | null = null;
 	selectedTimeForPopup: Date | null = null;
-	availableRooms = signal<{ code: string; roomName: string; role: string; profilePicture?: string }[]>([]);
+	availableRooms = signal<{
+		code: string;
+		roomName: string;
+		role: string;
+		profilePicture?: string
+	}[]>([]);
 	selectedRoomCode: string = '';
 	protected readonly currentUser;
 
@@ -62,8 +67,6 @@ export class Overview implements OnInit {
 				this.availableRooms.set([]);
 			}
 		});
-
-		console.log('Overview component initialized');
 	}
 
 	loadRooms() {
@@ -71,10 +74,13 @@ export class Overview implements OnInit {
 			return;
 		}
 
-		this.roomService.getRoomsForMember(this.currentUser()?.username ?? "").subscribe({
+		this.roomService.getRoomsForMember(this.currentUser()?.username ?? '').subscribe({
 			next: rooms => {
 				console.log('Rooms loaded for overview:', rooms);
 				this.availableRooms.set(rooms);
+				this.availableRooms.update(recipes =>
+					[...recipes].sort((a, b) =>
+						a.roomName.localeCompare(b.roomName)));
 				if (rooms.length > 0 && !this.selectedRoomCode) {
 					this.selectedRoomCode = rooms[0].code;
 				}

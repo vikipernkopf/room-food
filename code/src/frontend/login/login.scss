@@ -1,9 +1,5 @@
-﻿@use '../styles/theme' as *;
-
-
-* {
-	font-family: 'Inter', sans-serif;
-}
+﻿@use "../styles/theme" as *;
+@use "../styles/form-style";
 
 :host {
 	display: block;
@@ -11,121 +7,21 @@
 	overflow: hidden;
 }
 
-.error-msg {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	min-height: 1.25rem;
-	color: $color-red;
-	font-size: 0.85rem;
-	font-weight: 500;
-	margin-top: 0.4rem;
-}
-
 section {
 	display: flex;
 	justify-content: center;
 	align-items: center;
 	height: 100%;
+	width: 100%;
 	overflow: hidden;
 	background-color: $color-lighter-gray;
 }
 
 .login-container {
 	background: $color-white;
-	padding: 2.5rem;
+	padding: 1rem !important;
 	border-radius: 24px;
 	border: 1px solid $color-input-bg;
-	width: 100%;
-	max-width: 400px;
+	width: 35%;
 	box-shadow: 0 10px 25px $color-overlay-3;
-
-	header {
-		margin-bottom: 2rem;
-		h4 {
-			color: $color-orange-2;
-			font-size: 1.8rem;
-			font-weight: 800;
-			margin: 0;
-		}
-	}
-
-	.field-group {
-		margin-bottom: 1.25rem;
-	}
-
-	label {
-		display: block;
-		font-weight: 600;
-		color: $color-label-gray;
-		margin-bottom: 0.6rem;
-		font-size: 0.95rem;
-	}
-
-	input {
-		width: 100%;
-		padding: 1rem 1.2rem;
-		background-color: $color-input-bg;
-		border: 1.5px solid $color-light-gray;
-		border-radius: 14px;
-		font-size: 1rem;
-		color: $color-text-main;
-		transition: all 0.2s ease;
-		box-sizing: border-box;
-
-		&::placeholder { color: $color-blue-gray; }
-
-		&:focus {
-			outline: none;
-			border-color: $color-orange-2;
-			background-color: $color-white;
-			box-shadow: 0 0 0 4px $color-orange-5-overlay-50;
-		}
-	}
-
-	button {
-		width: 100%;
-		padding: 1.1rem;
-		background-color: $color-orange-2;
-		color: $color-white;
-		border: none;
-		border-radius: 16px;
-		font-size: 1.1rem;
-		font-weight: 700;
-		cursor: pointer;
-		transition: background-color 0.2s ease, transform 0.1s ease;
-		margin-top: 1rem;
-		box-shadow: 0 4px 12px $color-orange-2-overlay-20;
-
-		&:hover:not(:disabled) { background-color: $color-orange-1; }
-		&:active:not(:disabled) { transform: scale(0.98); }
-		&:disabled {
-			background-color: $color-slate-1;
-			cursor: not-allowed;
-			box-shadow: none;
-		}
-	}
-
-	aside {
-		margin-top: 0.4rem;
-		span { color: $color-red; font-size: 0.85rem; font-weight: 500; }
-	}
-
-	nav {
-		text-align: center;
-		margin-top: 1.5rem;
-		a {
-			color: $color-gray;
-			text-decoration: none;
-			font-size: 0.9rem;
-			font-weight: 500;
-			&:hover { color: $color-orange-2; text-decoration: underline; }
-		}
-	}
-
-	hr {
-		margin: 2rem 0 0.5rem;
-		border: 0;
-		border-top: 1.5px solid $color-light-gray;
-	}
 }
