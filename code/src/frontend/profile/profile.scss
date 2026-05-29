@@ -4,7 +4,7 @@
 .profile-page {
 	min-height: calc(100vh - 64px);
 	background: $color-slate-2;
-	padding: 2rem 1rem 2rem;
+	padding: 1rem;
 	box-sizing: border-box;
 	display: flex;
 	justify-content: center;
@@ -60,43 +60,15 @@
 	white-space: pre-line;
 }
 
-h3 {
-	margin: 0 0 0.8rem;
-	color: $color-green-3;
-}
-
 .form-grid {
-	display: grid;
-	grid-template-columns: repeat(2, minmax(0, 1fr));
-	gap: 0.85rem;
-}
-
-.field-group--full {
-	grid-column: 1 / -1;
-}
-
-.status {
-	margin: 0.55rem 0 0;
-	color: $color-text-main;
-	font-size: 0.9rem;
-}
-
-.status.error {
-	color: $color-red;
-}
-
-.status.success {
-	color: $color-green-3;
+	padding: 0 !important;
+	margin-top: 1rem;
+	margin-bottom: 1rem;
 }
 
 @media (max-width: 700px) {
 	.profile-card {
 		padding: 1rem;
-	}
-
-	.form-grid {
-		grid-template-columns: 1fr;
-		gap: 0.6rem;
 	}
 
 	.profile-header {

@@ -1,15 +1,13 @@
 <section>
-	<form class="signup-container" [formRoot]="signUpForm" autocomplete="on">
-		<header>
-			<h4>Sign up</h4>
+	<form class="signup-container form-grid" [formRoot]="signUpForm" autocomplete="on">
+		<header class="header-container field-group field-group--full">
+			<h2 class="header">Sign up</h2>
 		</header>
 
-		<div class="form-grid">
-			<div class="field-group">
-				<label for="username" class="field-label">Username</label>
-				<input [formField]="signUpForm.username" id="username" type="text" placeholder="e.g. AlexJohnson"
-					autocomplete="username">
-
+		<div class="field-group">
+			<label for="username" class="field-label">Username</label>
+			<input class="input-field" [formField]="signUpForm.username" id="username" type="text"
+				placeholder="e.g. AlexJohnson" autocomplete="username">
 			@if (fieldTouchedAndInvalid(signUpForm.username)) {
 				<span class="field-error">
 					@if (fieldHasError(signUpForm.username, 'required')) {
@@ -24,8 +22,8 @@
 
 		<div class="field-group">
 			<label for="email" class="field-label">E-mail</label>
-			<input [formField]="signUpForm.email" id="email" type="email" placeholder="e.g. alex@example.com"
-				autocomplete="email">
+			<input class="input-field" [formField]="signUpForm.email" id="email" type="email"
+				placeholder="e.g. alex@example.com" autocomplete="email">
 
 			@if (fieldTouchedAndInvalid(signUpForm.email)) {
 				<span class="field-error">
@@ -41,8 +39,8 @@
 
 		<div class="field-group">
 			<label for="firstName" class="field-label">First name</label>
-			<input [formField]="signUpForm.firstName" id="firstName" type="text" placeholder="First name"
-				autocomplete="given-name">
+			<input class="input-field" [formField]="signUpForm.firstName" id="firstName" type="text"
+				placeholder="First name" autocomplete="given-name">
 
 			@if (fieldTouchedAndInvalid(signUpForm.firstName)) {
 				<span class="field-error">
@@ -59,8 +57,8 @@
 
 		<div class="field-group">
 			<label for="lastName" class="field-label">Last name</label>
-			<input [formField]="signUpForm.lastName" id="lastName" type="text" placeholder="Last name"
-				autocomplete="family-name">
+			<input class="input-field" [formField]="signUpForm.lastName" id="lastName" type="text"
+				placeholder="Last name" autocomplete="family-name">
 
 			@if (fieldTouchedAndInvalid(signUpForm.lastName)) {
 				<span class="field-error">
@@ -77,7 +75,14 @@
 
 		<div class="field-group">
 			<label for="dob" class="field-label">Date of birth</label>
-			<input [formField]="signUpForm.dob" id="dob" type="date" autocomplete="bday">
+
+			<div class="input-with-icon">
+				<input id="dob" class="input-field" matInput placeholder="mm/dd/yyyy" [formField]="signUpForm.dob"
+					[matDatepicker]="dobPicker" autocomplete="bday">
+				<mat-datepicker-toggle matIconSuffix [for]="dobPicker"></mat-datepicker-toggle>
+			</div>
+
+			<mat-datepicker #dobPicker></mat-datepicker>
 
 			@if (fieldTouchedAndInvalid(signUpForm.dob)) {
 				<span class="field-error">
@@ -91,14 +96,14 @@
 
 		<div class="field-group">
 			<label for="profilePicture" class="field-label">Profile picture URL</label>
-			<input [formField]="signUpForm.profilePicture" id="profilePicture" type="url" placeholder="https://..."
-				autocomplete="photo">
+			<input class="input-field" [formField]="signUpForm.profilePicture" id="profilePicture" type="url"
+				placeholder="https://..." autocomplete="photo">
 		</div>
 
 		<div class="field-group field-group--full">
 			<label for="bio" class="field-label">Bio</label>
-			<textarea [formField]="signUpForm.bio" id="bio" rows="3" placeholder="Tell others a bit about yourself"
-				autocomplete="off"></textarea>
+			<textarea class="input-field" [formField]="signUpForm.bio" id="bio" rows="3"
+				placeholder="Tell others a bit about yourself" autocomplete="off"></textarea>
 			@if (fieldTouchedAndInvalid(signUpForm.bio)) {
 				<span class="field-error">
 					@if (fieldHasError(signUpForm.bio, 'maxLength')) {
@@ -111,8 +116,9 @@
 		<div class="field-group field-group--full">
 			<label for="password" class="field-label">Password</label>
 			<div class="input-with-icon">
-				<input [formField]="signUpForm.password" id="password" [type]="showPassword ? 'text' : 'password'"
-					placeholder="Password" autocomplete="new-password">
+				<input class="input-field" [formField]="signUpForm.password" id="password" [type]="showPassword ?
+				'text' :
+				'password'" placeholder="Password" autocomplete="new-password">
 				<button class="password-toggle" type="button" (click)="togglePasswordVisibility()"
 					[attr.aria-label]="showPassword ? 'Hide password' : 'Show password'">
 					<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -131,7 +137,7 @@
 					}
 					@if (fieldHasError(signUpForm.password, 'pattern')) {
 						Password must contain at least one number and one special character
-						(!&#64;#$%^&*)
+							(!&#64;#$%^&*)
 					}
 				</span>
 			}
@@ -140,7 +146,7 @@
 		<div class="field-group field-group--full">
 			<label for="repeatPassword" class="field-label">Repeat password</label>
 			<div class="input-with-icon">
-				<input [formField]="signUpForm.repeatPassword" id="repeatPassword"
+				<input class="input-field" [formField]="signUpForm.repeatPassword" id="repeatPassword"
 					[type]="showRepeatPassword ? 'text' : 'password'" placeholder="Repeat password"
 					autocomplete="new-password">
 				<button class="password-toggle" type="button" (click)="toggleRepeatPasswordVisibility()"
@@ -162,19 +168,21 @@
 				</span>
 			}
 		</div>
+
+		<div class="action-row">
+			<div class="error-text">
+				<span>{{ signUpError() }}</span>
+			</div>
+
+			<button class="btn-primary" type="submit">
+				Sign up
+			</button>
+
+			<button class="btn-secondary" [routerLink]="['/login']" [queryParams]="loginQueryParams">
+				Already have an account?
+			</button>
 		</div>
 
-	<div class="error-msg">
-		<span>{{ signUpError() }}</span>
-	</div>
-
-	<button class="btn-primary" type="submit">
-		Sign up
-	</button>
-
-		<nav>
-			<a [routerLink]="['/login']" [queryParams]="loginQueryParams">Already have an account?</a>
-		</nav>
 		<hr>
 	</form>
 </section>

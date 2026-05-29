@@ -1,11 +1,11 @@
 <section class="profile-page">
-	<app-confirmation-dialog [title]="'Delete Profile'" [message]="'Are you sure you want to permanently delete your profile? This cannot be undone.'"
-		[cancelText]="'Cancel'" [confirmText]="'Delete'" (confirmed)="onDeleteConfirmed()" (cancelled)="onDeleteCancelled()"></app-confirmation-dialog>
+	<app-confirmation-dialog [title]="'Delete Profile'"
+		[message]="'Are you sure you want to permanently delete your profile? This cannot be undone.'"
+		[cancelText]="'Cancel'" [confirmText]="'Delete'" (confirmed)="onDeleteConfirmed()"
+		(cancelled)="onDeleteCancelled()"></app-confirmation-dialog>
 
-	@if (isLoading()) {
-		<p class="status">Loading profile...</p>
-	} @else if (loadError()) {
-		<p class="status error">{{ loadError() }}</p>
+	@if (loadError()) {
+		<p class="error-text">{{ loadError() }}</p>
 	} @else if (profile(); as profileData) {
 		<article class="profile-card" [class.profile-card--compact]="!isOwnProfile()">
 			<div class="profile-header">
@@ -20,42 +20,54 @@
 				{{ profileData.bio || 'No bio yet.' }} </p>
 
 			@if (isOwnProfile()) {
-				<h3>Edit your profile</h3>
+				<h2 class="header">Edit your profile</h2>
 				<form [formGroup]="editForm" (ngSubmit)="saveProfile()" autocomplete="on">
 					<div class="form-grid">
 						<div class="field-group">
 							<label for="firstName" class="field-label">First name</label>
-							<input id="firstName" formControlName="firstName" type="text" autocomplete="given-name"/>
+							<input class="input-field" id="firstName" formControlName="firstName" type="text"
+								autocomplete="given-name"/>
 						</div>
 
 						<div class="field-group">
 							<label for="lastName" class="field-label">Last name</label>
-							<input id="lastName" formControlName="lastName" type="text" autocomplete="family-name"/>
+							<input class="input-field" id="lastName" formControlName="lastName" type="text"
+								autocomplete="family-name"/>
 						</div>
 
 						<div class="field-group">
 							<label for="email" class="field-label">E-mail</label>
-							<input id="email" formControlName="email" type="email" autocomplete="email"/>
+							<input class="input-field" id="email" formControlName="email" type="email"
+								autocomplete="email"/>
 						</div>
 
-            <div class="field-group">
-              <label for="dob" class="field-label">Date of birth</label>
-							<input id="dob" formControlName="dob" type="date" autocomplete="bday"/>
+						<div class="field-group">
+							<label for="dob" class="field-label">Date of birth</label>
+							<div class="input-with-icon">
+								<input id="dob" class="input-field" matInput placeholder="mm/dd/yyyy"
+									formControlName="dob" [matDatepicker]="profileDobPicker" autocomplete="bday">
+
+								<mat-datepicker-toggle matIconSuffix [for]="profileDobPicker"></mat-datepicker-toggle>
+							</div>
+							<mat-datepicker #profileDobPicker></mat-datepicker>
 						</div>
 
-            <div class="field-group field-group--full">
-              <label for="profilePicture" class="field-label">Profile picture URL</label>
-							<input id="profilePicture" formControlName="profilePicture" type="url" autocomplete="photo"/>
+						<div class="field-group field-group--full">
+							<label for="profilePicture" class="field-label">Profile picture URL</label>
+							<input class="input-field" id="profilePicture" formControlName="profilePicture" type="url"
+								autocomplete="photo"/>
 						</div>
 
-            <div class="field-group field-group--full">
-              <label for="bio" class="field-label">Bio</label>
-							<textarea id="bio" formControlName="bio" rows="3" maxlength="100"></textarea>
+						<div class="field-group field-group--full">
+							<label for="bio" class="field-label">Bio</label>
+							<textarea class="input-field" id="bio" formControlName="bio" rows="3"
+								maxlength="100"></textarea>
 						</div>
 
-            <div class="field-group field-group--full">
-              <label for="password" class="field-label">{{ passwordText() }}</label>
-							<input id="password" formControlName="password" type="password" autocomplete="new-password"/>
+						<div class="field-group field-group--full">
+							<label for="password" class="field-label">{{ passwordText() }}</label>
+							<input class="input-field" id="password" formControlName="password" type="password"
+								autocomplete="new-password"/>
 							@if (editForm.get('password')?.touched && editForm.get('password')?.hasError('minlength')) {
 								<span class="field-error">Password must be at least 8 characters.</span>
 							}
@@ -63,16 +75,16 @@
 					</div>
 
 					@if (saveError()) {
-						<p class="status error">{{ saveError() }}</p>
+						<p class="error-text">{{ saveError() }}</p>
 					}
 					@if (saveSuccess()) {
-						<p class="status success">{{ saveSuccess() }}</p>
+						<p class="success-text">{{ saveSuccess() }}</p>
 					}
 					@if (deleteError()) {
-						<p class="error-msg">{{ deleteError() }}</p>
+						<p class="error-text">{{ deleteError() }}</p>
 					}
 					<div class="action-row">
-						<button type="submit" class="btn-primary">Save profile</button>
+						<button type="submit" class="btn-primary" (click)="saveProfile()">Save profile</button>
 						<button type="button" class="delete-btn" (click)="deleteUserBtn()">Delete profile</button>
 					</div>
 				</form>
@@ -80,4 +92,3 @@
 		</article>
 	}
 </section>
-

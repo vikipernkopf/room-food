@@ -16,7 +16,7 @@
 	display: grid;
 	padding: 1rem;
 	flex-direction: column;
-	grid-template-columns: 1fr 1fr;
+	grid-template-columns: repeat(2, 1fr);
 	gap: 1.2rem;
 	margin-bottom: 1.2rem;
 
@@ -28,11 +28,11 @@
 
 .header-container {
 	display: flex;
-	justify-content: space-between;
-	align-items: center;
+	align-items: flex-start;
 	margin-bottom: 0.9rem;
 	padding-bottom: 0.6rem;
 	border-bottom: 1px solid $color-light-gray;
+	justify-content: space-between;
 }
 
 .header {
@@ -291,6 +291,7 @@ textarea.input-field {
 	justify-content: center;
 	margin-top: 1.2rem;
 	gap: 1rem;
+	grid-column: 1 / -1;
 }
 
 .btn-primary,
@@ -437,6 +438,14 @@ textarea.input-field {
 // ---------------------------------------------------------
 .error-text {
 	color: $color-red;
+	font-size: 0.9rem;
+	font-weight: 500;
+	margin-top: 0.8rem;
+	text-align: center;
+}
+
+.success-text {
+	color: $color-green-2;
 	font-size: 0.9rem;
 	font-weight: 500;
 	margin-top: 0.8rem;
@@ -655,12 +664,20 @@ textarea.input-field {
 			transform: none !important;
 		}
 
-		// Isolate interaction overrides completely to the circular text container element
+		// Calendar Specifics Interaction States
 		.mat-calendar-body-cell:not(.mat-calendar-body-disabled) {
-			&:hover .mat-calendar-body-cell-content,
+
+			// 1. Hover state
+			&:hover .mat-calendar-body-cell-content {
+				background-color: $color-orange-2-overlay-12 !important;
+				color: $color-text-main !important;
+			}
+
+			// 2. Focus, keyboard focus, and active/today states
 			&.cdk-focused .mat-calendar-body-cell-content:not(.mat-calendar-body-selected),
 			&.cdk-keyboard-focused .mat-calendar-body-cell-content:not(.mat-calendar-body-selected),
 			&.mat-calendar-body-active .mat-calendar-body-cell-content:not(.mat-calendar-body-selected) {
+				background-color: $color-orange-2-overlay-12 !important;
 				color: $color-text-main !important;
 			}
 		}
