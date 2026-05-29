@@ -233,6 +233,14 @@
 
 					<!-- Action Buttons -->
 					<div class="action-row">
+						<!-- Error Messages -->
+						@if (showError) {
+							<div class="error-text">Please fill out all the fields</div>
+						}
+						@if (backendError) {
+							<div class="error-text">{{ backendError }}</div>
+						}
+
 						<button type="button" class="save-btn" (click)="saveMeal()"
 							[disabled]="isSubmitting || timeErrors.start || timeErrors.end">
 							{{ isEditMode ? 'Update Meal' : 'Save Meal' }}
@@ -244,13 +252,6 @@
 						}
 					</div>
 
-					<!-- Error Messages -->
-					@if (showError) {
-						<div class="error-text">Please fill out all the fields</div>
-					}
-					@if (backendError) {
-						<div class="error-text">{{ backendError }}</div>
-					}
 					<hr>
 				}
 			</div>
