@@ -14,7 +14,7 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/auth-service';
 import { IngredientsFrontendService } from '../../core/ingredients-frontend-service';
 import { MealService } from '../../core/meal-service';
-import { ShoppingModal } from '../../shopping/shopping-modal';
+import { Shopping } from '../../shopping/shopping';
 import { SearchIngredient } from '../../recipes/recipe-management/search-ingredient/search-ingredient';
 import { firstValueFrom } from 'rxjs';
 
@@ -34,14 +34,14 @@ interface RecipeIngredient {
 @Component({
 	selector: 'app-avaliable-ingredients',
 	standalone: true,
-	imports: [CommonModule, FormsModule, ShoppingModal, SearchIngredient],
+	imports: [CommonModule, FormsModule, Shopping, SearchIngredient],
 	templateUrl: './available-ingredients.html',
 	styleUrl: './available-ingredients.scss',
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AvailableIngredients implements OnInit {
 	readonly roomCode = input<string>('');
-	readonly shoppingModal = viewChild(ShoppingModal);
+	readonly shoppingModal = viewChild(Shopping);
 
 	// Needed ingredients (aggregated from meals)
 	readonly neededIngredients = signal<Ingredient[]>([]);
@@ -53,7 +53,7 @@ export class AvailableIngredients implements OnInit {
 	readonly newIngredientName = signal('');
 	readonly newIngredientMeasurement = signal('');
 	readonly newIngredientAmount = signal(0);
-	readonly showAddForm = signal(false);
+	//readonly showAddForm = signal(false);
 	readonly ingredientError: WritableSignal<string> = signal('');
 
 	private readonly authService = inject(AuthService);
@@ -72,7 +72,8 @@ export class AvailableIngredients implements OnInit {
 		});
 	}
 
-	ngOnInit(): void {}
+	ngOnInit(): void {
+	}
 
 	loadIngredients(): void {
 		const code = this.roomCode();
@@ -96,11 +97,14 @@ export class AvailableIngredients implements OnInit {
 					);
 
 					futureMeals.forEach(m => {
-						if(m.cooked) return;
+						if (m.cooked) {
+							return;
+						}
 						(m.recipeIds || []).forEach(rid => recipeIds.push(rid));
 					});
 					const results = await Promise.all(
-						recipeIds.map(rid => firstValueFrom(this.ingredientsFrontendService.getIngredientsForRecipe(rid)))
+						recipeIds.map(
+							rid => firstValueFrom(this.ingredientsFrontendService.getIngredientsForRecipe(rid)))
 					);
 					const map = new Map<string, Ingredient>();
 					results.flat().forEach((r: unknown) => {
@@ -159,12 +163,12 @@ export class AvailableIngredients implements OnInit {
 	}
 
 	// Add ingredient form
-	toggleAddForm(): void {
-		this.showAddForm.update(v => !v);
-		if (this.showAddForm()) {
-			this.resetForm();
-		}
-	}
+	/*toggleAddForm(): void {
+	 this.showAddForm.update(v => !v);
+	 if (this.showAddForm()) {
+	 this.resetForm();
+	 }
+	 }*/
 
 	resetForm(): void {
 		this.newIngredientName.set('');
@@ -186,11 +190,15 @@ export class AvailableIngredients implements OnInit {
 		const amount = Number(this.newIngredientAmount());
 
 		if (!name || !measurement || !amount || amount <= 0) {
-			this.ingredientError.set('Please fill in all ingredient fields with valid values');
+			this.ingredientError.set('Fill in all fields with valid values');
 			return;
 		}
 
-		const newIngredient: Ingredient = { name, measurement, amount };
+		const newIngredient: Ingredient = {
+			name,
+			measurement,
+			amount
+		};
 		const code = this.roomCode();
 
 		const found = this.availableIngredients().find(s => s.name === newIngredient.name);
@@ -205,9 +213,14 @@ export class AvailableIngredients implements OnInit {
 			// Also save to user-specific ingredient history
 			const username = this.authService.currentUser()?.username;
 			if (username) {
-				this.ingredientsFrontendService.saveUserIngredient(username, { name, measurement, amount }).subscribe({
-					next: () => {},
-					error: (err) => console.error('Failed to save ingredient to user history:', err)
+				this.ingredientsFrontendService.saveUserIngredient(username, {
+					name,
+					measurement,
+					amount
+				}).subscribe({
+					next: () => {
+					},
+					error: err => console.error('Failed to save ingredient to user history:', err)
 				});
 			}
 
@@ -220,39 +233,35 @@ export class AvailableIngredients implements OnInit {
 	}
 
 	deleteIngredient(ingredientName: string, measurement: string): void {
-		if (!confirm(`Delete ${ingredientName}?`)) {
-			return;
-		}
-
-		this.ingredientsFrontendService.deleteIngredientFromRoom(this.roomCode(), ingredientName, measurement).subscribe({
+		this.ingredientsFrontendService.deleteIngredientFromRoom(this.roomCode(), ingredientName, measurement)
+		.subscribe({
 			next: () => this.loadIngredients(),
 			error: err => {
 				console.error('Error deleting ingredient:', err);
-				alert('Failed to delete ingredient');
+				this.ingredientError.set('Failed to delete ingredient');
 			}
 		});
 	}
 
-	public async removeIngredients(ingredients:Ingredient[]): Promise<void>{
+	public async removeIngredients(ingredients: Ingredient[]): Promise<void> {
 		//console.log(`REMOVING ${ingredients}`);
 		for (const i of ingredients) {
-			const existing = this.availableIngredients().find(i2 => i2.name==i.name);
+			const existing = this.availableIngredients().find(i2 => i2.name === i.name);
 			//console.log(i);
-			if(existing){
+			if (existing) {
 				//console.log(`exists ${existing}`);
-				existing.amount-=i.amount;
+				existing.amount -= i.amount;
 				//console.log(`exists am ${existing.amount}`);
 				await firstValueFrom(
-					this.ingredientsFrontendService.
-					deleteIngredientFromRoom(this.roomCode(), existing.name, existing.measurement)
+					this.ingredientsFrontendService.deleteIngredientFromRoom(this.roomCode(), existing.name,
+						existing.measurement)
 				);
 
-				if(existing.amount>0){
+				if (existing.amount > 0) {
 					await firstValueFrom(
-						this.ingredientsFrontendService.
-						addIngredientToRoom(this.roomCode(), existing)
+						this.ingredientsFrontendService.addIngredientToRoom(this.roomCode(), existing)
 					);
-					this.availableIngredients.update(v => v.filter(i2 => i2.name!==i.name));
+					this.availableIngredients.update(v => v.filter(i2 => i2.name !== i.name));
 				}
 			}
 		}

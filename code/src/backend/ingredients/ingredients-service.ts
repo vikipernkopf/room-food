@@ -113,10 +113,10 @@ export class IngredientsService extends ServiceBase {
 
 	public addIngredientToRoom(ingredient: Ingredient, roomCode: string): boolean {
 		const [success] = this.executeStmt(this.unit.prepare(`
-			insert into RoomIngredient(room_code, ingredient_name, measurement, amount)
+			insert into RoomIngredient (room_code, ingredient_name, measurement, amount)
 			VALUES (:roomCode, :ingredientName, :measurement, :amount)
-				on conflict(room_code, ingredient_name, measurement) do update set
-				amount = amount + excluded.amount
+			ON CONFLICT DO UPDATE SET
+				amount = CAST(amount AS REAL) + CAST(excluded.amount AS REAL)
 		`, {
 			roomCode,
 			ingredientName: ingredient.name,
