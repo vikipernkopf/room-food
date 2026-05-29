@@ -1,5 +1,3 @@
-
-
 <div class="page-wrapper">
 	<mat-card class="room-card">
 
@@ -21,26 +19,32 @@
 
 			<!-- Room Code -->
 			<div class="info-row">
-				<span class="info-label">Room code:</span>
-				<span class="info-value code-value">{{roomCode()}}</span>
-				<button mat-button (click)="copyShareLink()">Copy Invite Link</button>
+				<div class="room-code-row">
+					<span class="info-label">Room code:</span>
+					<span class="info-value code-value">{{ roomCode() }}</span>
+				</div>
+				<button class="btn-secondary" (click)="copyShareLink()">Copy Invite Link</button>
 			</div>
 
-			@if (userRole()===Role.Owner || userRole()===Role.Admin) {
-				<button type="button" class="accept-btn edit-btn" (click)="editRoom()">
-					Edit Room
-				</button>
-				@if (isPopupVisible()) {
-					<div class="popup-overlay">
-						<div class="popup-content">
-							<app-edit-room
-								[roomCode]="roomCode()"
-								[initialName]="roomName()"
-								(close)="closePopup($event)">
-							</app-edit-room>
+			@if (userRole() === Role.Owner || userRole() === Role.Admin) {
+				<div class="action-row">
+					<button type="button" class="btn-primary" (click)="editRoom()">
+						Edit Room
+					</button>
+					@if (userRole() === Role.Owner) {
+						<button type="button" class="delete-btn" (click)="deleteRoom()">
+							Delete Room
+						</button>
+					}
+					@if (isPopupVisible()) {
+						<div class="popup-overlay">
+							<div class="popup-content">
+								<app-edit-room [roomCode]="roomCode()" [initialName]="roomName()"
+									(close)="closePopup($event)"></app-edit-room>
+							</div>
 						</div>
-					</div>
-				}
+					}
+				</div>
 			}
 
 		</div>
@@ -58,33 +62,31 @@
 					<div class="member-item">
 						<div class="member-info">
 							<a [routerLink]="['/profile', member.username]" class="member-profile-link">
-								<span class="member-username">{{member.username}}</span>
+								<span class="member-username">{{ member.username }}</span>
 							</a>
 							@if (userRole() === Role.Owner && member.username !== currentUser()?.username) {
 								<button mat-button [matMenuTriggerFor]="roleMenu" class="role-dropdown-btn">
-									{{member.role}} <span class="arrow-down">▼</span>
+									{{ member.role }} <span class="arrow-down">▼</span>
 								</button>
 
 								<mat-menu #roleMenu="matMenu" class="custom-role-menu">
-									<button mat-menu-item
-											(click)="updateRole(member.username, Role.Member)"
-											[disabled]="member.role === Role.Member">
+									<button mat-menu-item (click)="updateRole(member.username, Role.Member)"
+										[disabled]="member.role === Role.Member">
 										<span>Member</span>
 									</button>
-									<button mat-menu-item
-											(click)="updateRole(member.username, Role.Admin)"
-											[disabled]="member.role === Role.Admin">
+									<button mat-menu-item (click)="updateRole(member.username, Role.Admin)"
+										[disabled]="member.role === Role.Admin">
 										<span>Admin</span>
 									</button>
 								</mat-menu>
 							} @else {
-								<span class="member-role">{{member.role}}</span>
+								<span class="member-role">{{ member.role }}</span>
 							}
 						</div>
-						@if (userRole()===Role.Admin && member.role===Role.Member ||
-							userRole()===Role.Owner && member.role!==Role.Owner)
-						{
-							<button mat-icon-button class="action-btn remove-btn" aria-label="Remove member" (click)="removeMember(member.username)">
+						@if (userRole() === Role.Admin && member.role === Role.Member ||
+						userRole() === Role.Owner && member.role !== Role.Owner) {
+							<button mat-icon-button class="action-btn remove-btn" aria-label="Remove member"
+								(click)="removeMember(member.username)">
 								✕
 							</button>
 						}
@@ -94,25 +96,26 @@
 				}
 			</div>
 
-			@if (userRole()===Role.Owner ||
-				userRole()===Role.Admin)
-			{
+			@if (userRole() === Role.Owner ||
+			userRole() === Role.Admin) {
 				<mat-divider class="section-divider"></mat-divider>
 
-				<!-- Requests -->
-				<h3 class="section-title">Requests</h3>
+				<!-- Requests -->				<h3 class="section-title">Requests</h3>
 				<div class="member-list">
 					@for (request of requests(); track request.username) {
 						<div class="request-item">
 							<div class="member-info">
 								<a [routerLink]="['/profile', request.username]" class="member-profile-link">
-									<span class="member-username">{{request.username}}</span>
-								</a>							</div>
+									<span class="member-username">{{ request.username }}</span>
+								</a>
+							</div>
 							<div class="action-buttons">
-								<button mat-icon-button class="action-btn accept-btn" aria-label="Accept request" (click)="acceptRequest(request.username)">
+								<button mat-icon-button class="action-btn accept-btn" aria-label="Accept request"
+									(click)="acceptRequest(request.username)">
 									✓
 								</button>
-								<button mat-icon-button class="action-btn reject-btn" aria-label="Reject request" (click)="rejectRequest(request.username)">
+								<button mat-icon-button class="action-btn reject-btn" aria-label="Reject request"
+									(click)="rejectRequest(request.username)">
 									✕
 								</button>
 							</div>
@@ -123,21 +126,11 @@
 				</div>
 			}
 
-			<div class="leave-delete-div">
-				<button type="button"
-						class="reject-btn leave-btn"
-						[disabled]="userRole() === Role.Owner"
-						(click)="leaveRoom()">
+			<div class="delete-div">
+				<button type="button" class="delete-btn leave-btn" [disabled]="userRole() === Role.Owner"
+					(click)="leaveRoom()">
 					Leave Room
 				</button>
-
-				@if (userRole() === Role.Owner) {
-					<button type="button"
-							class="reject-btn delete-btn"
-							(click)="deleteRoom()">
-						Delete Room
-					</button>
-				}
 			</div>
 
 		</div>

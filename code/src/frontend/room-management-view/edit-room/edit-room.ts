@@ -1,12 +1,13 @@
-import {Component, inject, OnInit, DestroyRef, input, output} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {ReactiveFormsModule, FormControl, FormGroup, Validators} from '@angular/forms';
-import {ActivatedRoute, Router} from '@angular/router';
-import {RoomService} from '../../core/room-service';
-import {AuthService} from '../../core/auth-service';
-import {firstValueFrom} from 'rxjs';
-import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
+import { Component, inject, OnInit, DestroyRef, input, output } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule, FormControl, FormGroup, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import { RoomService } from '../../core/room-service';
+import { AuthService } from '../../core/auth-service';
+import { firstValueFrom } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
+//noinspection JSIgnoredPromiseFromCall
 @Component({
 	selector: 'app-edit-room',
 	standalone: true,
@@ -42,13 +43,17 @@ export class EditRoom implements OnInit {
 	ngOnInit(): void {
 		// Subscribe to route param 'code' to react to changes like other components
 		this.route.paramMap
-			.pipe(takeUntilDestroyed(this.destroyRef))
-			.subscribe(paramMap => {
-				const code = paramMap.get('code') ?? '';
-				console.log('EditRoom route param received, code:', code);
-				this.roomCode = code;
-				this.handleCodeChange(code);
-			});
+		.pipe(takeUntilDestroyed(this.destroyRef))
+		.subscribe(paramMap => {
+			const code = paramMap.get('code') ?? '';
+			console.log('EditRoom route param received, code:', code);
+			this.roomCode = code;
+			this.handleCodeChange(code);
+		});
+	}
+
+	protected closePopup(): void {
+		this.close.emit(false);
 	}
 
 	private handleCodeChange(code: string) {
@@ -105,7 +110,7 @@ export class EditRoom implements OnInit {
 	private async ensurePermission(code: string) {
 		const current = this.authService.currentUser();
 		if (!current) {
-			this.router.navigate(['/error']);
+			await this.router.navigate(['/error']);
 			return;
 		}
 
@@ -113,17 +118,17 @@ export class EditRoom implements OnInit {
 			const members = await firstValueFrom(this.roomService.getMembersPerRoom(code));
 			const found = members?.find(m => m.username === current.username);
 			if (!found) {
-				this.router.navigate(['/error']);
+				await this.router.navigate(['/error']);
 				return;
 			}
 			const role = (found.role || '').toString().toLowerCase();
 			if (!(role === 'owner' || role === 'admin')) {
-				this.router.navigate(['/error']);
+				await this.router.navigate(['/error']);
 				return;
 			}
 		} catch (err) {
 			console.error('Failed to determine role', err);
-			this.router.navigate(['/error']);
+			await this.router.navigate(['/error']);
 		}
 	}
 
@@ -148,13 +153,13 @@ export class EditRoom implements OnInit {
 			// Prevent sending a request to /api/room/ with missing code
 			this.submitError = 'Missing room code; cannot save.';
 			console.error('Attempted save without room code');
-			this.router.navigate(['/error']);
+			await this.router.navigate(['/error']);
 			return;
 		}
 
 		const current = this.authService.currentUser();
 		if (!current) {
-			this.router.navigate(['/error']);
+			await this.router.navigate(['/error']);
 			return;
 		}
 
@@ -162,7 +167,8 @@ export class EditRoom implements OnInit {
 		const pfp = this.editForm.value.pfp ?? null;
 		this.loading = true;
 		try {
-			const result = await firstValueFrom(this.roomService.editRoom(this.roomCode, current.username, roomName, pfp));
+			const result = await firstValueFrom(
+				this.roomService.editRoom(this.roomCode, current.username, roomName, pfp));
 			if (result?.success) {
 				this.close.emit(true);
 			} else {

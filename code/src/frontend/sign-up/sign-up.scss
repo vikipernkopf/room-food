@@ -1,17 +1,6 @@
 ﻿@use '../styles/theme' as *;
 @use '../styles/form-style';
 
-.error-msg {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	min-height: 1.25rem;
-	color: $color-red;
-	font-size: 0.85rem;
-	font-weight: 500;
-	margin-top: 0.4rem;
-}
-
 section {
 	display: flex;
 	justify-content: center;
@@ -24,7 +13,7 @@ section {
 
 .signup-container {
 	background: $color-white;
-	padding: 1.6rem;
+	padding: 1rem;
 	border-radius: 24px;
 	border: 1px solid $color-input-bg;
 	width: 100%;
