@@ -21,5 +21,4 @@ of.
 - Automatic grocery shopping list
 
 ## Access
-- GitHub pages (static): https://vikipernkopf.github.io/room-food/
 - Website (hosted via Render.com): https://roomfood.onrender.com
