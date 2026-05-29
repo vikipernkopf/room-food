@@ -5,6 +5,7 @@ import { RecipeService } from '../core/recipe-service';
 import { Recipe, RecipeCreatePayload, RecipeUpdatePayload } from '../../backend/model';
 import { DEFAULT_RECIPE_IMAGE } from '../core/user-form-validation';
 import { RecipeFormValue, RecipeManagement, RecipeMealType } from './recipe-management/recipe-management';
+import { IngredientsFrontendService } from '../core/ingredients-frontend-service';
 
 @Component({
 	selector: 'app-recipes',
@@ -16,6 +17,7 @@ export class Recipes {
 	protected readonly activePopup = signal<'create' | 'edit' | null>(null);
 	private readonly recipeService = inject(RecipeService);
 	private readonly authService = inject(AuthService);
+	private readonly ingredientService = inject(IngredientsFrontendService);
 	protected readonly currentUser = this.authService.currentUser;
 	protected readonly defaultRecipeImage = DEFAULT_RECIPE_IMAGE;
 	protected readonly recipes = signal<Recipe[]>([]);
@@ -113,7 +115,10 @@ export class Recipes {
 			};
 
 			this.recipeService.updateRecipe(editRecipeId, updatePayload).subscribe({
-				next: () => this.handleSaveSuccess(username),
+				next: () => {
+					this.saveIngredientsToUserHistory(username, payload.ingredients ?? []);
+					this.handleSaveSuccess(username);
+				},
 				error: (err) => this.handleSaveError(err)
 			});
 		} else {
@@ -128,8 +133,20 @@ export class Recipes {
 			};
 
 			this.recipeService.createRecipe(createPayload).subscribe({
-				next: () => this.handleSaveSuccess(username),
+				next: () => {
+					this.saveIngredientsToUserHistory(username, payload.ingredients ?? []);
+					this.handleSaveSuccess(username);
+				},
 				error: (err) => this.handleSaveError(err)
+			});
+		}
+	}
+
+	private saveIngredientsToUserHistory(username: string, ingredients: { name: string; measurement: string; amount: number }[]): void {
+		for (const ing of ingredients) {
+			this.ingredientService.saveUserIngredient(username, ing).subscribe({
+				next: () => {},
+				error: (err) => console.error('Failed to save ingredient to user history:', err)
 			});
 		}
 	}
