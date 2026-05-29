@@ -201,6 +201,16 @@ export class AvailableIngredients implements OnInit {
 				await firstValueFrom(this.ingredientsFrontendService.deleteIngredientFromRoom(code, name, measurement));
 			}
 			await firstValueFrom(this.ingredientsFrontendService.addIngredientToRoom(code, newIngredient));
+
+			// Also save to user-specific ingredient history
+			const username = this.authService.currentUser()?.username;
+			if (username) {
+				this.ingredientsFrontendService.saveUserIngredient(username, { name, measurement, amount }).subscribe({
+					next: () => {},
+					error: (err) => console.error('Failed to save ingredient to user history:', err)
+				});
+			}
+
 			this.loadIngredients();
 			this.resetForm();
 		} catch (err) {

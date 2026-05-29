@@ -101,4 +101,31 @@ export class IngredientsFrontendService {
 		const apiUrl = `${this.apiBase}/room/${roomCode}/ingredients/${encodeURIComponent(ingredientName)}/${encodeURIComponent(measurement)}`;
 		return this.http.put<{ success: boolean }>(apiUrl, { amount });
 	}
+
+	// ------------------------------------------------------------------
+	// User-specific ingredient history
+	// ------------------------------------------------------------------
+
+	public getUserIngredientsForPrefix(prefix: string, username: string): Observable<Ingredient[]> {
+		const apiUrl = `${this.apiBase}/ingredients/user/${encodeURIComponent(username)}/prefix/${encodeURIComponent(prefix)}`;
+		return this.http.get<Ingredient[]>(apiUrl);
+	}
+
+	public getAllUserIngredients(username: string): Observable<Ingredient[]> {
+		const apiUrl = `${this.apiBase}/ingredients/user/${encodeURIComponent(username)}/all`;
+		return this.http.get<Ingredient[]>(apiUrl);
+	}
+
+	public saveUserIngredient(username: string, ingredient: Ingredient): Observable<{
+		username: string,
+		ingredient: Ingredient,
+		saved: boolean
+	}> {
+		const apiUrl = `${this.apiBase}/ingredients/user/${encodeURIComponent(username)}`;
+		return this.http.post<{
+			username: string,
+			ingredient: Ingredient,
+			saved: boolean
+		}>(apiUrl, { ingredient });
+	}
 }

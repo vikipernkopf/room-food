@@ -14,6 +14,7 @@ import { DEFAULT_RECIPE_IMAGE } from '../../core/user-form-validation';
 import { SearchIngredient } from '../recipe-management/search-ingredient/search-ingredient';
 import { RecipeMealType } from '../recipe-management/recipe-management';
 import {MatCard} from '@angular/material/card';
+import { IngredientsFrontendService } from '../../core/ingredients-frontend-service';
 
 @Component({
 	selector: 'app-create-recipe',
@@ -36,7 +37,7 @@ import {MatCard} from '@angular/material/card';
 export class CreateRecipe {
 	private readonly recipeService = inject(RecipeService);
 	private readonly authService = inject(AuthService);
-	//private readonly ingredientService = inject(IngredientsFrontendService);
+	private readonly ingredientService = inject(IngredientsFrontendService);
 
 	protected readonly currentUser = this.authService.currentUser;
 	protected readonly isCreating = signal(false);
@@ -152,6 +153,18 @@ export class CreateRecipe {
 		this.recipeService.createRecipe(payload).subscribe({
 			next: (response) => {
 				this.isCreating.set(false);
+
+				// Save each ingredient to user history
+				const username = this.authService.currentUser()?.username;
+				if (username) {
+					for (const ing of this.ingredients()) {
+						this.ingredientService.saveUserIngredient(username, ing).subscribe({
+							next: () => {},
+							error: (err) => console.error('Failed to save ingredient to user history:', err)
+						});
+					}
+				}
+
 				// 3. Redirect to /recipes
 				this.router.navigate(['/recipes']).then(() => {
 					this.resetForm();

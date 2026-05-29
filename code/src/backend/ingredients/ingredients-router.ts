@@ -320,3 +320,93 @@ ingredientsRouter.put('/room/:roomCode/ingredients/:ingredientName/:measurement'
 		console.error('Error updating ingredient amount in room:', error);
 	}
 });
+
+// ------------------------------------------------------------------
+// User-specific ingredient history routes
+// ------------------------------------------------------------------
+
+ingredientsRouter.get('/ingredients/user/:username/prefix/:prefix', async (req, res): Promise<void> => {
+	const { username, prefix } = req.params;
+
+	if (!username) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Username is required' });
+		return;
+	}
+
+	if (!prefix) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Prefix is required' });
+		return;
+	}
+
+	const unit = new Unit(true);
+
+	try {
+		const ingredientsService = new IngredientsService(unit);
+		const ingredients = ingredientsService.getUserIngredientsForPrefix(prefix, username);
+
+		unit.complete();
+		res.status(StatusCodes.OK).json(ingredients || []);
+	} catch (error) {
+		unit.complete();
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to fetch user ingredients' });
+		console.error('Error fetching user ingredients for prefix:', error);
+	}
+});
+
+ingredientsRouter.get('/ingredients/user/:username/all', async (req, res): Promise<void> => {
+	const { username } = req.params;
+
+	if (!username) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Username is required' });
+		return;
+	}
+
+	const unit = new Unit(true);
+
+	try {
+		const ingredientsService = new IngredientsService(unit);
+		const ingredients = ingredientsService.getAllUserIngredients(username);
+
+		unit.complete();
+		res.status(StatusCodes.OK).json(ingredients || []);
+	} catch (error) {
+		unit.complete();
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to fetch user ingredients' });
+		console.error('Error fetching all user ingredients:', error);
+	}
+});
+
+ingredientsRouter.post('/ingredients/user/:username', async (req, res): Promise<void> => {
+	const { username } = req.params;
+	const ingredient = (req.body as { ingredient?: Ingredient })?.ingredient;
+
+	if (!username) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Username is required' });
+		return;
+	}
+
+	if (!ingredient || !ingredient.name || ingredient.measurement === undefined || ingredient.amount === undefined) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Valid ingredient object with name, measurement, and amount is required' });
+		return;
+	}
+
+	const unit = new Unit(false);
+
+	try {
+		const ingredientsService = new IngredientsService(unit);
+		const success = ingredientsService.saveUserIngredient(username, ingredient);
+
+		if (!success) {
+			unit.complete(false);
+			res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to save user ingredient' });
+			return;
+		}
+
+		unit.complete(true);
+		res.status(StatusCodes.CREATED).json({ username, ingredient, saved: true });
+	} catch (error) {
+		unit.complete(false);
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to save user ingredient' });
+		console.error('Error saving user ingredient:', error);
+	}
+});

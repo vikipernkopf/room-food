@@ -44,7 +44,7 @@ export class IngredientsService extends ServiceBase {
 		//only add ingredient if user is the one who created the recipe
 		const isOwner = this.unit.prepare(`
 			select 1 from Recipe r
-			join User u on u.id = r.author
+							  join User u on u.id = r.author
 			where r.id = :recipeId and u.username = :user
 		`, {
 			recipeId,
@@ -95,8 +95,8 @@ export class IngredientsService extends ServiceBase {
 				ri.measurement,
 				sum(cast(ri.amount as real)) as amount
 			from MealIngredientAssignment mia
-			join MealRecipe mr on mr.meal_id = mia.meal_id
-			join RecipeIngredient ri on ri.recipe_id = mr.recipe_id and ri.ingredient_name = mia.ingredient_name
+					 join MealRecipe mr on mr.meal_id = mia.meal_id
+				     join RecipeIngredient ri on ri.recipe_id = mr.recipe_id and ri.ingredient_name = mia.ingredient_name
 			where mia.assigned_to_username = :username
 			group by ri.ingredient_name, ri.measurement
 			order by ri.ingredient_name
@@ -115,8 +115,8 @@ export class IngredientsService extends ServiceBase {
 		const [success] = this.executeStmt(this.unit.prepare(`
 			insert into RoomIngredient(room_code, ingredient_name, measurement, amount)
 			VALUES (:roomCode, :ingredientName, :measurement, :amount)
-			on conflict(room_code, ingredient_name, measurement) do update set
-			amount = amount + excluded.amount
+				on conflict(room_code, ingredient_name, measurement) do update set
+				amount = amount + excluded.amount
 		`, {
 			roomCode,
 			ingredientName: ingredient.name,
@@ -153,5 +153,51 @@ export class IngredientsService extends ServiceBase {
 		}));
 
 		return success;
+	}
+
+	// ------------------------------------------------------------------
+	// User-specific ingredient history
+	// ------------------------------------------------------------------
+
+	public saveUserIngredient(username: string, ingredient: Ingredient): boolean {
+		const [success] = this.executeStmt(this.unit.prepare(`
+			insert into UserIngredient(username, ingredient_name, measurement, amount, used_at)
+			VALUES (:username, :ingredientName, :measurement, :amount, datetime('now'))
+			on conflict(username, ingredient_name, measurement) do update set
+				amount = excluded.amount,
+				used_at = datetime('now')
+		`, {
+			username,
+			ingredientName: ingredient.name,
+			measurement: ingredient.measurement,
+			amount: ingredient.amount
+		}));
+
+		return success;
+	}
+
+	public getUserIngredientsForPrefix(prefix: string, username: string): Ingredient[] {
+		return this.unit.prepare(`
+			select ingredient_name as name, measurement, cast(amount as real) as amount
+			from UserIngredient
+			where lower(ingredient_name) like lower(:prefix || '%')
+			  and username = :username
+			order by used_at desc
+			limit 20
+		`, {
+			prefix,
+			username
+		}).all() as unknown as Ingredient[];
+	}
+
+	public getAllUserIngredients(username: string): Ingredient[] {
+		return this.unit.prepare(`
+			select ingredient_name as name, measurement, cast(amount as real) as amount
+			from UserIngredient
+			where username = :username
+			order by used_at desc
+		`, {
+			username
+		}).all() as unknown as Ingredient[];
 	}
 }
