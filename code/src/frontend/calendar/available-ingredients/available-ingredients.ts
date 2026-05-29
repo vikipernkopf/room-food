@@ -96,6 +96,7 @@ export class AvailableIngredients implements OnInit {
 					);
 
 					futureMeals.forEach(m => {
+						if(m.cooked) return;
 						(m.recipeIds || []).forEach(rid => recipeIds.push(rid));
 					});
 					const results = await Promise.all(
@@ -196,7 +197,7 @@ export class AvailableIngredients implements OnInit {
 
 		try {
 			if (found) {
-				newIngredient.amount = found.amount + amount;
+				newIngredient.amount = Number(found.amount) + Number(amount);
 				await firstValueFrom(this.ingredientsFrontendService.deleteIngredientFromRoom(code, name, measurement));
 			}
 			await firstValueFrom(this.ingredientsFrontendService.addIngredientToRoom(code, newIngredient));
@@ -233,21 +234,17 @@ export class AvailableIngredients implements OnInit {
 				//console.log(`exists am ${existing.amount}`);
 				await firstValueFrom(
 					this.ingredientsFrontendService.
-					deleteIngredientFromRoom(this.roomCode, existing.name, existing.measurement)
+					deleteIngredientFromRoom(this.roomCode(), existing.name, existing.measurement)
 				);
 
 				if(existing.amount>0){
 					await firstValueFrom(
 						this.ingredientsFrontendService.
-						addIngredientToRoom(this.roomCode, existing)
+						addIngredientToRoom(this.roomCode(), existing)
 					);
 					this.availableIngredients.update(v => v.filter(i2 => i2.name!==i.name));
 				}
 			}
 		}
-	}
-
-	async updateIngredients(){
-		this.loadIngredients();
 	}
 }
