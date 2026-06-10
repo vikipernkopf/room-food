@@ -84,8 +84,3 @@
 		}
 	</section>
 }-->
-@if (activePopup()) {
-	<app-recipe-management [recipe]="recipeToEdit()" [creating]="creating()" [defaultRecipeImage]="defaultRecipeImage"
-		[saveError]="recipeSaveError()" [mealTypeOptions]="mealTypeOptions" (closed)="closePopup()"
-		(saved)="saveRecipe($event)" (deleteRequested)="deleteRecipe($event)"></app-recipe-management>
-}

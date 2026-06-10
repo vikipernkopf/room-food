@@ -7,55 +7,27 @@
 	width: 100%;
 	background-color: $color-white;
 	display: flex;
-	align-items: flex-start;
+	align-items: center;
 	justify-content: center;
 	padding: 48px 56px;
 	margin: 0;
-	font-family: 'Inter', sans-serif;
 	box-sizing: border-box;
 	overflow: auto;
-}
+	align-self: center;
+	justify-self: center;
 
-/* ===== MAIN CARD ===== */
-.create-recipe-card {
-	display: flex;
 	flex-direction: column;
 	gap: 12px;
 	border-radius: 0 !important;
 	box-shadow: none !important;
-	background: $color-white !important;
-	width: 100%;
 	max-width: 60rem;
-	box-sizing: border-box;
-}
-
-/* ===== RECIPE HEADER ===== */
-.recipe-header {
-	margin-bottom: 32px;
-	padding-bottom: 16px;
-	border-bottom: 2px solid $color-green-2;
-
-	h1 {
-		margin: 0;
-		font-size: 28px;
-		color: $color-green-4;
-		font-weight: 600;
-	}
-}
-
-.recipe-form {
-	display: flex;
-	flex-direction: column;
-	gap: 32px;
 }
 
 /* ===== FORM SECTIONS ===== */
-.form-section {
-	display: flex;
-	flex-direction: column;
-	gap: 16px;
+.sub-form {
 	padding-bottom: 24px;
 	border-bottom: 1px solid $color-light-gray;
+	grid-column: 1 / -1;
 
 	&:last-of-type {
 		border-bottom: none;
@@ -63,11 +35,16 @@
 	}
 }
 
+.recipe-name-form {
+	grid-template-columns: repeat(2, 1fr) !important;
+}
+
 .section-title {
 	margin: 0;
 	font-size: 16px;
 	font-weight: 600;
 	color: $color-text-main;
+	grid-column: 1 / -1 !important;
 }
 
 /* ===== FORM GROUPS ===== */
@@ -88,50 +65,6 @@
 }
 
 /* ===== INPUT FIELDS ===== */
-.field-input {
-	width: 100%;
-	padding: 12px 16px;
-	border: 1.5px solid $color-light-gray;
-	font-size: 14px;
-	font-family: inherit;
-	outline: none;
-	box-sizing: border-box;
-	background-color: $color-input-bg;
-	border-radius: 10px;
-	transition: all 0.2s ease;
-
-	&:focus {
-		border-color: $color-blue-gray;
-		background-color: $color-lighter-gray;
-	}
-
-	&::placeholder {
-		color: $color-gray;
-	}
-}
-
-.field-input-ingredient {
-	width: 100%;
-	padding: 12px 16px;
-	border: 1.5px solid $color-light-gray;
-	font-size: 14px;
-	font-family: inherit;
-	outline: none;
-	box-sizing: border-box;
-	background-color: $color-input-bg;
-	border-radius: 10px;
-	transition: all 0.2s ease;
-
-	&:focus {
-		border-color: $color-blue-gray;
-		background-color: $color-lighter-gray;
-	}
-
-	&::placeholder {
-		color: $color-gray;
-	}
-}
-
 .recipe-field {
 	width: 100%;
 
@@ -146,8 +79,25 @@
 	}
 }
 
-
 /* ===== INGREDIENTS SECTION ===== */
+.ingredient-name {
+	min-width: 15rem !important;
+}
+
+.ingredients-form {
+	grid-template-columns: repeat(4, 1fr) !important;
+	display: grid;
+	background-color: $color-lighter-gray;
+	padding: 24px;
+	border-radius: 10px;
+	margin-bottom: 16px;
+	border: 1.5px solid $color-light-gray;
+
+	.error-text {
+		grid-column: 1 / -1;
+	}
+}
+
 .ingredients-input-group {
 	background-color: $color-lighter-gray;
 	padding: 24px;
@@ -169,47 +119,15 @@
 	}
 }
 
-.ingredient-field {
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-
-	label {
-		font-size: 14px;
-		font-weight: 500;
-		color: $color-text-main;
-	}
-}
-
 .btn-add-ingredient {
-	background-color: $color-green-2;
-	color: $color-white;
-	border: none;
-	border-radius: 10px;
-	padding: 12px 16px;
 	font-size: 20px;
 	font-weight: bold;
 	cursor: pointer;
-	transition: all 0.2s ease;
 	height: 50px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	line-height: 1;
-
-	&:hover:not(:disabled) {
-		background-color: $color-green-3;
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-	}
-
-	&:active:not(:disabled) {
-		background-color: $color-green-4;
-	}
-
-	&:disabled {
-		opacity: 0.6;
-		cursor: not-allowed;
-	}
+	align-self: center;
 
 	@media (max-width: 768px) {
 		height: 40px;
@@ -321,51 +239,9 @@
 	width: 100%;
 }
 
-/* ===== ERROR MESSAGE ===== */
-.error-message {
-	background-color: $color-red-overlay-8;
-	border-left: 4px solid $color-red;
-	padding: 16px;
-	border-radius: 10px;
-	color: $color-red;
-	font-size: 14px;
-	font-weight: 500;
-}
-
 /* ===== FORM ACTIONS ===== */
-.form-actions {
-	display: flex;
-	gap: 16px;
-	margin-top: 16px;
-	padding-top: 24px;
-	border-top: 1px solid $color-light-gray;
-}
-
-.btn-primary {
-	background-color: $color-green-2;
-	border: none;
-	padding: 12px 32px;
-	font-size: 14px;
-	font-weight: 600;
-	border-radius: 10px;
-	cursor: pointer;
-	transition: all 0.2s ease;
-	min-width: 150px;
-	color: $color-white;
-
-	&:hover:not(:disabled) {
-		background-color: $color-green-3;
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-	}
-
-	&:active:not(:disabled) {
-		background-color: $color-green-4;
-	}
-
-	&:disabled {
-		opacity: 0.6;
-		cursor: not-allowed;
-	}
+.action-row {
+	margin: 0 !important;
 }
 
 @media (max-width: 768px) {

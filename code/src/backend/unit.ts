@@ -165,6 +165,7 @@ class DB {
 				visibility  text not null default 'private'
 				constraint ck_recipe_visibility check (visibility in ('public', 'private')),
 				author      integer not null,
+				instructions text not null default '',
 
 				constraint fk_author foreign key (author) REFERENCES User (id) ON DELETE CASCADE
 				) strict`
@@ -282,6 +283,7 @@ class DB {
 		DB.migrateUserIngredientTable(connection);
 		DB.migrateShoppingTables(connection);
 		DB.migrateAmountToReal(connection);
+		DB.migrateAddInstructionsToRecipe(connection);
 	}
 
 	private static migrateUserIngredientTable(connection: BetterSqlite3.Database): void {
@@ -851,6 +853,53 @@ class DB {
 		}
 
 		connection.exec(`ALTER TABLE RoomIngredient_new RENAME TO RoomIngredient;`);
+	}
+
+	public static migrateAddInstructionsToRecipe(connection: BetterSqlite3.Database): void {
+		// 1. Create the new schema structure containing the strict instructions column definition
+		connection.exec(`
+			CREATE TABLE IF NOT EXISTS Recipe_new (
+				                                      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+				                                      name        TEXT NOT NULL,
+				                                      description TEXT,
+				                                      image       TEXT,
+				                                      visibility  TEXT NOT NULL CHECK(visibility IN ('public', 'private')),
+				                                      author      INTEGER NOT NULL,
+				                                      instructions TEXT NOT NULL DEFAULT '',
+
+				                                      CONSTRAINT fk_recipe_author FOREIGN KEY (author) REFERENCES User(id) ON DELETE CASCADE
+			) STRICT;
+		`);
+
+		// 2. Identify if the legacy table structure exists in sqlite_master
+		const oldTableExists = connection
+		.prepare('SELECT name FROM sqlite_master WHERE type=\'table\' AND name=\'Recipe\'')
+		.get();
+
+		if (oldTableExists) {
+			// Check if instructions column accidentally exists in the old table to map it smoothly
+			const pragma = connection.prepare('PRAGMA table_info(Recipe)').all() as any[];
+			const oldHasInstructions = pragma.some(col => col.name === 'instructions');
+
+			// 3. Re-index and safely copy row properties into the new schema layer
+			connection.exec(`
+          		INSERT INTO Recipe_new (id, name, description, image, visibility, author, instructions)
+         		SELECT id,
+                 	name,
+                 	description,
+                 	image,
+                 	visibility,
+                 	author,
+                 	${oldHasInstructions ? 'instructions' : '\'\''}
+          			FROM Recipe;
+       		`);
+
+			// 4. Drop the outdated definition mapping
+			connection.exec(`DROP TABLE Recipe;`);
+		}
+
+		// 5. Promote the staged schema definition to the official active designation
+		connection.exec(`ALTER TABLE Recipe_new RENAME TO Recipe;`);
 	}
 
 	private static getLegacyRecipeAuthorExpr(

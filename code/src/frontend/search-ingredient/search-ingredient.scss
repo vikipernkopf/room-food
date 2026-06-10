@@ -1,4 +1,4 @@
-@use '../../../styles/theme' as *;
+@use "../styles/theme" as *;
 
 .search-container {
 	position: relative;
@@ -12,25 +12,31 @@
 }
 
 .search-input {
-	width: 100%;
-	padding: 12px 16px;
-	border: 1.5px solid $color-light-gray;
-	font-size: 14px;
-	font-family: inherit;
-	outline: none;
-	box-sizing: border-box;
-	background: $color-input-bg;
+	border: 1px solid $color-light-gray;
 	border-radius: 10px;
-	transition: all 0.2s ease;
+	background-color: $color-input-bg;
+	color: $color-text-main;
+	font-size: 0.95rem;
+	font-family: "Inter", sans-serif;
+	transition: border-color 0.3s ease, background-color 0.3s ease;
+	box-sizing: border-box;
+	padding: 0.65rem 0.85rem;
+	width: 100%;
+	outline: none;
 
 	&:focus {
-		border-color: $color-blue-gray;
-		background-color: $color-lighter-gray;
 		outline: none;
+		border-color: $color-orange-2;
+		background-color: $color-white;
+	}
+
+	&:disabled {
+		background-color: $color-light-gray;
+		cursor: not-allowed;
 	}
 
 	&::placeholder {
-		color: $color-gray;
+		color: $color-blue-gray;
 	}
 }
 

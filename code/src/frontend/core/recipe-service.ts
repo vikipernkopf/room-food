@@ -57,6 +57,11 @@ export class RecipeService {
 		return this.http.get<RawRecipeRow[]>(apiUrl);
 	}
 
+	public getRecipeById(recipeId: number): Observable<Recipe> {
+		const apiUrl = `${this.apiBase}/recipes/${recipeId}`;
+		return this.http.get<Recipe>(apiUrl);
+	}
+
 	public createRecipe(payload: RecipeCreatePayload): Observable<{
 		id: number
 	}> {
