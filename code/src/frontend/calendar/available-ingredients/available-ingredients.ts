@@ -15,7 +15,7 @@ import { AuthService } from '../../core/auth-service';
 import { IngredientsFrontendService } from '../../core/ingredients-frontend-service';
 import { MealService } from '../../core/meal-service';
 import { Shopping } from '../../shopping/shopping';
-import { SearchIngredient } from '../../recipes/recipe-management/search-ingredient/search-ingredient';
+import { SearchIngredient } from '../../search-ingredient/search-ingredient';
 import { firstValueFrom } from 'rxjs';
 
 interface Ingredient {

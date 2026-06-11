@@ -8,6 +8,7 @@ import { Calendar } from './calendar';
 import { AuthService } from '../core/auth-service';
 import { MealService } from '../core/meal-service';
 import { RoomService } from '../core/room-service';
+import { IngredientsFrontendService } from '../core/ingredients-frontend-service';
 import { Meal } from '../../backend/model';
 
 class StubAuthService {
@@ -21,6 +22,10 @@ describe('Calendar', () => {
 		const authService = new StubAuthService();
 		const roomService = {
 			checkRoomExists: vi.fn().mockReturnValue(of({ exists: true }))
+		} as any;
+		const ingredientsFrontendService = {
+			getIngredientsForRoom: vi.fn().mockReturnValue(of([])),
+			getIngredientsForRecipe: vi.fn().mockReturnValue(of([]))
 		} as any;
 		const mealService = {
 			getMealsByRoomCode: vi.fn().mockReturnValue(of([
@@ -55,6 +60,10 @@ describe('Calendar', () => {
 				{
 					provide: MealService,
 					useValue: mealService
+				},
+				{
+					provide: IngredientsFrontendService,
+					useValue: ingredientsFrontendService
 				}
 			]
 		})

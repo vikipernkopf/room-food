@@ -1,9 +1,9 @@
 import { Component, signal, computed, Output, EventEmitter, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { Ingredient } from '../../../../backend/model';
-import { IngredientsFrontendService } from '../../../core/ingredients-frontend-service';
-import { AuthService } from '../../../core/auth-service';
+import { Ingredient } from '../../backend/model';
+import { IngredientsFrontendService } from '../core/ingredients-frontend-service';
+import { AuthService } from '../core/auth-service';
 
 @Component({
 	selector: 'app-search-ingredient',

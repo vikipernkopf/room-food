@@ -1,30 +1,30 @@
-import {Component, effect, signal, WritableSignal} from '@angular/core';
-import {RoomService} from '../core/room-service';
-import {AuthService} from '../core/auth-service';
-import {User} from '../../backend/model';
-import {FormControl, ReactiveFormsModule, Validators} from '@angular/forms';
-import {RoomCreation} from './create-room/create-room';
-import {JoinRoom} from './join-room/join-room';
-import {RouterLink} from '@angular/router';
-import {DEFAULT_PROFILE_PICTURE} from '../core/user-form-validation';
+import { Component, effect, signal, WritableSignal } from '@angular/core';
+import { RoomService } from '../core/room-service';
+import { AuthService } from '../core/auth-service';
+import { User } from '../../backend/model';
+import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RoomCreation } from './create-room/create-room';
+import { JoinRoom } from './join-room/join-room';
+import { RouterLink } from '@angular/router';
+import { DEFAULT_PROFILE_PICTURE } from '../core/user-form-validation';
 
 type MemberRoom = {
 	code: string,
-	roomName:string,
+	roomName: string,
 	role: string,
 	profilePicture?: string
 };
 
 @Component({
-  selector: 'app-rooms',
+	selector: 'app-rooms',
 	imports: [
 		ReactiveFormsModule,
 		RoomCreation,
 		JoinRoom,
 		RouterLink
 	],
-  templateUrl: './rooms.html',
-  styleUrl: './rooms.scss',
+	templateUrl: './rooms.html',
+	styleUrl: './rooms.scss',
 })
 export class Rooms {
 	protected activePopup: 'create' | 'join' | null = null;
@@ -80,19 +80,19 @@ export class Rooms {
 		console.log("Creating room for user:", username);
 		this.creating = true;
 		this.roomsService.createRoom(username, roomName)
-			.subscribe({
-				next: (res) => {
-					this.createdRoomCode = res.result;
-					this.creating = false;
-					this.activePopup = null;
-					this.roomNameControl.reset();
-					console.log('Created room code', res.result);
-				},
-				error: (err) => {
-					this.creating = false;
-					console.error('Failed to create room', err);
-				}
-			});
+		.subscribe({
+			next: (res) => {
+				this.createdRoomCode = res.result;
+				this.creating = false;
+				this.activePopup = null;
+				this.roomNameControl.reset();
+				console.log('Created room code', res.result);
+			},
+			error: (err) => {
+				this.creating = false;
+				console.error('Failed to create room', err);
+			}
+		});
 	}
 
 	protected getRoomImage(room: MemberRoom): string {
