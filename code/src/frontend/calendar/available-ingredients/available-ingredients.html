@@ -1,21 +1,95 @@
-<h2>Needed Ingredients</h2>
+<div class="header-row">
+	<h2>Needed Ingredients</h2>
+	@if (!loading() && neededIngredients().length > 0) {
+		<button class="btn-shop" type="button" (click)="openShopping()">
+			Mark as Shopped
+		</button>
+	}
+</div>
 
 @if (loading()) {
 	<p>Loading ingredients...</p>
 }
 
-@if (!loading() && ingredients().length === 0) {
-	<p>No ingredients found.</p>
+@if (!loading() && neededIngredients().length === 0) {
+	<p>No ingredients needed.</p>
 }
 
-@if (!loading() && ingredients().length > 0) {
+@if (!loading() && neededIngredients().length > 0) {
 	<ul>
-		@for (ingredient of ingredients(); track ingredient.name + '|' + ingredient.measurement) {
-			<li>
-				<strong>{{ ingredient.amount }}</strong>
-				<span>{{ ingredient.measurement }} of </span>
-				<strong>{{ ingredient.name }}</strong>
+		@for (ingredient of neededIngredients(); track ingredient.name + '|' + ingredient.measurement) {
+			<li class="ingredient">
+				<div>
+					<strong>{{ ingredient.amount }}</strong>
+					<span>{{ ingredient.measurement }} of </span>
+					<strong>{{ ingredient.name }}</strong>
+				</div>
 			</li>
 		}
 	</ul>
 }
+
+<hr>
+
+<app-shopping-modal [roomCode]="roomCode()" mode="room" (saved)="onSaved()"></app-shopping-modal>
+
+<div class="ingredients-container">
+	<!-- Available Ingredients Section -->
+	<section class="ingredients-section">
+		<h2>Available Ingredients</h2>
+
+		@if (!loading() && availableIngredients().length === 0) {
+			<p>No ingredients available.</p>
+		}
+
+		@if (!loading() && availableIngredients().length > 0) {
+			<ul>
+				@for (ingredient of availableIngredients(); track ingredient.name + '|' + ingredient.measurement) {
+					<li class="ingredient">
+						<div>
+							<strong>{{ ingredient.amount }}</strong>
+							<span>{{ ingredient.measurement }} of </span>
+							<strong>{{ ingredient.name }}</strong>
+						</div>
+						<button class="delete-btn" (click)="deleteIngredient(ingredient.name, ingredient.measurement)">
+							X
+						</button>
+					</li>
+				}
+			</ul>
+		}
+
+		<!-- Add Ingredient Form -->
+		<form class="form-grid form-grid--single-column">
+			<div class="field-group field-group--full">
+				<label class="field-label">Ingredient Name</label>
+				<app-search-ingredient
+					(ingredientSelected)="onIngredientSelected($event)"></app-search-ingredient>
+			</div>
+
+			<div class="field-group field-group--full">
+				<label class="field-label">Amount</label>
+				<input type="number" class="input-field" [value]="newIngredientAmount()"
+					(input)="newIngredientAmount.set($any($event.target).value)" placeholder="">
+			</div>
+
+			<div class="field-group field-group--full">
+				<label class="field-label">Measurement</label>
+				<input class="input-field" type="text" [value]="newIngredientMeasurement()"
+					(input)="newIngredientMeasurement.set($any($event.target).value)" placeholder="e.g. kg">
+			</div>
+
+			<div class="action-row">
+				@if (ingredientError()) {
+					<div class="error-text">
+						{{ ingredientError() }}
+					</div>
+				}
+
+				<button type="button" class="btn-primary" (click)="addIngredient()" title="Add ingredient">
+					Add Ingredient
+				</button>
+			</div>
+		</form>
+	</section>
+</div>

@@ -1,0 +1,106 @@
+<div class="create-recipe-container">
+	<form class="form-grid" (ngSubmit)="submitForm()">
+		<div class="header-container">
+			<h2 class="header">{{ isEditMode() ? 'Edit Recipe' : 'Create New Recipe' }}</h2>
+		</div>
+
+		<form class="form-grid sub-form recipe-name-form">
+			<h2 class="section-title">Recipe Information</h2>
+
+			<div class="field-group field-group--full">
+				<label class="field-label">Recipe Name *</label>
+				<input class="input-field" type="text" [formControl]="recipeNameControl" placeholder="Grandma's pasta">
+				@if (recipeNameControl.touched && recipeNameControl.hasError('required')) {
+					<p class="field-error">Recipe name is required.</p>
+				}
+			</div>
+
+			<div class="field-group field-group--full">
+				<label class="field-label">Description</label>
+				<textarea class="input-field" [formControl]="recipeDescriptionControl" rows="3"></textarea>
+			</div>
+
+			<div class="field-group field-group--full">
+				<label class="field-label">Image URL</label>
+				<input class="input-field" type="url" [formControl]="recipeImageControl">
+			</div>
+
+			<div class="field-group">
+				<label class="field-label">Meal Types</label>
+				<mat-select class="select-input" [formControl]="recipeMealTypesControl" multiple>
+					@for (mealType of mealTypeOptions; track mealType.value) {
+						<mat-option [value]="mealType.value">{{ mealType.viewValue }}</mat-option>
+					}
+				</mat-select>
+			</div>
+
+			<div class="field-group">
+				<label class="field-label">Visibility</label>
+				<mat-select class="select-input" [formControl]="recipeVisibilityControl">
+					<mat-option value="private">Private</mat-option>
+					<mat-option value="public">Public</mat-option>
+				</mat-select>
+			</div>
+		</form>
+
+		<form class="form-grid form-grid--single-column sub-form">
+			<h2 class="section-title">Ingredients</h2>
+			<form class="form-grid ingredients-form">
+				<div class="field-group ingredient-name">
+					<label class="field-label">Ingredient Name</label>
+					<app-search-ingredient (ingredientSelected)="onIngredientSelected($event)"></app-search-ingredient>
+				</div>
+				<div class="field-group">
+					<label class="field-label">Amount</label>
+					<input type="number" class="input-field" [value]="currentIngredientAmount()"
+						(input)="currentIngredientAmount.set($any($event.target).value)">
+				</div>
+				<div class="field-group">
+					<label class="field-label">Measurement</label>
+					<input class="input-field" type="text" [value]="currentIngredientMeasurement()"
+						(input)="currentIngredientMeasurement.set($any($event.target).value)">
+				</div>
+				<button type="button" class="btn-primary btn-add-ingredient" (click)="addIngredient()">+</button>
+			</form>
+
+			@if (ingredients().length > 0) {
+				<div class="ingredients-list">
+					<div class="ingredients-header">
+						<span class="col-name">Name</span>
+						<span class="col-amount">Amount</span>
+						<span class="col-measurement">Measurement</span>
+						<span class="col-action"></span>
+					</div>
+					@for (ingredient of ingredients(); track $index) {
+						<div class="ingredient-item">
+							<span class="col-name">{{ ingredient.name }}</span>
+							<span class="col-amount">{{ ingredient.amount }}</span>
+							<span class="col-measurement">{{ ingredient.measurement }}</span>
+							<button type="button" class="btn-remove" (click)="removeIngredient($index)">×</button>
+						</div>
+					}
+				</div>
+			}
+		</form>
+
+		<form class="form-grid form-grid--single-column sub-form">
+			<h2 class="section-title">Cooking Steps</h2>
+			<div class="field-group">
+				<label class="field-label">Instructions *</label>
+				<textarea class="input-field" [formControl]="recipeStepsControl" rows="6"></textarea>
+			</div>
+		</form>
+
+		<div class="action-row">
+			@if (saveError()) {
+				<div class="error-text">{{ saveError() }}</div>
+			}
+			<!--suppress NestedConditionalExpressionJS -->
+			<button type="submit" class="btn-primary" [disabled]="isSaving()">
+				{{ isSaving() ? (isEditMode() ? 'Saving Changes...' : 'Creating Recipe...') : (isEditMode()
+				? 'Save Changes' : 'Create Recipe') }}
+			</button>
+		</div>
+		<hr>
+	</form>
+</div>

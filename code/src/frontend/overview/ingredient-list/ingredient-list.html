@@ -1,7 +1,14 @@
-<h2>Ingredients</h2>
+<div class="header-row">
+	<h2>Ingredients</h2>
+	@if (!loading() && ingredients().length > 0) {
+		<button class="btn-shop" type="button" (click)="openShopping()">
+			Mark as Shopped
+		</button>
+	}
+</div>
 
 @if (loading()) {
-	<p>Loading ingredients...</p>
+	<p>Loading ingredients…</p>
 }
 
 @if (!loading() && ingredients().length === 0) {
@@ -11,11 +18,15 @@
 @if (!loading() && ingredients().length > 0) {
 	<ul>
 		@for (ingredient of ingredients(); track ingredient.name) {
-			<li>
-				<b>{{ ingredient.amount }}</b>
-				<span>{{ ingredient.measurement }} of </span>
-				<strong>{{ ingredient.name }}</strong>
+			<li class="ingredient">
+				<div>
+					<b>{{ ingredient.amount }}</b>
+					<span>{{ ingredient.measurement }} of </span>
+					<strong>{{ ingredient.name }}</strong>
+				</div>
 			</li>
 		}
 	</ul>
 }
+
+<app-shopping-modal mode="personal" (saved)="onSaved()"></app-shopping-modal>

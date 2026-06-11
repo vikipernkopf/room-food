@@ -129,8 +129,10 @@ recipesRouter.post('/recipes/:id/save', async (req, res): Promise<void> => {
 recipesRouter.post('/recipes', async (req, res): Promise<void> => {
 	const payload: RecipeCreatePayload = req.body;
 
-	if (!payload.name || !payload.authorUsername || !Array.isArray(payload.ingredients)) {
-		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid recipe data: name, author, and ingredients are required.' });
+	if (!payload.name || !payload.authorUsername || !Array.isArray(payload.ingredients) || typeof payload.instructions
+		!== 'string') {
+		res.status(StatusCodes.BAD_REQUEST).
+		json({ error: 'Invalid recipe data: name, author, ingredients, and instructions are required.' });
 		return;
 	}
 
@@ -158,7 +160,7 @@ recipesRouter.put('/recipes/:id', async (req, res) => {
 	const recipeId = Number(req.params.id);
 	const payload: RecipeUpdatePayload = req.body;
 
-	if (!recipeId || !Array.isArray(payload.ingredients)) {
+	if (!recipeId || !Array.isArray(payload.ingredients) || typeof payload.instructions !== 'string') {
 		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid update data' });
 		return;
 	}
@@ -241,5 +243,35 @@ recipesRouter.get('/recipes/:id/ingredients', async (req, res): Promise<void> =>
 	} catch (error) {
 		unit.complete();
 		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to fetch ingredients' });
+	}
+});
+
+recipesRouter.get('/recipes/:id', async (req, res): Promise<void> => {
+	const recipeId = Number(req.params.id);
+
+	if (!Number.isInteger(recipeId) || recipeId <= 0) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid recipe id' });
+		return;
+	}
+
+	const unit = new Unit(true);
+
+	try {
+		const recipesService = new RecipesService(unit);
+		// Assuming your core RecipesService has a getRecipeById method implemented
+		const recipe = recipesService.getRecipeById(recipeId);
+
+		if (!recipe) {
+			unit.complete();
+			res.status(StatusCodes.NOT_FOUND).json({ error: 'Recipe not found' });
+			return;
+		}
+
+		unit.complete();
+		res.status(StatusCodes.OK).json(recipe);
+	} catch (error) {
+		unit.complete();
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to fetch recipe details' });
+		console.error('Error fetching recipe by id:', recipeId, error);
 	}
 });

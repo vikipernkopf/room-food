@@ -15,7 +15,6 @@ export function requireAuth(
 ): void {
 	const token = req.cookies?.['session'];
 	console.log('requireAuth - token:', token ? 'present' : 'missing');
-	console.log('requireAuth - JWT_SECRET used:', JWT_SECRET);
 
 	if (!token) {
 		res.sendStatus(StatusCodes.UNAUTHORIZED);

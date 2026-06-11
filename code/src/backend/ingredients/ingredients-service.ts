@@ -44,7 +44,7 @@ export class IngredientsService extends ServiceBase {
 		//only add ingredient if user is the one who created the recipe
 		const isOwner = this.unit.prepare(`
 			select 1 from Recipe r
-			join User u on u.id = r.author
+							  join User u on u.id = r.author
 			where r.id = :recipeId and u.username = :user
 		`, {
 			recipeId,
@@ -95,81 +95,109 @@ export class IngredientsService extends ServiceBase {
 				ri.measurement,
 				sum(cast(ri.amount as real)) as amount
 			from MealIngredientAssignment mia
-			join MealRecipe mr on mr.meal_id = mia.meal_id
-			join RecipeIngredient ri on ri.recipe_id = mr.recipe_id and ri.ingredient_name = mia.ingredient_name
+					 join MealRecipe mr on mr.meal_id = mia.meal_id
+				     join RecipeIngredient ri on ri.recipe_id = mr.recipe_id and ri.ingredient_name = mia.ingredient_name
 			where mia.assigned_to_username = :username
 			group by ri.ingredient_name, ri.measurement
 			order by ri.ingredient_name
 		`, { username }).all() as unknown as Ingredient[];
 	}
 
-	/*public getAuthor(name: string): string | null {
-		const result = this.unit.prepare(`
-			select user from Ingredient
-			where name = :name
-		`, { name }).get() as {
-			default_measurement: string
-		} | undefined;
+	public getIngredientsForRoom(roomCode: string): Ingredient[] {
+		return this.unit.prepare(`
+			select ri.ingredient_name as name, ri.measurement, ri.amount
+			from RoomIngredient ri
+			where ri.room_code = :roomCode
+		`, { roomCode }).all() as unknown as Ingredient[];
+	}
 
-		return result?.default_measurement || null;
-	}*/
-
-	/*public deleteIngredient(name: string, user: string): boolean {
-		if (this.getAuthor(name) !== user) {
-			return false;
-		}
-
-		let success: boolean;
-		[success] = this.executeStmt(
-			this.unit.prepare(`
-				delete from Ingredient where name=:n and user=:u
-			`, {
-				n: name,
-				u: user
-			})
-		);
+	public addIngredientToRoom(ingredient: Ingredient, roomCode: string): boolean {
+		const [success] = this.executeStmt(this.unit.prepare(`
+			insert into RoomIngredient (room_code, ingredient_name, measurement, amount)
+			VALUES (:roomCode, :ingredientName, :measurement, :amount)
+			ON CONFLICT DO UPDATE SET
+				amount = CAST(amount AS REAL) + CAST(excluded.amount AS REAL)
+		`, {
+			roomCode,
+			ingredientName: ingredient.name,
+			measurement: ingredient.measurement,
+			amount: ingredient.amount
+		}));
 
 		return success;
-	}*/
+	}
 
-	/*public modifyRecipeMeasurementAmount(name: string, recipeId: number, user: string, newAmount: number | null,
-		newMeasurement: string | null) {
-		const isOwner = this.unit.prepare(`
-			select 1 from Recipe r
-			join User u on u.id = r.author
-			where r.id = :recipeId and u.username = :user
+	public deleteIngredientFromRoom(ingredientName: string, measurement: string, roomCode: string): boolean {
+		const [success] = this.executeStmt(this.unit.prepare(`
+			delete from RoomIngredient
+			where room_code = :roomCode and ingredient_name = :ingredientName and measurement = :measurement
 		`, {
-			recipeId,
-			user
-		}).get();
+			roomCode,
+			ingredientName,
+			measurement
+		}));
 
-		if (!isOwner) {
-			return false;
-		}
+		return success;
+	}
 
-		let success1: boolean = true;
-		let success2: boolean = true;
-
-		if (newAmount !== null) {
-			[success1] = this.executeStmt(
-				this.unit.prepare(`
-			update RecipeIngredient set amount=:a where recipe_id=:r
+	public updateIngredientAmountInRoom(ingredientName: string, measurement: string, roomCode: string, newAmount: number): boolean {
+		const [success] = this.executeStmt(this.unit.prepare(`
+			update RoomIngredient
+			set amount = :newAmount
+			where room_code = :roomCode and ingredient_name = :ingredientName and measurement = :measurement
 		`, {
-					a: newAmount,
-					r: recipeId
-				}));
-		}
+			roomCode,
+			ingredientName,
+			measurement,
+			newAmount
+		}));
 
-		if (newMeasurement !== null) {
-			[success2] = this.executeStmt(
-				this.unit.prepare(`
-			update RecipeIngredient set measurement=:m where recipe_id=:r
+		return success;
+	}
+
+	// ------------------------------------------------------------------
+	// User-specific ingredient history
+	// ------------------------------------------------------------------
+
+	public saveUserIngredient(username: string, ingredient: Ingredient): boolean {
+		const [success] = this.executeStmt(this.unit.prepare(`
+			insert into UserIngredient(username, ingredient_name, measurement, amount, used_at)
+			VALUES (:username, :ingredientName, :measurement, :amount, datetime('now'))
+			on conflict(username, ingredient_name, measurement) do update set
+				amount = excluded.amount,
+				used_at = datetime('now')
 		`, {
-					m: newMeasurement,
-					r: recipeId
-				}));
-		}
+			username,
+			ingredientName: ingredient.name,
+			measurement: ingredient.measurement,
+			amount: ingredient.amount
+		}));
 
-		return success1 && success2;
-	}*/
+		return success;
+	}
+
+	public getUserIngredientsForPrefix(prefix: string, username: string): Ingredient[] {
+		return this.unit.prepare(`
+			select ingredient_name as name, measurement, cast(amount as real) as amount
+			from UserIngredient
+			where lower(ingredient_name) like lower(:prefix || '%')
+			  and username = :username
+			order by used_at desc
+			limit 20
+		`, {
+			prefix,
+			username
+		}).all() as unknown as Ingredient[];
+	}
+
+	public getAllUserIngredients(username: string): Ingredient[] {
+		return this.unit.prepare(`
+			select ingredient_name as name, measurement, cast(amount as real) as amount
+			from UserIngredient
+			where username = :username
+			order by used_at desc
+		`, {
+			username
+		}).all() as unknown as Ingredient[];
+	}
 }

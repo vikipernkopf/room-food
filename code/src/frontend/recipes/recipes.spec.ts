@@ -1,17 +1,21 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
-import { By } from '@angular/platform-browser';
+import { Router, provideRouter } from '@angular/router';
+import { provideLocationMocks } from '@angular/common/testing';
+import { vi } from 'vitest';
 import { Observable, of } from 'rxjs';
 
 import { Recipes } from './recipes';
 import { AuthService } from '../core/auth-service';
 import { RecipeService } from '../core/recipe-service';
 import { Recipe, User } from '../../backend/model';
-import { RecipeManagement } from './recipe-management/recipe-management';
+// ...existing code... (ManageRecipe not used anymore)
 
 describe('Recipes', () => {
 	let component: Recipes;
 	let fixture: ComponentFixture<Recipes>;
+	let consoleLogSpy: ReturnType<typeof vi.spyOn>;
+	let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
 	let requestedUsername: string | null;
 	let requestedPublicSearch: string | null;
 	let savedRecipeRequest: {
@@ -26,6 +30,9 @@ describe('Recipes', () => {
 	};
 
 	beforeEach(async () => {
+		consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+		// Keep test output clean when component methods log expected diagnostics.
+		consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
 		requestedUsername = null;
 		requestedPublicSearch = null;
 		savedRecipeRequest = null;
@@ -69,8 +76,14 @@ describe('Recipes', () => {
 				return of(publicRecipesResponse);
 			},
 			savePublicRecipe: (recipeId: number, username: string) => {
-				savedRecipeRequest = { recipeId, username };
-				return of({ id: recipeId, saved: true });
+				savedRecipeRequest = {
+					recipeId,
+					username
+				};
+				return of({
+					id: recipeId,
+					saved: true
+				});
 			},
 			getRawRecipes: () => of([]),
 			createRecipe: () => of({ id: 1 }),
@@ -86,6 +99,8 @@ describe('Recipes', () => {
 		await TestBed.configureTestingModule({
 			imports: [Recipes],
 			providers: [
+				provideRouter([]),
+				provideLocationMocks(),
 				{
 					provide: AuthService,
 					useValue: authServiceMock
@@ -103,6 +118,11 @@ describe('Recipes', () => {
 		fixture.detectChanges();
 	});
 
+	afterEach(() => {
+		consoleLogSpy.mockRestore();
+		consoleErrorSpy.mockRestore();
+	});
+
 	it('should create', () => expect(component).toBeTruthy());
 
 	it('shows the logged-out message when no user is present', () =>
@@ -118,6 +138,7 @@ describe('Recipes', () => {
 				mealTypes: ['dinner'],
 				visibility: 'private',
 				author: 1,
+				instructions: 'Mix and cook.',
 				isOwnedByUser: true,
 				ingredients: []
 			}
@@ -141,6 +162,7 @@ describe('Recipes', () => {
 				mealTypes: ['dinner'],
 				visibility: 'private',
 				author: 1,
+				instructions: 'Mix and cook.',
 				ingredients: []
 			}
 		];
@@ -153,6 +175,7 @@ describe('Recipes', () => {
 				mealTypes: ['lunch'],
 				visibility: 'public',
 				author: 2,
+				instructions: 'Mix and cook.',
 				ingredients: []
 			}
 		];
@@ -183,6 +206,7 @@ describe('Recipes', () => {
 				authorUsername: 'bob',
 				isOwnedByUser: false,
 				isSavedByUser: false,
+				instructions: 'Mix and cook.',
 				ingredients: []
 			}
 		];
@@ -199,7 +223,10 @@ describe('Recipes', () => {
 		saveButton.click();
 		fixture.detectChanges();
 
-		expect(savedRecipeRequest).toEqual({ recipeId: 2, username: 'alice' });
+		expect(savedRecipeRequest).toEqual({
+			recipeId: 2,
+			username: 'alice'
+		});
 	});
 
 	it('opens the edit popup when a recipe is clicked', () => {
@@ -212,6 +239,7 @@ describe('Recipes', () => {
 				mealTypes: ['dinner'],
 				visibility: 'private',
 				author: 1,
+				instructions: 'Mix and cook.',
 				isOwnedByUser: true,
 				ingredients: []
 			}
@@ -220,16 +248,16 @@ describe('Recipes', () => {
 		authServiceMock.currentUser.set({ username: 'alice' });
 		fixture.detectChanges();
 
+		const router = TestBed.inject(Router);
+		const navSpy = vi.spyOn(router as any, 'navigate').mockImplementation(() => Promise.resolve(true) as any);
+
 		const recipeCard = fixture.nativeElement.querySelector('.recipe-card[role="button"]') as HTMLElement;
 		recipeCard.click();
 		fixture.detectChanges();
 
-		const popupDebugElement = fixture.debugElement.query(By.directive(RecipeManagement));
-		expect(popupDebugElement).toBeTruthy();
-		const popupComponent = popupDebugElement.componentInstance as any;
-		expect((component as any).activePopup()).toBe('edit');
-		expect((component as any).recipeToEdit().name).toBe('Pasta');
-		expect(popupComponent.recipeNameControl.value).toBe('Pasta');
+		// The component now redirects to the dedicated edit route when editing a recipe.
+		// Verify navigation to the edit route for the clicked recipe.
+		expect(navSpy).toHaveBeenCalledWith(['/recipes/edit', 1]);
 	});
 
 	it('saves recipe edits through the edit popup', () => {
@@ -242,6 +270,7 @@ describe('Recipes', () => {
 				mealTypes: ['dinner'],
 				visibility: 'private',
 				author: 1,
+				instructions: 'Mix and cook.',
 				isOwnedByUser: true,
 				ingredients: []
 			}
@@ -250,14 +279,18 @@ describe('Recipes', () => {
 		authServiceMock.currentUser.set({ username: 'alice' });
 		fixture.detectChanges();
 
-		(component as any).openEditRecipe(recipesResponse[0]);
-		fixture.detectChanges();
-
-		const popupComponent = fixture.debugElement.query(By.directive(RecipeManagement)).componentInstance as any;
-		popupComponent.recipeNameControl.setValue('Pasta Deluxe');
-		popupComponent.recipeDescriptionControl.setValue('Updated pasta');
-		popupComponent.recipeVisibilityControl.setValue('public');
-		popupComponent.saveRecipe();
+		// The UI now navigates to a dedicated edit route. To test update behaviour
+		// simulate the component being in edit mode and call saveRecipe directly.
+		(component as any).recipeToEdit.set(recipesResponse[0]);
+		(component as any).saveRecipe({
+			name: 'Pasta Deluxe',
+			description: 'Updated pasta',
+			image: (component as any).defaultRecipeImage,
+			mealTypes: ['dinner'],
+			visibility: 'public',
+			ingredients: [],
+			instructions: 'Mix and cook.'
+		});
 		fixture.detectChanges();
 
 		expect(updatedRecipePayload).toEqual({
@@ -266,7 +299,8 @@ describe('Recipes', () => {
 			image: (component as any).defaultRecipeImage,
 			mealTypes: ['dinner'],
 			visibility: 'public',
-			ingredients: []
+			ingredients: [],
+			instructions: 'Mix and cook.'
 		});
 	});
 });

@@ -1,22 +1,23 @@
 import { AbstractControl, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 
-export const DEFAULT_PROFILE_PICTURE =
-	'https://i.imgur.com/tdi3NGa_d.webp?maxwidth=760&fidelity=grand';
-
-export const DEFAULT_ROOM_PICTURE =
-	'https://static.vecteezy.com/system/resources/previews/026/019/617/' +
-	'non_2x/group-profile-avatar-icon-default-social-media-forum-profile-photo-vector.jpg';
-
-export const DEFAULT_RECIPE_IMAGE =
-	'https://thecrites.com/sites/all/modules/cookbook/theme/images/' +
-	'default-recipe-big.png';
+// Default images are defined in a small Angular-free module so server-side
+// scripts can import them without pulling in the Angular compiler.
+export { DEFAULT_PROFILE_PICTURE, DEFAULT_ROOM_PICTURE, DEFAULT_RECIPE_IMAGE } from './default-images';
 
 export const BACKEND_EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PASSWORD_STRENGTH_PATTERN = /^(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/;
 
 export const requiredTrimmed: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
-	const value = typeof control.value === 'string' ? control.value.trim() : '';
-	return value.length > 0 ? null : { requiredTrimmed: true };
+	const val = control.value;
+
+	// If it's a valid Date object, it satisfies the "required" check
+	if (val instanceof Date) {
+		return isNaN(val.getTime()) ? { requiredTrimmed: true } : null;
+	}
+
+	// Otherwise fall back to the string trimming logic
+	const stringValue = typeof val === 'string' ? val.trim() : '';
+	return stringValue.length > 0 ? null : { requiredTrimmed: true };
 };
 
 export function profileFieldValidators(passwordRequired: boolean): {

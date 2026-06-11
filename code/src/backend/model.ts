@@ -95,11 +95,12 @@ export type Recipe = {
 	image?: string;
 	mealTypes: string[];
 	visibility: RecipeVisibility;
-	author: number;
+	author?: number;
 	authorUsername?: string;
 	ingredients: Ingredient[];
 	isSavedByUser?: boolean;
 	isOwnedByUser?: boolean;
+	instructions: string;
 };
 
 export type RecipeCreatePayload = {
@@ -110,6 +111,7 @@ export type RecipeCreatePayload = {
 	mealTypes: string[];
 	visibility: RecipeVisibility;
 	ingredients: Ingredient[];
+	instructions: string;
 };
 
 export type RecipeUpdatePayload = {
@@ -119,4 +121,5 @@ export type RecipeUpdatePayload = {
 	mealTypes: string[];
 	visibility: RecipeVisibility;
 	ingredients: Ingredient[]; // Added for persistence during updates
+	instructions: string;
 };

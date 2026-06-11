@@ -1,0 +1,267 @@
+@use '../styles/theme' as *;
+
+.modal-backdrop {
+	position: fixed;
+	inset: 0;
+	background: $color-overlay-40;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 1100;
+	animation: fade-in 0.15s ease;
+}
+
+@keyframes fade-in {
+	from { opacity: 0; }
+	to { opacity: 1; }
+}
+
+@keyframes slide-up {
+	from { transform: translateY(16px); opacity: 0; }
+	to { transform: none; opacity: 1; }
+}
+
+.modal-panel {
+	background: $color-white;
+	border-radius: 14px;
+	width: 90%;
+	max-width: 480px;
+	max-height: 80vh;
+	display: flex;
+	flex-direction: column;
+	box-shadow: 0 16px 48px $color-overlay-20;
+	animation: slide-up 0.2s ease;
+	overflow: hidden;
+}
+
+.modal-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 1.25rem 1.5rem;
+	border-bottom: 1px solid $color-light-gray;
+
+	h3 {
+		margin: 0;
+		font-size: 1.1rem;
+		font-weight: 600;
+		color: $color-green-4;
+	}
+}
+
+.btn-icon {
+	background: none;
+	border: none;
+	font-size: 1rem;
+	cursor: pointer;
+	color: $color-gray;
+	width: 30px;
+	height: 30px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: background 0.15s;
+
+	&:hover:not(:disabled) {
+		background: $color-lighter-gray;
+		color: $color-text-main;
+	}
+
+	&:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
+	}
+}
+
+.modal-body {
+	flex: 1;
+	overflow-y: auto;
+	padding: 1.25rem 1.5rem;
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+}
+
+.state-msg {
+	color: $color-gray;
+	font-style: italic;
+	font-size: 0.9rem;
+}
+
+.select-all-row {
+	display: flex;
+	align-items: center;
+	gap: 0.6rem;
+	padding: 0.6rem 0.8rem;
+	background: $color-lighter-gray;
+	border-radius: 8px;
+	font-weight: 600;
+	font-size: 0.9rem;
+	color: $color-text-main;
+
+	input {
+		accent-color: $color-green-2;
+		width: 16px;
+		height: 16px;
+		cursor: pointer;
+	}
+
+	label {
+		cursor: pointer;
+		user-select: none;
+	}
+
+	.counter {
+		color: $color-label-gray;
+		font-weight: 400;
+	}
+}
+
+.ing-list {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+li {
+	display: flex;
+	align-items: center;
+	gap: 0.7rem;
+	padding: 0.65rem 0.9rem;
+	border: 1px solid $color-light-gray;
+	border-radius: 8px;
+	background: $color-input-bg;
+	transition: border-color 0.15s, background 0.15s;
+
+	input {
+		accent-color: $color-green-2;
+		width: 16px;
+		height: 16px;
+		cursor: pointer;
+		flex-shrink: 0;
+	}
+
+	&.is-bought {
+		background: rgba($color-green-2, 0.06);
+		border-color: $color-green-2;
+
+		.ing-name {
+			text-decoration: line-through;
+			opacity: 0.6;
+		}
+	}
+}
+
+.ing-label {
+	display: flex;
+	align-items: center;
+	gap: 0.4rem;
+	flex: 1;
+	cursor: pointer;
+	font-size: 0.875rem;
+	user-select: none;
+}
+
+.ing-amount {
+	font-weight: 700;
+	color: $color-green-4;
+	min-width: 28px;
+}
+
+.ing-unit {
+	color: $color-label-gray;
+	font-size: 0.8rem;
+	min-width: 48px;
+}
+
+.ing-name {
+	flex: 1;
+	color: $color-text-main;
+}
+
+.bought-by {
+	font-size: 0.75rem;
+	color: $color-green-3;
+	font-style: italic;
+}
+
+.msg {
+	padding: 0.65rem 0.9rem;
+	border-radius: 8px;
+	font-size: 0.875rem;
+	text-align: center;
+
+	&-error {
+		background: rgba(#e53935, 0.08);
+		color: #c62828;
+		border: 1px solid rgba(#e53935, 0.3);
+	}
+
+	&-success {
+		background: rgba($color-green-2, 0.08);
+		color: $color-green-4;
+		border: 1px solid rgba($color-green-2, 0.3);
+	}
+}
+
+.modal-footer {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 1rem 1.5rem;
+	border-top: 1px solid $color-light-gray;
+	gap: 0.5rem;
+}
+
+.footer-right {
+	display: flex;
+	gap: 0.5rem;
+}
+
+button {
+	border: none;
+	border-radius: 8px;
+	padding: 0.55rem 1.2rem;
+	font-size: 0.875rem;
+	font-weight: 600;
+	cursor: pointer;
+	font-family: inherit;
+	transition: all 0.15s;
+
+	&:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+}
+
+.btn-ghost {
+	background: none;
+	color: $color-gray;
+	padding-left: 0;
+
+	&:hover:not(:disabled) {
+		color: $color-text-main;
+	}
+}
+
+.btn-secondary {
+	background: $color-light-gray;
+	color: $color-text-main;
+
+	&:hover:not(:disabled) {
+		background: $color-lighter-gray;
+	}
+}
+
+.btn-primary {
+	background: $color-green-2;
+	color: $color-white;
+
+	&:hover:not(:disabled) {
+		background: $color-green-3;
+	}
+}

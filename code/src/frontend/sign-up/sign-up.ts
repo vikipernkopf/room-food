@@ -13,7 +13,10 @@ import {
 	validate,
 	validateTree
 } from '@angular/forms/signals';
+import { MatDatepicker, MatDatepickerInput, MatDatepickerToggle } from '@angular/material/datepicker';
+import { MatInput, MatSuffix } from '@angular/material/input';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { provideNativeDateAdapter } from '@angular/material/core';
 import { AuthService } from '../core/auth-service';
 import { SignUpCredentials } from '../../backend/model';
 import { BACKEND_EMAIL_PATTERN, DEFAULT_PROFILE_PICTURE } from '../core/user-form-validation';
@@ -33,7 +36,15 @@ function requiredTrimmed(field: any, message: string): void {
 	imports: [
 		FormField,
 		FormRoot,
-		RouterLink
+		RouterLink,
+		MatInput,
+		MatDatepickerToggle,
+		MatDatepicker,
+		MatSuffix,
+		MatDatepickerInput
+	],
+	providers: [
+		provideNativeDateAdapter()
 	],
 	templateUrl: './sign-up.html',
 	styleUrl: './sign-up.scss',
@@ -59,6 +70,11 @@ export class SignUp {
 		action: async () => {
 			const model = this.signUpModel();
 			const profilePicture = model.profilePicture.trim();
+
+			const formattedDob: string = model.dob && typeof (model.dob as any).toISOString === 'function'
+				? (model.dob as unknown as Date).toISOString().split('T')[0]
+				: model.dob;
+
 			const payload: SignUpCredentials = {
 				username: model.username,
 				password: model.password,
@@ -66,7 +82,7 @@ export class SignUp {
 				firstName: model.firstName,
 				lastName: model.lastName,
 				bio: model.bio,
-				dob: model.dob,
+				dob: formattedDob,
 				profilePicture: profilePicture || DEFAULT_PROFILE_PICTURE
 			};
 			this.authService.signUp(payload, this.returnUrl);
@@ -93,7 +109,6 @@ export class SignUp {
 		maxLength(signUp.bio, 100);
 
 		required(signUp.dob);
-		requiredTrimmed(signUp.dob, 'Date of birth is required');
 
 		maxLength(signUp.profilePicture, 1000);
 

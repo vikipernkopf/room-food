@@ -22,6 +22,7 @@ export class RecipesService extends ServiceBase {
 			       r.name,
 			       r.description,
 			       r.image,
+			       r.instructions,
 			       r.visibility,
 			       r.author,
 			       u.username                                         as authorUsername,
@@ -40,7 +41,7 @@ export class RecipesService extends ServiceBase {
 				     left join RecipeMealType rmt on r.id = rmt.recipe_id
 				     left join SavedRecipe sr on r.id = sr.recipe_id and sr.user_id = :viewerId
 			where lower(u.username) = lower(:username)
-			group by r.id
+			group by r.id, r.instructions
 		`, {
 			username,
 			viewerId
@@ -62,6 +63,7 @@ export class RecipesService extends ServiceBase {
 			name: string;
 			description?: string | null;
 			image?: string | null;
+			instructions: string;
 			visibility: RecipeVisibility;
 			author: number;
 			authorUsername: string;
@@ -73,6 +75,7 @@ export class RecipesService extends ServiceBase {
 			       r.name,
 			       r.description,
 			       r.image,
+			       r.instructions,
 			       r.visibility,
 			       r.author,
 			       u.username                                       as authorUsername,
@@ -88,6 +91,7 @@ export class RecipesService extends ServiceBase {
 			where r.visibility = 'public'
 			  and lower(r.name) like '%' || :search || '%'
 			group by r.id, r.name, r.description, r.image, r.visibility, r.author, u.username,
+			         r.instructions,
 			         isSavedByUser, isOwnedByUser
 			order by r.id desc
 		`, {
@@ -172,15 +176,23 @@ export class RecipesService extends ServiceBase {
 			return 'error';
 		}
 
-		const result = this.unit.prepare<unknown, any>(
-			`insert into Recipe (name, description, image, visibility, author)
-			 values (:name, :description, :image, :visibility, :author)`,
+		const result = this.unit.prepare<unknown, {
+			name: string;
+			description: string | null;
+			image: string | null;
+			visibility: RecipeVisibility;
+			author: number;
+			instructions: string;
+		}>(
+			`insert into Recipe (name, description, image, visibility, author, instructions)
+			 values (:name, :description, :image, :visibility, :author, :instructions)`,
 			{
 				name: payload.name,
 				description: payload.description ?? null,
 				image: payload.image ?? null,
 				visibility: payload.visibility,
-				author: authorId
+				author: authorId,
+				instructions: payload.instructions?.trim() ?? ''
 			}
 		).run();
 
@@ -198,24 +210,32 @@ export class RecipesService extends ServiceBase {
 
 	private linkMealTypes(recipeId: number, mealTypes: string[]): 'error' | true {
 		for (const mealType of mealTypes) {
-			const linked = this.unit.prepare(`insert into RecipeMealType (recipe_id, meal_type)
-			                                  values (:recipeId, :mealType)`,
+			const linked = this.unit.prepare(
+				`insert into RecipeMealType (recipe_id, meal_type)
+				 values (:recipeId, :mealType)`,
 				{
 					recipeId,
 					mealType
-				}).run();
-			if (!linked) return 'error';
+				}
+			).run();
+			if (!linked) {
+				return 'error';
+			}
 		}
 		return true;
 	}
 
 	private saveIngredients(recipeId: number, ingredients: Ingredient[]): 'error' | true {
 		for (const ing of ingredients) {
-			this.unit.prepare(`insert or ignore into Ingredient (name)
-			                   values (:name)`, { name: ing.name }).run();
-			const linked = this.unit.prepare(`
-					insert into RecipeIngredient (recipe_id, ingredient_name, amount, measurement)
-					values (:recipeId, :name, :amount, :measurement)`,
+			this.unit.prepare(
+				`insert or ignore into Ingredient (name)
+				 values (:name)`,
+				{ name: ing.name }
+			).run();
+
+			const linked = this.unit.prepare(
+				`insert into RecipeIngredient (recipe_id, ingredient_name, amount, measurement)
+				 values (:recipeId, :name, :amount, :measurement)`,
 				{
 					recipeId,
 					name: ing.name,
@@ -250,16 +270,18 @@ export class RecipesService extends ServiceBase {
 				image: string | null;
 				visibility: RecipeVisibility;
 				author: number;
+				instructions: string;
 			}>(
-				`insert into Recipe(name, description, image, visibility, author)
-				 values (:name, :description, :image, :visibility, :author)
+				`insert into Recipe(name, description, image, visibility, author, instructions)
+				 values (:name, :description, :image, :visibility, :author, :instructions)
 				 returning id`,
 				{
 					name: recipe.name.trim(),
 					description: recipe.description?.trim() || null,
 					image: recipe.image?.trim() || null,
 					visibility: RecipesService.normalizeVisibility(recipe.visibility),
-					author: authorId
+					author: authorId,
+					instructions: recipe.instructions?.trim() ?? ''
 				}
 			).get();
 
@@ -312,16 +334,18 @@ export class RecipesService extends ServiceBase {
 		try {
 			this.unit.prepare(
 				`update Recipe
-				 set name        = :name,
-				     description = :description,
-				     image       = :image,
-				     visibility  = :visibility
+				 set name         = :name,
+				     description  = :description,
+				     image        = :image,
+				     visibility   = :visibility,
+				     instructions = :instructions
 				 where id = :id`,
 				{
 					name: recipe.name.trim(),
 					description: recipe.description?.trim() || null,
 					image: recipe.image?.trim() || null,
 					visibility: RecipesService.normalizeVisibility(recipe.visibility),
+					instructions: recipe.instructions?.trim() ?? '',
 					id: recipeId
 				}
 			).run();
@@ -353,6 +377,79 @@ export class RecipesService extends ServiceBase {
 		return true;
 	}
 
+	public getRecipeById(recipeId: number): Recipe | 'not_found' | 'error' {
+		if (!this.checkRecipeExists(recipeId)) {
+			return 'not_found';
+		}
+
+		try {
+			// 1. Use .get() to retrieve a single row object directly
+			const recipeRow = this.unit.prepare(
+				`select id, name, description, image, visibility, author, instructions
+				 from Recipe
+				 where id = :id`,
+				{ id: recipeId }
+			).get() as any;
+
+			if (!recipeRow) {
+				return 'not_found';
+			}
+
+			// 2. Use .all() to get an array of matching rows from the join table
+			const mealRows = this.unit.prepare(
+				`select meal_type
+				 from RecipeMealType
+				 where recipe_id = :id`,
+				{ id: recipeId }
+			).all() as any[];
+
+			const mealTypes = mealRows.map(row => row.meal_type);
+
+			// Replace: const ingredients = this.getIngredientsForRecipe(recipeId) || [];
+			// With this mapped version:
+			const rawIngredients = this.getIngredientsForRecipe(recipeId) || [];
+			const ingredients = rawIngredients.map((ing: any) => ({
+				name: ing.ingredientName,
+				measurement: ing.measurement,
+				amount: ing.amount
+			}));
+
+			let authorUsername = 'Unknown author';
+			if (recipeRow.author) {
+				// 3. Use .get() to get the row matching the author's id
+				const userRow = this.unit.prepare(
+					`select username
+					 from User
+					 where id = :authorId`,
+					{ authorId: recipeRow.author }
+				).get() as any;
+
+				if (userRow?.username) {
+					authorUsername = userRow.username;
+				}
+			}
+
+			return {
+				author: 0,
+				isOwnedByUser: undefined,
+				isSavedByUser: undefined,
+				id: recipeRow.id,
+				name: recipeRow.name,
+				description: recipeRow.description,
+				image: recipeRow.image,
+				visibility: recipeRow.visibility,
+				authorUsername,
+				mealTypes,
+				ingredients,
+				instructions: recipeRow.instructions || ''
+			};
+
+		} catch (error) {
+			console.error('Error in getRecipeById:', error);
+			return 'error';
+		}
+	}
+
 	private static normalizeVisibility(visibility: RecipeVisibility | string | undefined): RecipeVisibility {
 		return visibility === 'public' ? 'public' : 'private';
 	}
@@ -369,7 +466,8 @@ export class RecipesService extends ServiceBase {
 			mealTypes: recipe.mealTypes ? recipe.mealTypes.split(',').filter(Boolean) : [],
 			ingredients: recipe.ingredients ? JSON.parse(recipe.ingredients) : [],
 			isSavedByUser: !!recipe.isSavedByUser,
-			isOwnedByUser: !!recipe.isOwnedByUser
+			isOwnedByUser: !!recipe.isOwnedByUser,
+			instructions: recipe.instructions
 		}));
 	}
 
@@ -391,16 +489,20 @@ export class RecipesService extends ServiceBase {
 		return true;
 	}
 
-	public getIngredientsForRecipe(recipeId: number): { ingredientName: string; measurement: string; amount: number }[] {
+	public getIngredientsForRecipe(recipeId: number): {
+		ingredientName: string;
+		measurement: string;
+		amount: number
+	}[] {
 		const rows = this.unit.prepare<{
 			ingredient_name: string;
 			measurement: string;
 			amount: string;
 		}>(
 			`select ingredient_name, measurement, amount
-         from RecipeIngredient
-         where recipe_id = :recipeId
-         order by ingredient_name`,
+			 from RecipeIngredient
+			 where recipe_id = :recipeId
+			 order by ingredient_name`,
 			{ recipeId }
 		).all();
 

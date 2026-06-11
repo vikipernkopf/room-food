@@ -1,52 +1,45 @@
-<section>
-		<form class="join-room-container" [formGroup]="roomJoinForm" (ngSubmit)="onFormSubmit()" autocomplete="on">
-		<header>
-			<h4>Join a room</h4>
+<section class="join-room-container">
+	<form class="form-grid form-grid--single-column" [formGroup]="roomJoinForm" (ngSubmit)="onFormSubmit()"
+		autocomplete="on">
+		<header class="header-container">
+			<h2 class="header">Join a room</h2>
 		</header>
 
-		<div class="form-grid">
-			<div class="field-group field-group--full">
-				<label for="roomCode">Room Code</label>
-				<input
-					formControlName="roomCode"
-					id="roomCode"
-					type="text"
-					placeholder="e.g. HFAUJC"
-					autocomplete="off">
+		<div class="field-group field-group--full">
+			<label for="roomCode" class="field-label">Room Code</label>
+			<input class="input-field" formControlName="roomCode" id="roomCode" type="text" placeholder="e.g. HFAUJC"
+				autocomplete="off">
 
-				@if (roomJoinForm.get('roomCode'); as roomCodeControl) {
-					@if (roomCodeControl.touched && roomCodeControl.invalid) {
-						<aside>
-							@if (roomCodeControl.hasError('required')) {
-								<span>Room code is required</span>
-							}
-							@if (roomCodeControl.hasError('minlength')) {
-								<span>Room code must be at least 2 characters</span>
-							}
-						</aside>
-					}
+			@if (roomJoinForm.get('roomCode'); as roomCodeControl) {
+				@if (roomCodeControl.touched && roomCodeControl.invalid) {
+					<span class="field-error">
+						@if (roomCodeControl.hasError('required')) {
+							Room code is required
+						}
+						@if (roomCodeControl.hasError('minlength')) {
+							Room code must be at least 2 characters
+						}
+					</span>
 				}
-			</div>
-		</div>
-
-		<div
-			class="status-msg"
-			[class.status-msg--success]="isJoinRoomSuccess()"
-			[class.status-msg--error]="isJoinRoomError()">
-			<span>{{ joinRoomStatus() || ' ' }}</span>
-		</div>
-
-		<button type="submit" [disabled]="isLoading">
-			{{ isLoading ? 'Requesting to join room…' : 'Join room' }}
-		</button>
-
-		<nav>
-			@if (showCreateRoomLink) {
-				<a href="#" (click)="$event.preventDefault(); createRoomRequested.emit()">Create new room</a>
-			} @else {
-				<a [routerLink]="['/myrooms']">View my rooms</a>
 			}
-		</nav>
+		</div>
+
+		<div class="action-row">
+			<div class="status-msg" [class.success-text]="isJoinRoomSuccess()"
+				[class.error-text]="isJoinRoomError()">
+				<span>{{ joinRoomStatus() || ' ' }}</span>
+			</div>
+
+			<button type="submit" class="btn-primary" [disabled]="isLoading">
+				{{ isLoading ? 'Requesting to join room…' : 'Join room' }}
+			</button>
+
+			@if (showCreateRoomLink) {
+				<button type="button" class="btn-secondary" (click)="createRoomRequested.emit()">Create new room</button>
+			} @else {
+				<button type="button" class="btn-secondary" [routerLink]="['/myrooms']">View my rooms</button>
+			}
+		</div>
 
 		<hr>
 	</form>

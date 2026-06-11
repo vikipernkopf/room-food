@@ -2,13 +2,23 @@ import { Component, computed, effect, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../core/auth-service';
 import { RecipeService } from '../core/recipe-service';
-import { Recipe, RecipeCreatePayload, RecipeUpdatePayload } from '../../backend/model';
+import { Ingredient, Recipe, RecipeCreatePayload, RecipeUpdatePayload, RecipeVisibility } from '../../backend/model';
 import { DEFAULT_RECIPE_IMAGE } from '../core/user-form-validation';
-import { RecipeFormValue, RecipeManagement, RecipeMealType } from './recipe-management/recipe-management';
+import { IngredientsFrontendService } from '../core/ingredients-frontend-service';
+
+export type RecipeFormValue = {
+	name: string;
+	description?: string;
+	image?: string;
+	mealTypes: string[];
+	visibility: RecipeVisibility;
+	ingredients?: Ingredient[];
+	instructions: string;
+};
 
 @Component({
 	selector: 'app-recipes',
-	imports: [RecipeManagement],
+	imports: [],
 	templateUrl: './recipes.html',
 	styleUrl: './recipes.scss'
 })
@@ -16,6 +26,7 @@ export class Recipes {
 	protected readonly activePopup = signal<'create' | 'edit' | null>(null);
 	private readonly recipeService = inject(RecipeService);
 	private readonly authService = inject(AuthService);
+	private readonly ingredientService = inject(IngredientsFrontendService);
 	protected readonly currentUser = this.authService.currentUser;
 	protected readonly defaultRecipeImage = DEFAULT_RECIPE_IMAGE;
 	protected readonly recipes = signal<Recipe[]>([]);
@@ -27,8 +38,9 @@ export class Recipes {
 	protected readonly creating = signal(false);
 	protected readonly savingRecipeId = signal<number | null>(null);
 	protected readonly recipeToEdit = signal<Recipe | null>(null);
-	private readonly router = inject(Router); // Inject Router
-	protected readonly mealTypeOptions: RecipeMealType[] = [
+	private readonly router = inject(Router);
+
+	/*protected readonly mealTypeOptions: RecipeMealType[] = [
 		{
 			value: 'breakfast',
 			viewValue: 'Breakfast'
@@ -45,7 +57,7 @@ export class Recipes {
 			value: 'snack',
 			viewValue: 'Snack'
 		}
-	];
+	];*/
 
 	constructor() {
 		effect(() => {
@@ -65,16 +77,15 @@ export class Recipes {
 		this.recipeActionError.set('');
 	}
 
-	// Navigates to the create route instead of opening a popup
 	protected openCreateRecipe(): void {
 		this.router.navigate(['/recipes/create']);
 	}
 
+	// Redirects directly to the dedicated edit route structure
 	protected openEditRecipe(recipe: Recipe): void {
-		this.recipeToEdit.set(recipe);
-		this.activePopup.set('edit');
-		this.recipeSaveError.set('');
-		this.creating.set(false);
+		if (recipe?.id) {
+			this.router.navigate(['/recipes/edit', recipe.id]);
+		}
 	}
 
 	protected closePopup(): void {
@@ -101,7 +112,6 @@ export class Recipes {
 		const editRecipeId = this.recipeToEdit()?.id;
 		this.creating.set(true);
 
-		// Now includes the ingredients array in both paths
 		if (editRecipeId) {
 			const updatePayload: RecipeUpdatePayload = {
 				name: payload.name.trim(),
@@ -109,12 +119,16 @@ export class Recipes {
 				image: payload.image,
 				mealTypes: payload.mealTypes,
 				visibility: payload.visibility,
-				ingredients: payload.ingredients ?? [] // Forwarding the ingredients
+				ingredients: payload.ingredients ?? [],
+				instructions: payload.instructions
 			};
 
 			this.recipeService.updateRecipe(editRecipeId, updatePayload).subscribe({
-				next: () => this.handleSaveSuccess(username),
-				error: (err) => this.handleSaveError(err)
+				next: () => {
+					this.saveIngredientsToUserHistory(username, payload.ingredients ?? []);
+					this.handleSaveSuccess(username);
+				},
+				error: err => this.handleSaveError(err)
 			});
 		} else {
 			const createPayload: RecipeCreatePayload = {
@@ -124,17 +138,34 @@ export class Recipes {
 				image: payload.image,
 				mealTypes: payload.mealTypes,
 				visibility: payload.visibility,
-				ingredients: payload.ingredients ?? [] // Forwarding the ingredients
+				ingredients: payload.ingredients ?? [],
+				instructions: payload.instructions
 			};
 
 			this.recipeService.createRecipe(createPayload).subscribe({
-				next: () => this.handleSaveSuccess(username),
-				error: (err) => this.handleSaveError(err)
+				next: () => {
+					this.saveIngredientsToUserHistory(username, payload.ingredients ?? []);
+					this.handleSaveSuccess(username);
+				},
+				error: err => this.handleSaveError(err)
 			});
 		}
 	}
 
-	// Helper methods to keep the logic clean
+	private saveIngredientsToUserHistory(username: string, ingredients: {
+		name: string;
+		measurement: string;
+		amount: number
+	}[]): void {
+		for (const ing of ingredients) {
+			this.ingredientService.saveUserIngredient(username, ing).subscribe({
+				next: () => {
+				},
+				error: err => console.error('Failed to save ingredient to user history:', err)
+			});
+		}
+	}
+
 	private handleSaveSuccess(username: string): void {
 		this.creating.set(false);
 		this.closePopup();
@@ -282,10 +313,6 @@ export class Recipes {
 			sensitivity: 'base'
 		}));
 	}
-
-	/*protected getRecipeCardDescription(recipe: Recipe): string {
-		return recipe.description || 'No description provided.';
-	}*/
 
 	protected getRecipeImage(recipe: Recipe): string {
 		return recipe.image || this.defaultRecipeImage;

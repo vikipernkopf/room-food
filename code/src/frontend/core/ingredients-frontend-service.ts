@@ -72,5 +72,60 @@ export class IngredientsFrontendService {
 		const apiUrl = `${this.apiBase}/ingredients/${username}`;
 		return this.http.get<Ingredient[]>(apiUrl);
 	}
-}
 
+	// Room ingredients endpoints
+	public getIngredientsForRoom(roomCode: string): Observable<Ingredient[]> {
+		const apiUrl = `${this.apiBase}/room/${roomCode}/ingredients`;
+		return this.http.get<Ingredient[]>(apiUrl);
+	}
+
+	public addIngredientToRoom(roomCode: string, ingredient: Ingredient): Observable<{
+		roomCode: string,
+		ingredient: Ingredient,
+		added: boolean
+	}> {
+		const apiUrl = `${this.apiBase}/room/${roomCode}/ingredients`;
+		return this.http.post<{
+			roomCode: string,
+			ingredient: Ingredient,
+			added: boolean
+		}>(apiUrl, { ingredient });
+	}
+
+	public deleteIngredientFromRoom(roomCode: string, ingredientName: string, measurement: string): Observable<{ success: boolean }> {
+		const apiUrl = `${this.apiBase}/room/${roomCode}/ingredients/${encodeURIComponent(ingredientName)}/${encodeURIComponent(measurement)}`;
+		return this.http.delete<{ success: boolean }>(apiUrl);
+	}
+
+	public updateIngredientAmountInRoom(roomCode: string, ingredientName: string, measurement: string, amount: number): Observable<{ success: boolean }> {
+		const apiUrl = `${this.apiBase}/room/${roomCode}/ingredients/${encodeURIComponent(ingredientName)}/${encodeURIComponent(measurement)}`;
+		return this.http.put<{ success: boolean }>(apiUrl, { amount });
+	}
+
+	// ------------------------------------------------------------------
+	// User-specific ingredient history
+	// ------------------------------------------------------------------
+
+	public getUserIngredientsForPrefix(prefix: string, username: string): Observable<Ingredient[]> {
+		const apiUrl = `${this.apiBase}/ingredients/user/${encodeURIComponent(username)}/prefix/${encodeURIComponent(prefix)}`;
+		return this.http.get<Ingredient[]>(apiUrl);
+	}
+
+	public getAllUserIngredients(username: string): Observable<Ingredient[]> {
+		const apiUrl = `${this.apiBase}/ingredients/user/${encodeURIComponent(username)}/all`;
+		return this.http.get<Ingredient[]>(apiUrl);
+	}
+
+	public saveUserIngredient(username: string, ingredient: Ingredient): Observable<{
+		username: string,
+		ingredient: Ingredient,
+		saved: boolean
+	}> {
+		const apiUrl = `${this.apiBase}/ingredients/user/${encodeURIComponent(username)}`;
+		return this.http.post<{
+			username: string,
+			ingredient: Ingredient,
+			saved: boolean
+		}>(apiUrl, { ingredient });
+	}
+}

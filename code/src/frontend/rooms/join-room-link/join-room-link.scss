@@ -26,9 +26,20 @@
 	margin: 0 auto 1.5rem;
 	font-size: 28px;
 
-	&.loading { background: #FFF3E0; color: #E67E22; }
-	&.success { background: #E8F5E9; color: #2E7D32; }
-	&.error   { background: #FFEBEE; color: #e53e3e; }
+	&.loading {
+		background: #FFF3E0;
+		color: #E67E22;
+	}
+
+	&.success {
+		background: #E8F5E9;
+		color: #2E7D32;
+	}
+
+	&.error {
+		background: #FFEBEE;
+		color: #e53e3e;
+	}
 }
 
 .spinner {
@@ -41,7 +52,9 @@
 }
 
 @keyframes spin {
-	to { transform: rotate(360deg); }
+	to {
+		transform: rotate(360deg);
+	}
 }
 
 .title {
@@ -61,10 +74,21 @@
 .badge {
 	display: inline-block;
 	font-size: 12px;
-	padding: 4px 14px;
+	padding: 8px 14px;
 	border-radius: 8px;
 
-	&.loading { background: #FFF3E0; color: #C85A04; }
-	&.success { background: #E8F5E9; color: #2E7D32; }
-	&.error   { background: #FFEBEE; color: #c53030; }
+	&.loading {
+		background: #FFF3E0;
+		color: #C85A04;
+	}
+
+	&.success {
+		background: #E8F5E9;
+		color: #2E7D32;
+	}
+
+	&.error {
+		background: #FFEBEE;
+		color: #c53030;
+	}
 }

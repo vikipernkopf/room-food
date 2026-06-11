@@ -1,0 +1,137 @@
+@use "theme" as *;
+
+h2 {
+	color: $color-text-main;
+	margin-bottom: 1.5rem;
+}
+
+// Container for the list - single column (one ingredient per row)
+ul {
+	display: block;
+	padding: 0;
+	margin: 0;
+	list-style: none;
+}
+
+// The "Small Horizontal Panel"
+.ingredient {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 0;
+	margin-bottom: 12px;
+
+	// Background and Border
+	background-color: $color-lighter-gray;
+	border: 1px solid $color-light-gray;
+	border-left: 4px solid $color-green-3; // Using Green 3 for the accent
+	border-radius: 6px;
+
+	// Typography
+	color: $color-text-main;
+	font-size: 0.9rem;
+
+	// Shadow from neutral palette
+	box-shadow: 0 2px 4px $color-overlay-5;
+	transition: all 0.2s ease-in-out;
+
+	&:hover {
+		transform: translateY(-2px);
+		background-color: $color-white;
+		border-color: $color-green-2;
+		box-shadow: 0 4px 6px $color-overlay-10;
+	}
+
+	// Target text segments with
+	div {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		flex: 1;
+		padding: 10px 16px;
+		width: 100%;
+		box-sizing: border-box;
+
+		b, strong {
+			color: $color-green-4;
+			font-weight: 700;
+		}
+
+		span {
+			margin: 0 0.5rem;
+			color: $color-gray;
+		}
+	}
+
+	.delete-btn {
+		background-color: transparent;
+		border: none;
+		color: $color-red;
+		font-size: 1rem;
+		cursor: pointer;
+		padding: 0;
+		width: 1.5rem;
+		height: 1.5rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 0.25rem;
+		transition: all 0.2s ease-in-out;
+		margin-right: 0.75rem;
+
+		&:hover {
+			background-color: $color-red-overlay-8;
+			color: $color-red-dark;
+		}
+
+		&:active {
+			transform: scale(0.95);
+		}
+	}
+}
+
+// Loading and Empty states
+p {
+	color: $color-gray;
+	font-style: italic;
+	padding: 10px 16px;
+	background-color: $color-lighter-gray;
+	border-radius: 6px;
+}
+
+.header-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 1.5rem;
+	gap: 0.75rem;
+	flex-wrap: wrap;
+
+	h2 {
+		margin: 0;
+		color: $color-text-main;
+	}
+}
+
+.btn-shop {
+	background: $color-green-2;
+	color: $color-white;
+	border: none;
+	border-radius: 8px;
+	padding: 0.5rem 1.1rem;
+	font-size: 0.85rem;
+	font-weight: 600;
+	cursor: pointer;
+	font-family: inherit;
+	transition: background 0.15s, transform 0.15s;
+	white-space: nowrap;
+
+	&:hover {
+		background: $color-green-3;
+		transform: translateY(-1px);
+	}
+
+	&:active {
+		transform: none;
+	}
+}

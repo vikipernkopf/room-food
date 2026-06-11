@@ -1,7 +1,7 @@
 import {
 	ChangeDetectionStrategy,
 	ChangeDetectorRef,
-	Component,
+	Component, computed,
 	EventEmitter,
 	Input,
 	OnChanges,
@@ -173,6 +173,8 @@ export class MealManagement implements OnChanges {
 
 	protected get selectedRecipes(): Recipe[] {
 		const idSet = new Set(this.selectedRecipeIds);
+		this.availableRecipes.sort((a, b) => a.name.localeCompare(b.name));
+
 		return this.availableRecipes.filter(recipe => idSet.has(recipe.id));
 	}
 
@@ -270,6 +272,12 @@ export class MealManagement implements OnChanges {
 	}
 
 	// ----------------------- Eating people ------------------------------
+
+	// Filtered array excluding the current user to prevent duplicate listings
+	otherEatingPeopleArray = computed(() => {
+		const current = this.currentUser()?.username;
+		return this.eatingPeopleArray().filter(person => person !== current);
+	});
 
 	protected addCurrentUserToEating(): void {
 		const username = this.currentUser()?.username;
@@ -503,6 +511,8 @@ export class MealManagement implements OnChanges {
 	protected saveMeal(): void {
 		this.clearErrors();
 
+		//TODO
+
 		const user = this.authService.currentUser();
 		const currentUsername = user?.username;
 		const effectiveRoomCode = this.overviewMode ? this.selectedRoomCode : this.roomCode;
@@ -720,6 +730,7 @@ export class MealManagement implements OnChanges {
 		}
 
 		this.filteredRecipes = [...startsWith, ...contains];
+		this.filteredRecipes.sort((a, b) => a.name.localeCompare(b.name));
 	}
 
 	private loadRecipesForCurrentUser(): void {
@@ -736,6 +747,7 @@ export class MealManagement implements OnChanges {
 		this.recipeService.getRecipesByAuthorUsername(username).subscribe({
 			next: recipes => {
 				this.availableRecipes = recipes || [];
+				this.availableRecipes.sort((a, b) => a.name.localeCompare(b.name));
 				this.recipesLoadError = '';
 				this.applyRecipeFilter();
 
@@ -779,6 +791,7 @@ export class MealManagement implements OnChanges {
 		this.roomService.getMembersPerRoom(roomCode).subscribe({
 			next: members => {
 				this.availableRoomMembers = members.map(m => m.username) || [];
+				this.availableRoomMembers.sort((a, b) => a.localeCompare(b));
 				this.roomMembersLoadError = '';
 				this.requestViewUpdate();
 			},
@@ -927,6 +940,8 @@ export class MealManagement implements OnChanges {
 	}
 
 	protected cookedCheckBox(): void {
+		if(this.isCooked) return;
+
 		this.isCooked = !this.isCooked;
 		this.isCookedUpdateInProgress = true;
 		const mealId = this.mealToEdit?.id;

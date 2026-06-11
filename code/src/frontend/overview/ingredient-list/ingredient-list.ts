@@ -1,7 +1,16 @@
-import { Component, effect, OnInit, signal } from '@angular/core';
+import {
+	Component,
+	ChangeDetectionStrategy,
+	effect,
+	inject,
+	OnInit,
+	signal,
+	viewChild
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/auth-service';
 import { IngredientsFrontendService } from '../../core/ingredients-frontend-service';
+import { Shopping } from '../../shopping/shopping';
 
 interface Ingredient {
 	name: string;
@@ -11,53 +20,58 @@ interface Ingredient {
 
 @Component({
 	selector: 'app-ingredient-list',
-	imports: [
-		CommonModule
-	],
+	standalone: true,
+	imports: [CommonModule, Shopping],
 	templateUrl: './ingredient-list.html',
 	styleUrl: './ingredient-list.scss',
-	standalone: true
+	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class IngredientList implements OnInit {
-	ingredients = signal<Ingredient[]>([]);
-	loading = signal<boolean>(true);
+	readonly shoppingModal = viewChild(Shopping);
 
-	constructor(
-		private authService: AuthService,
-		private ingredientsFrontendService: IngredientsFrontendService
-	) {
-		// Reactively watch for the user to be "logged in" by the AuthService
+	readonly ingredients = signal<Ingredient[]>([]);
+	readonly loading = signal(true);
+	readonly username = signal('');
+
+	private readonly authService = inject(AuthService);
+	private readonly ingredientsFrontendService = inject(IngredientsFrontendService);
+
+	constructor() {
 		effect(() => {
 			const user = this.authService.currentUser();
-
 			if (user?.username) {
+				this.username.set(user.username);
 				this.loadIngredients(user.username);
 			} else if (user === null) {
-				// user === null explicitly means auth check finished and no user found
 				this.loading.set(false);
 			}
 		});
 	}
 
-	ngOnInit(): void {
-		// We no longer call loadIngredients here because the effect handles it
-	}
+	ngOnInit(): void {}
 
 	loadIngredients(username: string): void {
 		this.loading.set(true);
-		this.ingredientsFrontendService
-		.getIngredientsForUser(username)
-		.subscribe({
-			next: ingredients => {
-				console.log('Ingredients loaded:', ingredients);
-				this.ingredients.set(ingredients);
+		this.ingredientsFrontendService.getIngredientsForUser(username).subscribe({
+			next: ings => {
+				this.ingredients.set(ings);
 				this.loading.set(false);
 			},
-			error: err => {
-				console.error('Error loading ingredients:', err);
+			error: () => {
 				this.ingredients.set([]);
 				this.loading.set(false);
 			}
 		});
+	}
+
+	openShopping(): void {
+		this.shoppingModal()?.open(this.ingredients());
+	}
+
+	onSaved(): void {
+		const user = this.username();
+		if (user) {
+			this.loadIngredients(user);
+		}
 	}
 }

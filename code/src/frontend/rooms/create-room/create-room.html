@@ -1,65 +1,57 @@
-<section>
-	<form class="create-room-container" [formGroup]="roomCreationForm" (ngSubmit)="onFormSubmit()" autocomplete="off">
-		<div class="form-grid">
-			<div class="field-group field-group--full">
-				<label for="roomName">Room Name</label>
-				<input
-					formControlName="roomName"
-					id="roomName"
-					type="text"
-					placeholder="e.g. Apartment 3B"
-					autocomplete="off">
+<section class="create-room-container">
+	<form class="form-grid form-grid--single-column" [formGroup]="roomCreationForm" (ngSubmit)="onFormSubmit()"
+		autocomplete="off">
+		<div class="field-group field-group--full">
+			<label for="roomName" class="field-label">Room Name</label>
+			<input class="input-field" formControlName="roomName" id="roomName" type="text"
+				placeholder="e.g. Apartment 3B"
+				autocomplete="off">
 
-				@if (roomCreationForm.get('roomName'); as roomNameControl) {
-					@if (roomNameControl.touched && roomNameControl.invalid) {
-						<aside>
-							@if (roomNameControl.hasError('required')) {
-								<span>Room name is required</span>
-							}
-							@if (roomNameControl.hasError('minlength')) {
-								<span>Room name must be at least 2 characters</span>
-							}
-						</aside>
-					}
+			@if (roomCreationForm.get('roomName'); as roomNameControl) {
+				@if (roomNameControl.touched && roomNameControl.invalid) {
+					<span class="field-error">
+						@if (roomNameControl.hasError('required')) {
+							Room name is required
+						}
+						@if (roomNameControl.hasError('minlength')) {
+							Room name must be at least 2 characters
+						}
+					</span>
 				}
-			</div>
-
-			<div class="field-group field-group--full">
-				<label for="roomPictureUrl">Room Picture URL (optional)</label>
-				<input
-					formControlName="roomPictureUrl"
-					id="roomPictureUrl"
-					type="url"
-					placeholder="https://example.com/image.jpg"
-					autocomplete="off">
-
-				@if (roomCreationForm.get('roomPictureUrl'); as pictureControl) {
-					@if (pictureControl.touched && pictureControl.invalid) {
-						<aside>
-							@if (pictureControl.hasError('invalidUrl')) {
-								<span>Please enter a valid URL</span>
-							}
-						</aside>
-					}
-				}
-			</div>
-		</div>
-
-		<div class="error-msg">
-			<span>{{ createRoomError() }}</span>
-		</div>
-
-		<button type="submit" [disabled]="isLoading">
-			{{ isLoading ? 'Creating Room...' : 'Create Room' }}
-		</button>
-
-		<nav>
-			@if (showJoinExistingLink) {
-				<a href="#" (click)="$event.preventDefault(); joinExistingRequested.emit()">Join existing room</a>
-			} @else {
-				<a [routerLink]="['/myrooms']">View my rooms</a>
 			}
-		</nav>
+		</div>
+
+		<div class="field-group field-group--full">
+			<label for="roomPictureUrl" class="field-label">Room Picture URL (optional)</label>
+			<input class="input-field" formControlName="roomPictureUrl" id="roomPictureUrl" type="url"
+				placeholder="https://example.com/image.jpg" autocomplete="off">
+
+			@if (roomCreationForm.get('roomPictureUrl'); as pictureControl) {
+				@if (pictureControl.touched && pictureControl.invalid) {
+					<span class="field-error">
+						@if (pictureControl.hasError('invalidUrl')) {
+							Please enter a valid URL
+						}
+					</span>
+				}
+			}
+		</div>
+
+		<div class="action-row">
+			<div class="error-text">
+				<span>{{ createRoomError() }}</span>
+			</div>
+
+			<button type="submit" class="btn-primary" [disabled]="isLoading">
+				{{ isLoading ? 'Creating Room...' : 'Create Room' }}
+			</button>
+
+			@if (showJoinExistingLink) {
+				<button type="button" class="btn-secondary" (click)="joinExistingRequested.emit()">Join existing room</button>
+			} @else {
+				<button type="button" class="btn-secondary" [routerLink]="['/myrooms']">View my rooms</button>
+			}
+		</div>
 
 		<hr>
 	</form>

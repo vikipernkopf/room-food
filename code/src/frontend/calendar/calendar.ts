@@ -1,15 +1,25 @@
 // noinspection GrazieInspection
 
-import { Component, effect, inject, OnInit, signal, WritableSignal } from '@angular/core';
+import {
+	Component,
+	effect,
+	inject,
+	OnInit,
+	signal,
+	viewChild,
+	WritableSignal
+} from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { MealManagement } from '../meal-management/meal-management';
 import { MealService } from '../core/meal-service';
-import { Meal } from '../../backend/model';
+import {Ingredient, Meal} from '../../backend/model';
 import { AuthService } from '../core/auth-service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RoomService } from '../core/room-service';
 import { AvailableIngredients } from './available-ingredients/available-ingredients';
+import {firstValueFrom} from 'rxjs';
+import {IngredientsFrontendService} from '../core/ingredients-frontend-service';
 
 //noinspection JSIgnoredPromiseFromCall
 @Component({
@@ -50,6 +60,9 @@ export class Calendar implements OnInit {
 	protected readonly currentUser = this.authService.currentUser;
 	private hasRedirected = false;
 	private lastProcessedCode: string = ''; // track which code we've already processed
+
+	private availableIngredientsTab = viewChild(AvailableIngredients);
+	private ingredientsFrontendService: IngredientsFrontendService = inject(IngredientsFrontendService);
 
 	constructor(private route: ActivatedRoute, private router: Router,
 		private mealService: MealService, private roomService: RoomService) {
@@ -141,6 +154,9 @@ export class Calendar implements OnInit {
 			},
 			error: err => console.error('Error loading meals', err)
 		});
+
+		console.log(this.availableIngredientsTab);
+		this.availableIngredientsTab()?.updateIngredients();
 	}
 
 	renderWeek(): void {
@@ -267,7 +283,49 @@ export class Calendar implements OnInit {
 		return users.slice(0, 2).join(', ') + (users.length > 2 ? '...' : '');
 	}
 
-	onCookedUpdated(updatedMeal: Meal): void {
+	async getIngredientsNeededForMeal(meal:Meal): Promise<Ingredient[]>{
+		const recipeIds: number[] = [];
+		(meal.recipeIds || []).forEach(rid => recipeIds.push(rid));
+
+		//Possibly put all of this into a function to avoid code duplication, but this ISN'T AN AI INSTRUCTION!
+		// Fetch ingredients for all recipes in parallel
+		const promises = recipeIds.map(rid =>
+			firstValueFrom(
+				this.ingredientsFrontendService.getIngredientsForRecipe(rid)
+			)
+		);
+		const results = await Promise.all(promises);
+
+		// Flatten and normalize backend shape (some endpoints return ingredientName)
+		const allRaw = results.flat();
+		const all: Ingredient[] = allRaw.map((r: any) => ({
+			name: r.ingredientName ?? r.name ?? '',
+			measurement: r.measurement,
+			amount: Number(r.amount)
+		}));
+
+		// Aggregate by name + measurement
+		const map = new Map<string, Ingredient>();
+		all.forEach(ing => {
+			const key = `${ing.name}||${ing.measurement}`;
+			const existing = map.get(key);
+			if (existing) {
+				existing.amount = Number(existing.amount) + Number(ing.amount);
+			} else {
+				map.set(key, { ...ing });
+			}
+		});
+
+		const aggregated = Array.from(map.values()).map(i => ({
+			name: i.name,
+			measurement: i.measurement,
+			amount: i.amount
+		}));
+
+		return aggregated as Ingredient[];
+	}
+
+	async onCookedUpdated(updatedMeal: Meal): Promise<void> {
 		this.meals.update(meals =>
 			meals.map(m => m.id === updatedMeal.id ? { ...m, cooked: updatedMeal.cooked } : m)
 		);
@@ -278,5 +336,14 @@ export class Calendar implements OnInit {
 				cooked: updatedMeal.cooked
 			};
 		}
+
+		if(updatedMeal.cooked){
+			await this.availableIngredientsTab()?.removeIngredients(await this.getIngredientsNeededForMeal(updatedMeal));
+		}
+		else{
+			//this.availableIngredientsTab()?.addIngredients(await this.getIngredientsNeededForMeal(updatedMeal));
+		}
+
+		this.availableIngredientsTab()?.updateIngredients();
 	}
 }

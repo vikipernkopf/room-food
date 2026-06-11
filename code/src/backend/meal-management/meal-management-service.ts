@@ -488,7 +488,7 @@ export class MealManagementService extends ServiceBase {
 	// noinspection JSUnusedGlobalSymbols
 	public addRecipe(recipe: Recipe): number | 'author_not_found' | 'error' {
 		// recipe.author should be a user ID
-		if (!this.login.checkUserExistsId(recipe.author)) {
+		if (!this.login.checkUserExistsId(recipe.author ?? 0)) {
 			return 'author_not_found';
 		}
 
