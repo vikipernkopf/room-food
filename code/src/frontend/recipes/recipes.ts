@@ -282,16 +282,51 @@ export class Recipes {
 	}
 
 	private fetchUserRecipes(username: string): void {
+		// Reset loading state
+		this.recipes.set([]);
+		this.recipesLoadError.set('');
+
+		// Fetch authored recipes
 		this.recipeService.getRecipesByAuthorUsername(username).subscribe({
-			next: (recipes: Recipe[]) => {
-				this.recipes.set(this.sortRecipesByName(recipes || []));
-				this.recipesLoadError.set('');
+			next: (authoredRecipes: Recipe[]) => {
+				// Fetch saved recipes after authored load
+				this.recipeService.getSavedRecipesByUsername(username).subscribe({
+					next: (savedRecipes: Recipe[]) => {
+						// Merge both, authored first, then saved (deduplicated by id)
+						const merged = this.mergeAndDeduplicateRecipes(authoredRecipes, savedRecipes);
+						this.recipes.set(this.sortRecipesByName(merged));
+						this.recipesLoadError.set('');
+					},
+					error: () => {
+						// Still show authored recipes if saved fails
+						this.recipes.set(this.sortRecipesByName(authoredRecipes || []));
+						this.recipesLoadError.set('Failed to load saved recipes.');
+					}
+				});
 			},
 			error: () => {
 				this.recipes.set([]);
 				this.recipesLoadError.set('Failed to load your recipes.');
 			}
 		});
+	}
+
+	private mergeAndDeduplicateRecipes(authored: Recipe[], saved: Recipe[]): Recipe[] {
+		const map = new Map<number, Recipe>();
+
+		// Add authored first (they take precedence if duplicate)
+		for (const recipe of authored || []) {
+			map.set(recipe.id, recipe);
+		}
+
+		// Add saved only if not already present
+		for (const recipe of saved || []) {
+			if (!map.has(recipe.id)) {
+				map.set(recipe.id, recipe);
+			}
+		}
+
+		return Array.from(map.values());
 	}
 
 	private fetchPublicRecipes(searchTerm: string): void {

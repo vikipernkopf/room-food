@@ -11,6 +11,45 @@ export class RecipesService extends ServiceBase {
 		this.users = new LoginSignUpService(this.unit);
 	}
 
+	public async getSavedRecipesByUsername(username: string): Promise<Recipe[]> {
+	const userId = this.users.getUserIdByUsername(username);
+		if (userId === undefined) {
+		return [];
+	}
+
+	const recipes = this.unit.prepare<any>(`
+        select r.id,
+               r.name,
+               r.description,
+               r.image,
+               r.instructions,
+               r.visibility,
+               r.author,
+               u.username                                         as authorUsername,
+               coalesce(group_concat(distinct rmt.meal_type), '') as mealTypes,
+               (select json_group_array(json_object(
+                   'name', ingredient_name,
+                   'amount', amount,
+                   'measurement', measurement
+                                        )) as jga
+                from RecipeIngredient
+                where recipe_id = r.id)                           as ingredients,
+               1                                                  as isSavedByUser,
+               case when r.author = :userId then 1 else 0 end   as isOwnedByUser
+        from SavedRecipe sr
+                 join Recipe r on sr.recipe_id = r.id
+                 join User u on r.author = u.id
+                 left join RecipeMealType rmt on r.id = rmt.recipe_id
+        where sr.user_id = :userId
+        group by r.id, r.instructions
+    	`, {
+		userId
+		}
+	).all();
+
+	return RecipesService.mapRowsToRecipes(recipes);
+	}
+
 	public getRecipesByAuthorUsername(username: string): Recipe[] {
 		const viewerId = this.users.getUserIdByUsername(username);
 		if (viewerId === undefined) {

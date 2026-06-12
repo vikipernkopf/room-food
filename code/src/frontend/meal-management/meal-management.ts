@@ -748,19 +748,41 @@ export class MealManagement implements OnChanges {
 		}
 
 		this.recipeService.getRecipesByAuthorUsername(username).subscribe({
-			next: recipes => {
-				this.availableRecipes = recipes || [];
-				this.availableRecipes.sort((a, b) => a.name.localeCompare(b.name));
-				this.recipesLoadError = '';
-				this.applyRecipeFilter();
+			next: authoredRecipes => {
+				// Fetch saved recipes in parallel
+				this.recipeService.getSavedRecipesByUsername(username).subscribe({
+					next: savedRecipes => {
+						// Merge authored and saved, deduplicate by id
+						const merged = this.mergeAndDeduplicateRecipes(authoredRecipes || [], savedRecipes || []);
+						this.availableRecipes = merged;
+						this.availableRecipes.sort((a, b) => a.name.localeCompare(b.name));
+						this.recipesLoadError = '';
+						this.applyRecipeFilter();
 
-				if (this.selectedRecipeIds.length > 0) {
-					const validIds = new Set(this.availableRecipes.map(r => r.id));
-					this.selectedRecipeIds = this.selectedRecipeIds.filter(id => validIds.has(id));
-					this.loadIngredientsForSelectedRecipes(); // ADD THIS LINE
-				}
+						if (this.selectedRecipeIds.length > 0) {
+							const validIds = new Set(this.availableRecipes.map(r => r.id));
+							this.selectedRecipeIds = this.selectedRecipeIds.filter(id => validIds.has(id));
+							this.loadIngredientsForSelectedRecipes();
+						}
 
-				this.requestViewUpdate();
+						this.requestViewUpdate();
+					},
+					error: () => {
+						// Fallback: show only authored recipes if saved fails
+						this.availableRecipes = authoredRecipes || [];
+						this.availableRecipes.sort((a, b) => a.name.localeCompare(b.name));
+						this.recipesLoadError = '';
+						this.applyRecipeFilter();
+
+						if (this.selectedRecipeIds.length > 0) {
+							const validIds = new Set(this.availableRecipes.map(r => r.id));
+							this.selectedRecipeIds = this.selectedRecipeIds.filter(id => validIds.has(id));
+							this.loadIngredientsForSelectedRecipes();
+						}
+
+						this.requestViewUpdate();
+					}
+				});
 			},
 			error: () => {
 				this.availableRecipes = [];
@@ -770,6 +792,24 @@ export class MealManagement implements OnChanges {
 				this.requestViewUpdate();
 			}
 		});
+	}
+
+	private mergeAndDeduplicateRecipes(authored: Recipe[], saved: Recipe[]): Recipe[] {
+		const map = new Map<number, Recipe>();
+
+		// Add authored first (they take precedence if duplicate)
+		for (const recipe of authored) {
+			map.set(recipe.id, recipe);
+		}
+
+		// Add saved only if not already present
+		for (const recipe of saved) {
+			if (!map.has(recipe.id)) {
+				map.set(recipe.id, recipe);
+			}
+		}
+
+		return Array.from(map.values());
 	}
 
 	private loadRoomMembers(): void {

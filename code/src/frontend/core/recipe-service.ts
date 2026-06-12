@@ -30,6 +30,11 @@ export class RecipeService {
 	constructor(private http: HttpClient) {
 	}
 
+	public getSavedRecipesByUsername(username: string): Observable<Recipe[]> {
+		const apiUrl = `${this.apiBase}/recipes/saved/${username}`;
+		return this.http.get<Recipe[]>(apiUrl);
+	}
+
 	public getRecipesByAuthorUsername(username: string): Observable<Recipe[]> {
 		const apiUrl = `${this.apiBase}/recipes/author/${username}`;
 		return this.http.get<Recipe[]>(apiUrl);
