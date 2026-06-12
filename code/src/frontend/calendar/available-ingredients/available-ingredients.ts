@@ -16,7 +16,7 @@ import { IngredientsFrontendService } from '../../core/ingredients-frontend-serv
 import { MealService } from '../../core/meal-service';
 import { Shopping } from '../../shopping/shopping';
 import { SearchIngredient } from '../../search-ingredient/search-ingredient';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, forkJoin } from 'rxjs';
 
 interface Ingredient {
 	name: string;
@@ -43,17 +43,20 @@ export class AvailableIngredients implements OnInit {
 	readonly roomCode = input<string>('');
 	readonly shoppingModal = viewChild(Shopping);
 
-	// Needed ingredients (aggregated from meals)
+	// Needed ingredients (aggregated from meals, minus available, bought, and personal bought)
 	readonly neededIngredients = signal<Ingredient[]>([]);
 	// Available ingredients (from room stock)
 	readonly availableIngredients = signal<Ingredient[]>([]);
+	// Bought ingredients (from BoughtIngredient table - room-level)
+	readonly boughtIngredients = signal<Ingredient[]>([]);
+	// Personal bought ingredients (from PersonalBoughtIngredient table - user-level)
+	readonly personalBoughtIngredients = signal<Ingredient[]>([]);
 	readonly loading = signal(true);
 
 	// Add ingredient form signals
 	readonly newIngredientName = signal('');
 	readonly newIngredientMeasurement = signal('');
 	readonly newIngredientAmount = signal(0);
-	//readonly showAddForm = signal(false);
 	readonly ingredientError: WritableSignal<string> = signal('');
 
 	private readonly authService = inject(AuthService);
@@ -77,15 +80,42 @@ export class AvailableIngredients implements OnInit {
 
 	loadIngredients(): void {
 		const code = this.roomCode();
-		if (!code) {
+		const username = this.authService.currentUser()?.username;
+		if (!code || !username) {
 			this.loading.set(false);
 			return;
 		}
 		this.loading.set(true);
 		this.neededIngredients.set([]);
 		this.availableIngredients.set([]);
+		this.boughtIngredients.set([]);
+		this.personalBoughtIngredients.set([]);
 
-		// Load needed ingredients from meals
+		// Load room stock, bought, and personal bought in parallel
+		forkJoin({
+			roomIngredients: this.ingredientsFrontendService.getIngredientsForRoom(code),
+			boughtIngredients: this.ingredientsFrontendService.getBoughtIngredientsForRoom(code),
+			personalBought: this.ingredientsFrontendService.getPersonalBoughtIngredients(username)
+		}).subscribe({
+			next: ({ roomIngredients, boughtIngredients, personalBought }) => {
+				this.availableIngredients.set(roomIngredients || []);
+				this.boughtIngredients.set(boughtIngredients || []);
+				this.personalBoughtIngredients.set(personalBought || []);
+
+				// Now load and compute needed ingredients
+				this.computeNeededIngredients(code);
+			},
+			error: err => {
+				console.error('Error loading room/bought ingredients:', err);
+				this.availableIngredients.set([]);
+				this.boughtIngredients.set([]);
+				this.personalBoughtIngredients.set([]);
+				this.computeNeededIngredients(code);
+			}
+		});
+	}
+
+	private computeNeededIngredients(code: string): void {
 		this.mealService.getMealsByRoomCode(code).subscribe({
 			next: async meals => {
 				try {
@@ -102,11 +132,14 @@ export class AvailableIngredients implements OnInit {
 						}
 						(m.recipeIds || []).forEach(rid => recipeIds.push(rid));
 					});
+
 					const results = await Promise.all(
 						recipeIds.map(
 							rid => firstValueFrom(this.ingredientsFrontendService.getIngredientsForRecipe(rid)))
 					);
-					const map = new Map<string, Ingredient>();
+
+					// Aggregate needed ingredients
+					const neededMap = new Map<string, Ingredient>();
 					results.flat().forEach((r: unknown) => {
 						const raw = r as RecipeIngredient;
 						const ing: Ingredient = {
@@ -115,34 +148,61 @@ export class AvailableIngredients implements OnInit {
 							amount: Number(raw.amount)
 						};
 						const key = ing.name + '||' + ing.measurement;
-						const existing = map.get(key);
+						const existing = neededMap.get(key);
 						if (existing) {
 							existing.amount += ing.amount;
 						} else {
-							map.set(key, { ...ing });
+							neededMap.set(key, { ...ing });
 						}
 					});
-					this.neededIngredients.set(Array.from(map.values()));
+
+					// Subtract available room stock
+					for (const available of this.availableIngredients()) {
+						const key = available.name + '||' + available.measurement;
+						const needed = neededMap.get(key);
+						if (needed) {
+							needed.amount -= Number(available.amount);
+							if (needed.amount <= 0) {
+								neededMap.delete(key);
+							}
+						}
+					}
+
+					// Subtract room-level bought ingredients
+					for (const bought of this.boughtIngredients()) {
+						const key = bought.name + '||' + bought.measurement;
+						const needed = neededMap.get(key);
+						if (needed) {
+							needed.amount -= Number(bought.amount);
+							if (needed.amount <= 0) {
+								neededMap.delete(key);
+							}
+						}
+					}
+
+					// Subtract user-level personal bought ingredients
+					for (const personal of this.personalBoughtIngredients()) {
+						const key = personal.name + '||' + personal.measurement;
+						const needed = neededMap.get(key);
+						if (needed) {
+							needed.amount -= Number(personal.amount);
+							if (needed.amount <= 0) {
+								neededMap.delete(key);
+							}
+						}
+					}
+
+					this.neededIngredients.set(Array.from(neededMap.values()));
+					this.loading.set(false);
 				} catch (e) {
 					console.error(e);
 					this.neededIngredients.set([]);
+					this.loading.set(false);
 				}
 			},
 			error: err => {
 				console.error('Error loading needed ingredients:', err);
 				this.neededIngredients.set([]);
-			}
-		});
-
-		// Load available ingredients from room
-		this.ingredientsFrontendService.getIngredientsForRoom(code).subscribe({
-			next: ingredients => {
-				this.availableIngredients.set(ingredients || []);
-				this.loading.set(false);
-			},
-			error: err => {
-				console.error('Error loading available ingredients:', err);
-				this.availableIngredients.set([]);
 				this.loading.set(false);
 			}
 		});
@@ -161,14 +221,6 @@ export class AvailableIngredients implements OnInit {
 	updateIngredients(): void {
 		this.loadIngredients();
 	}
-
-	// Add ingredient form
-	/*toggleAddForm(): void {
-	 this.showAddForm.update(v => !v);
-	 if (this.showAddForm()) {
-	 this.resetForm();
-	 }
-	 }*/
 
 	resetForm(): void {
 		this.newIngredientName.set('');
@@ -234,24 +286,20 @@ export class AvailableIngredients implements OnInit {
 
 	deleteIngredient(ingredientName: string, measurement: string): void {
 		this.ingredientsFrontendService.deleteIngredientFromRoom(this.roomCode(), ingredientName, measurement)
-		.subscribe({
-			next: () => this.loadIngredients(),
-			error: err => {
-				console.error('Error deleting ingredient:', err);
-				this.ingredientError.set('Failed to delete ingredient');
-			}
-		});
+			.subscribe({
+				next: () => this.loadIngredients(),
+				error: err => {
+					console.error('Error deleting ingredient:', err);
+					this.ingredientError.set('Failed to delete ingredient');
+				}
+			});
 	}
 
 	public async removeIngredients(ingredients: Ingredient[]): Promise<void> {
-		//console.log(`REMOVING ${ingredients}`);
 		for (const i of ingredients) {
 			const existing = this.availableIngredients().find(i2 => i2.name === i.name);
-			//console.log(i);
 			if (existing) {
-				//console.log(`exists ${existing}`);
 				existing.amount -= i.amount;
-				//console.log(`exists am ${existing.amount}`);
 				await firstValueFrom(
 					this.ingredientsFrontendService.deleteIngredientFromRoom(this.roomCode(), existing.name,
 						existing.measurement)

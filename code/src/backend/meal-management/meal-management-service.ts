@@ -27,11 +27,21 @@ export class MealManagementService extends ServiceBase {
 	 * "recipe not exists" is for future sprints
 	 */
 	public addMeal(meal: Meal): number | 'room_not_found' | 'recipe_not_found' | 'error' {
+		console.log('=== addMeal called ===');
+		console.log('Meal object:', JSON.stringify({
+			name: meal.name,
+			room: meal.room,
+			responsible: meal.responsible,
+			recipeIds: meal.recipeIds
+		}));
+
 		if (!this.checkRoomExists(meal.room)) {
 			return 'room_not_found';
 		}
 
 		const recipeIds = this.normalizeRecipeIds(meal.recipeIds);
+		console.log('After normalizeRecipeIds:', JSON.stringify(recipeIds));
+
 		if (!this.checkRecipesExist(recipeIds)) {
 			return 'recipe_not_found';
 		}
@@ -58,11 +68,15 @@ export class MealManagementService extends ServiceBase {
 			})
 		);
 
+		console.log('Meal inserted with id:', id, 'success:', success);
+
 		if (!success) {
 			return 'error';
 		}
 
+		console.log('About to call replaceMealRecipes with id:', id, 'recipeIds:', JSON.stringify(recipeIds));
 		if (!this.replaceMealRecipes(id, recipeIds)) {
+			console.error('replaceMealRecipes failed!');
 			return 'error';
 		}
 
@@ -75,13 +89,14 @@ export class MealManagementService extends ServiceBase {
 			return 'error';
 		}
 
-		// Persist ingredient assignments if provided
-		if (meal.ingredientAssignments && Object.keys(meal.ingredientAssignments).length > 0) {
+		// Persist ingredient assignments if provided (empty object will clear assignments)
+		if (meal.ingredientAssignments !== undefined) {
 			if (!this.setMealIngredientAssignments(id, meal.ingredientAssignments)) {
 				return 'error';
 			}
 		}
 
+		console.log('=== addMeal completed successfully, returning id:', id);
 		return id;
 	}
 
@@ -166,15 +181,18 @@ export class MealManagementService extends ServiceBase {
 			return 'error';
 		}
 
+		// Update MealRecipe table
 		if (!this.replaceMealRecipes(mealId, recipeIds)) {
 			return 'error';
 		}
 
+		// Update MealResponsibleUser table
 		if (!this.replaceMealResponsibleUsers(mealId, updatedMeal.responsibleUsers)) {
 			return 'error';
 		}
 
-		if (!this.replaceMealResponsibleUsers(mealId, updatedMeal.responsibleUsers)) {
+		// Update MealEatingUser table
+		if (!this.replaceEatingUsers(mealId, updatedMeal.eatingUsernames ?? [])) {
 			return 'error';
 		}
 
@@ -415,11 +433,15 @@ export class MealManagementService extends ServiceBase {
 
 	private normalizeRecipeIds(recipeIds?: number[]): number[] {
 		if (!Array.isArray(recipeIds) || recipeIds.length === 0) {
+			console.log('normalizeRecipeIds: recipeIds is not an array or empty:', recipeIds);
 			return [];
 		}
 
+		console.log('normalizeRecipeIds: input recipeIds:', JSON.stringify(recipeIds));
 		const validIds = recipeIds.filter(recipeId => Number.isInteger(recipeId) && recipeId > 0);
-		return Array.from(new Set(validIds));
+		const result = Array.from(new Set(validIds));
+		console.log('normalizeRecipeIds: output:', JSON.stringify(result));
+		return result;
 	}
 
 	private checkRecipesExist(recipeIds: number[]): boolean {
@@ -434,6 +456,8 @@ export class MealManagementService extends ServiceBase {
 
 	private replaceMealRecipes(mealId: number, recipeIds: number[]): boolean {
 		try {
+			console.log(`replaceMealRecipes: mealId=${mealId}, recipeIds=${JSON.stringify(recipeIds)}`);
+
 			this.unit.prepare(
 				`delete
 				 from MealRecipe
@@ -442,6 +466,7 @@ export class MealManagementService extends ServiceBase {
 			).run();
 
 			for (const recipeId of recipeIds) {
+				console.log(`  Inserting recipe ${recipeId} for meal ${mealId}`);
 				const result = this.unit.prepare(
 					`insert into MealRecipe(meal_id, recipe_id)
 					 values (:mealId, :recipeId)`,
@@ -452,12 +477,15 @@ export class MealManagementService extends ServiceBase {
 				).run();
 
 				if (result.changes !== 1) {
+					console.error(`  Failed to insert recipe ${recipeId}: changes=${result.changes}`);
 					return false;
 				}
 			}
 
+			console.log(`  Successfully inserted ${recipeIds.length} recipes for meal ${mealId}`);
 			return true;
-		} catch (_error) {
+		} catch (error) {
+			console.error(`Error in replaceMealRecipes for mealId=${mealId}:`, error);
 			return false;
 		}
 	}
@@ -995,7 +1023,7 @@ export class MealManagementService extends ServiceBase {
 				);
 
 				for (const username of normalized) {
-					+this.unit.prepare(
+					this.unit.prepare(
 						`insert into MealIngredientAssignment(meal_id, ingredient_name, assigned_to_username)
 						 values (:mealId, :ingredientName, :username)`,
 						{
