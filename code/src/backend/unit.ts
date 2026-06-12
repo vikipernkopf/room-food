@@ -66,8 +66,259 @@ class DB {
 		});
 
 		db.pragma('foreign_keys = ON');
-		DB.ensureTablesCreated(db);
+		// Use the migration-less table creation during development / debugging so
+		// existing migration logic remains in the file but is not executed.
+		// This ensures the schema is created directly and deterministically.
+		DB.ensureTablesCreatedWithoutMigration(db);
 		return db;
+	}
+
+	// Create all tables directly without executing migration transformations.
+	// The original migration-aware method `ensureTablesCreated` is left intact
+	// (unused) so you can re-enable migrations later if desired.
+	private static ensureTablesCreatedWithoutMigration(connection: BetterSqlite3.Database): void {
+		console.log('Ensuring database tables (no migrations) and creating schema...');
+
+		connection.exec(
+			`create table if not exists Room
+			(
+				code            text not null,
+				name            text not null,
+				profile_picture text,
+
+				constraint pk_code primary key (code)
+				) strict`
+		);
+
+		connection.exec(
+			`create table if not exists User
+			(
+				id              integer primary key autoincrement,
+				username        text not null,
+				password        text not null,
+				email           text,
+				first_name      text,
+				last_name       text,
+				bio             text,
+				dob             text,
+				profile_picture text,
+
+				constraint uq_user unique (username),
+				constraint uq_user_email unique (email)
+
+				) strict`
+		);
+
+		connection.exec(
+			`create table if not exists RoomUserMember
+			(
+				username  text not null,
+				room_code text not null,
+				role      text not null,
+
+				constraint pk_room_member primary key (username, room_code),
+				constraint fk_username foreign key (username) references User (username) ON DELETE CASCADE,
+				constraint fk_room_code foreign key (room_code) references Room (code) ON DELETE CASCADE
+
+				) strict`
+		);
+
+		connection.exec(
+			`create table if not exists RoomUserRequest
+			(
+				username  text not null,
+				room_code text not null,
+
+				constraint pk_room_member primary key (username, room_code),
+				constraint fk_username foreign key (username) references User (username) ON DELETE CASCADE,
+				constraint fk_room_code foreign key (room_code) references Room (code) ON DELETE CASCADE
+
+				) strict`
+		);
+
+		connection.exec(
+			`create table if not exists Recipe
+			(
+				id          integer primary key autoincrement,
+				name        text not null,
+				description text,
+				image       text,
+				visibility  text not null default 'private'
+					constraint ck_recipe_visibility check (visibility in ('public', 'private')),
+				author      integer not null,
+				instructions text not null default '',
+
+				constraint fk_author foreign key (author) REFERENCES User (id) ON DELETE CASCADE
+				) strict`
+		);
+
+		connection.exec(
+			`create table if not exists RecipeMealType
+			(
+				recipe_id integer not null,
+				meal_type text    not null,
+
+				constraint pk_recipe_meal_type primary key (recipe_id, meal_type),
+				constraint fk_recipe_id foreign key (recipe_id) references Recipe (id) ON DELETE CASCADE
+				) strict`
+		);
+
+		connection.exec(
+			`create table if not exists SavedRecipe
+			(
+				user_id   integer not null,
+				recipe_id integer not null,
+
+				constraint pk_saved_recipe primary key (user_id, recipe_id),
+				constraint fk_saved_recipe_user_id foreign key (user_id) references User (id) ON DELETE CASCADE,
+				constraint fk_saved_recipe_recipe_id foreign key (recipe_id) references Recipe (id) ON DELETE CASCADE
+				) strict`
+		);
+
+		connection.exec(
+			`create table if not exists MealRecipe
+			(
+				meal_id   integer not null,
+				recipe_id integer not null,
+
+				constraint pk_meal_recipe primary key (meal_id, recipe_id),
+				constraint fk_meal_id foreign key (meal_id) references Meal (id) ON DELETE CASCADE,
+				constraint fk_recipe_id foreign key (recipe_id) references Recipe (id) ON DELETE CASCADE
+				) strict`
+		);
+
+		connection.exec(
+			`create table if not exists Meal
+			(
+				id          integer primary key autoincrement,
+				time        text not null,
+				endTime	 text not null,
+				name        text,
+				mealType    text not null default 'breakfast-0',
+				responsible text,
+				roomCode    text not null,
+				constraint fk_responsible foreign key (responsible) REFERENCES User (username) ON DELETE CASCADE
+
+				) strict`
+		);
+
+		connection.exec(
+			`create table if not exists MealResponsibleUser
+			(
+				meal_id  integer not null,
+				username text    not null,
+
+				constraint pk_meal_responsible_user primary key (meal_id, username),
+				constraint fk_meal_id foreign key (meal_id) references Meal (id) ON DELETE CASCADE,
+				constraint fk_username foreign key (username) references User (username) ON DELETE CASCADE
+				) strict`
+		);
+
+		connection.exec(
+			`create table if not exists Ingredient
+			(
+				id              integer primary key autoincrement,
+				name	         text not null,
+				default_measurement text,
+				user text,
+
+				constraint uq_name unique (name)
+
+				) strict`
+		);
+
+		connection.exec(
+			`create table if not exists RecipeIngredient
+			(
+				recipe_id		 integer not null,
+				ingredient_name text not null,
+				measurement text not null,
+				amount text not null,
+
+				constraint fk_recipe foreign key (recipe_id) references Recipe(id) ON DELETE CASCADE
+
+				) strict`
+		);
+
+		connection.exec(
+			`create table if not exists RoomIngredient
+			(
+				room_code		 text not null,
+				ingredient_name text not null,
+				measurement text not null,
+				amount text not null,
+
+				constraint pk_room_ingredient primary key (room_code, ingredient_name, measurement),
+				constraint fk_room_code foreign key (room_code) references Room(code) ON DELETE CASCADE
+
+				) strict`
+		);
+
+		connection.exec(
+			`create table if not exists UserIngredient
+			 (
+				 username        text not null,
+				 ingredient_name text not null,
+				 measurement     text not null,
+				 amount          text not null,
+				 used_at         text not null default (datetime('now')),
+
+				 constraint pk_user_ingredient primary key (username, ingredient_name, measurement),
+				 constraint fk_user_ingredient_user foreign key (username) references User(username) ON DELETE CASCADE
+			 ) strict`
+		);
+
+		connection.exec(`
+			CREATE TABLE IF NOT EXISTS BoughtIngredient (
+				room_code          TEXT NOT NULL,
+				ingredient_name    TEXT NOT NULL,
+				measurement        TEXT NOT NULL,
+				amount             TEXT NOT NULL,
+				bought_by_username TEXT NOT NULL,
+				bought_at          TEXT NOT NULL,
+				CONSTRAINT pk_bought_ingredient PRIMARY KEY (room_code, ingredient_name, measurement),
+				CONSTRAINT fk_bought_room FOREIGN KEY (room_code) REFERENCES Room(code) ON DELETE CASCADE
+			) STRICT
+		`);
+
+		connection.exec(`
+			CREATE TABLE IF NOT EXISTS PersonalBoughtIngredient (
+				username        TEXT NOT NULL,
+				ingredient_name TEXT NOT NULL,
+				measurement     TEXT NOT NULL,
+				amount          TEXT NOT NULL,
+				bought_at       TEXT NOT NULL,
+				CONSTRAINT pk_personal_bought PRIMARY KEY (username, ingredient_name, measurement),
+				CONSTRAINT fk_personal_bought_user FOREIGN KEY (username) REFERENCES User(username) ON DELETE CASCADE
+			) STRICT
+		`);
+
+		connection.exec(
+			`create table if not exists MealEatingUser
+			(
+				meal_id integer not null,
+				user_id integer not null,
+
+				constraint pk_meal_eating_user primary key (meal_id, user_id),
+				constraint fk_meal_id foreign key (meal_id) references Meal (id) ON DELETE CASCADE,
+				constraint fk_username foreign key (user_id) references User (id) ON DELETE CASCADE
+			)
+		`);
+
+		connection.exec(
+			`create table if not exists MealIngredientAssignment
+			(
+				meal_id integer not null,
+				ingredient_name text not null,
+				assigned_to_username text not null,
+
+				constraint pk_meal_ingredient_assignment primary key (meal_id, ingredient_name, assigned_to_username),
+				constraint fk_meal_id foreign key (meal_id) references Meal (id) ON DELETE CASCADE,
+				constraint fk_username foreign key (assigned_to_username) references User (username) ON DELETE CASCADE
+				) strict`
+		);
+
+		console.log('Schema creation (no migrations) completed');
 	}
 
 	public static beginTransaction(connection: BetterSqlite3.Database): void {
@@ -275,15 +526,18 @@ class DB {
 			 ) strict`
 		);
 
-		DB.migrateMealTableToIncludeEndTime(connection);
-		DB.migrateMealTableToIncludeCooked(connection);
-		DB.migrateRecipeAndMealTables(connection);
-		DB.migrateIngredientsAndEating(connection);
-		DB.migrateMealIngredientAssignment(connection);
-		DB.migrateUserIngredientTable(connection);
-		DB.migrateShoppingTables(connection);
-		DB.migrateAmountToReal(connection);
-		DB.migrateAddInstructionsToRecipe(connection);
+		// Migrations are intentionally disabled while developing with the
+		// migration-less schema creation method. Keep the migration calls
+		// here (commented out) so they can be re-enabled later if needed.
+		// DB.migrateMealTableToIncludeEndTime(connection);
+		// DB.migrateMealTableToIncludeCooked(connection);
+		// DB.migrateRecipeAndMealTables(connection);
+		// DB.migrateIngredientsAndEating(connection);
+		// DB.migrateMealIngredientAssignment(connection);
+		// DB.migrateUserIngredientTable(connection);
+		// DB.migrateShoppingTables(connection);
+		// DB.migrateAmountToReal(connection);
+		// DB.migrateAddInstructionsToRecipe(connection);
 	}
 
 	private static migrateUserIngredientTable(connection: BetterSqlite3.Database): void {
@@ -900,6 +1154,7 @@ class DB {
 
 		// 5. Promote the staged schema definition to the official active designation
 		connection.exec(`ALTER TABLE Recipe_new RENAME TO Recipe;`);
+		console.log('✓ Recipe instructions migration completed');
 	}
 
 	private static getLegacyRecipeAuthorExpr(
