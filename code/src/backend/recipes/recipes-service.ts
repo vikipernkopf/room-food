@@ -11,6 +11,45 @@ export class RecipesService extends ServiceBase {
 		this.users = new LoginSignUpService(this.unit);
 	}
 
+	public async getSavedRecipesByUsername(username: string): Promise<Recipe[]> {
+	const userId = this.users.getUserIdByUsername(username);
+		if (userId === undefined) {
+		return [];
+	}
+
+	const recipes = this.unit.prepare<any>(`
+        select r.id,
+               r.name,
+               r.description,
+               r.image,
+               r.instructions,
+               r.visibility,
+               r.author,
+               u.username                                         as authorUsername,
+               coalesce(group_concat(distinct rmt.meal_type), '') as mealTypes,
+               (select json_group_array(json_object(
+                   'name', ingredient_name,
+                   'amount', amount,
+                   'measurement', measurement
+                                        )) as jga
+                from RecipeIngredient
+                where recipe_id = r.id)                           as ingredients,
+               1                                                  as isSavedByUser,
+               case when r.author = :userId then 1 else 0 end   as isOwnedByUser
+        from SavedRecipe sr
+                 join Recipe r on sr.recipe_id = r.id
+                 join User u on r.author = u.id
+                 left join RecipeMealType rmt on r.id = rmt.recipe_id
+        where sr.user_id = :userId
+        group by r.id, r.instructions
+    	`, {
+		userId
+		}
+	).all();
+
+	return RecipesService.mapRowsToRecipes(recipes);
+	}
+
 	public getRecipesByAuthorUsername(username: string): Recipe[] {
 		const viewerId = this.users.getUserIdByUsername(username);
 		if (viewerId === undefined) {
@@ -176,6 +215,8 @@ export class RecipesService extends ServiceBase {
 			return 'error';
 		}
 
+		console.log('createRecipe: author=', payload.authorUsername, 'name=', payload.name, 'mealTypes=', payload.mealTypes?.join(','));
+
 		const result = this.unit.prepare<unknown, {
 			name: string;
 			description: string | null;
@@ -198,6 +239,8 @@ export class RecipesService extends ServiceBase {
 
 		const recipeId = result.lastInsertRowid as number;
 
+		console.log('createRecipe: inserted recipe id=', recipeId);
+
 		if (this.linkMealTypes(recipeId, payload.mealTypes) === 'error') {
 			return 'error';
 		}
@@ -218,15 +261,19 @@ export class RecipesService extends ServiceBase {
 					mealType
 				}
 			).run();
-			if (!linked) {
+			if (linked.changes !== 1) {
+				console.error('linkMealTypes: failed to insert RecipeMealType for mealType=', mealType, 'changes=', linked.changes);
 				return 'error';
 			}
 		}
+
 		return true;
 	}
 
 	private saveIngredients(recipeId: number, ingredients: Ingredient[]): 'error' | true {
+		console.log('saveIngredients: recipeId=', recipeId, 'ingredientsCount=', ingredients?.length ?? 0);
 		for (const ing of ingredients) {
+			console.log('saveIngredients: inserting ingredient', ing.name, 'amount=', ing.amount, 'measurement=', ing.measurement);
 			this.unit.prepare(
 				`insert or ignore into Ingredient (name)
 				 values (:name)`,
@@ -243,9 +290,11 @@ export class RecipesService extends ServiceBase {
 					measurement: ing.measurement
 				}
 			).run();
-			if (!linked) {
+			if (linked.changes !== 1) {
+				console.error('saveIngredients: failed to insert RecipeIngredient for', ing.name, 'changes=', linked.changes);
 				return 'error';
 			}
+			console.log('saveIngredients: inserted RecipeIngredient for', ing.name);
 		}
 		return true;
 	}
@@ -255,6 +304,8 @@ export class RecipesService extends ServiceBase {
 		if (authorId === undefined) {
 			return 'author_not_found';
 		}
+
+		console.log('addRecipe: author=', recipe.authorUsername, 'name=', recipe.name, 'mealTypes=', (recipe.mealTypes||[]).join(','));
 
 		const mealTypes = Array.from(
 			new Set((recipe.mealTypes ?? []).map(mealType => mealType.trim()).filter(Boolean))
@@ -311,6 +362,7 @@ export class RecipesService extends ServiceBase {
 			}
 		}
 
+		console.log('addRecipe: created recipe id=', id);
 		return id;
 	}
 
@@ -326,6 +378,8 @@ export class RecipesService extends ServiceBase {
 		if (!this.checkRecipeExists(recipeId)) {
 			return 'not_found';
 		}
+
+		console.log('updateRecipe: recipeId=', recipeId, 'name=', recipe.name, 'mealTypes=', (recipe.mealTypes||[]).join(','));
 
 		const mealTypes = Array.from(
 			new Set((recipe.mealTypes ?? []).map(mealType => mealType.trim()).filter(Boolean))
@@ -374,6 +428,21 @@ export class RecipesService extends ServiceBase {
 			}
 		}
 
+		// Persist ingredients for the recipe: remove old ingredient rows and save the new set
+		console.log('updateRecipe: deleting old RecipeIngredient rows for recipeId=', recipeId);
+		try {
+			this.unit.prepare(`delete from RecipeIngredient where recipe_id = :id`, { id: recipeId }).run();
+		} catch (err) {
+			console.error('Failed to delete existing RecipeIngredient rows for recipe:', recipeId, err);
+			return 'error';
+		}
+
+		console.log('updateRecipe: saving new ingredients for recipeId=', recipeId);
+		if (this.saveIngredients(recipeId, recipe.ingredients) === 'error') {
+			return 'error';
+		}
+
+		console.log('updateRecipe: completed successfully for recipeId=', recipeId);
 		return true;
 	}
 

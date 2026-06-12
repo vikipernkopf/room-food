@@ -101,6 +101,8 @@ export class MealService {
 			endTime: meal.endTime instanceof Date ? meal.endTime.toISOString() : meal.endTime,
 			cooked: meal.cooked ?? false
 		};
+		console.log('postMeal payload:', JSON.stringify(payload));
+		console.log('postMeal recipeIds:', payload.recipeIds);
 		return this.http.post<Meal>(apiUrl, payload);
 	}
 

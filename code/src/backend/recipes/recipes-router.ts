@@ -22,6 +22,29 @@ recipesRouter.get('/recipes/raw', async (_req, res): Promise<void> => {
 	}
 });
 
+recipesRouter.get('/recipes/saved/:username', async (req, res): Promise<void> => {
+	const { username } = req.params;
+
+	if (!username) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Username is required' });
+		return;
+	}
+
+	const unit = new Unit(true);
+
+	try {
+		const recipesService = new RecipesService(unit);
+		const savedRecipes = await recipesService.getSavedRecipesByUsername(username);
+
+		unit.complete();
+		res.status(StatusCodes.OK).json(savedRecipes || []);
+	} catch (error) {
+		unit.complete();
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to fetch saved recipes' });
+		console.error('Error fetching saved recipes for user:', username, error);
+	}
+});
+
 recipesRouter.get('/recipes/author/:username', async (req, res): Promise<void> => {
 	const { username } = req.params;
 

@@ -370,6 +370,9 @@ export class MealManagement implements OnChanges {
 			this.recipeService.getIngredientsForRecipe(id)
 		);
 
+		// Debug: log which recipe IDs we are fetching ingredients for
+		console.log('loadIngredientsForSelectedRecipes: fetching ingredients for recipeIds:', this.selectedRecipeIds);
+
 		// Fire all requests and merge results
 		// When the same ingredient appears in multiple recipes, sum the amounts
 		let completed = 0;
@@ -379,9 +382,11 @@ export class MealManagement implements OnChanges {
 			amount: number
 		}>();
 
-		calls.forEach(call =>
+		calls.forEach((call, idx) =>
 			call.subscribe({
 				next: ingredients => {
+					// Debug: log results per recipe
+					console.log(`loadIngredientsForSelectedRecipes: fetched ${ingredients.length} ingredients for recipe ${this.selectedRecipeIds[idx]}`, ingredients);
 					for (const ing of ingredients) {
 						// Create unique key combining ingredient name and measurement
 						// This allows ingredients with different measurements to be separate
@@ -510,8 +515,6 @@ export class MealManagement implements OnChanges {
 
 	protected saveMeal(): void {
 		this.clearErrors();
-
-		//TODO
 
 		const user = this.authService.currentUser();
 		const currentUsername = user?.username;
@@ -745,19 +748,41 @@ export class MealManagement implements OnChanges {
 		}
 
 		this.recipeService.getRecipesByAuthorUsername(username).subscribe({
-			next: recipes => {
-				this.availableRecipes = recipes || [];
-				this.availableRecipes.sort((a, b) => a.name.localeCompare(b.name));
-				this.recipesLoadError = '';
-				this.applyRecipeFilter();
+			next: authoredRecipes => {
+				// Fetch saved recipes in parallel
+				this.recipeService.getSavedRecipesByUsername(username).subscribe({
+					next: savedRecipes => {
+						// Merge authored and saved, deduplicate by id
+						const merged = this.mergeAndDeduplicateRecipes(authoredRecipes || [], savedRecipes || []);
+						this.availableRecipes = merged;
+						this.availableRecipes.sort((a, b) => a.name.localeCompare(b.name));
+						this.recipesLoadError = '';
+						this.applyRecipeFilter();
 
-				if (this.selectedRecipeIds.length > 0) {
-					const validIds = new Set(this.availableRecipes.map(r => r.id));
-					this.selectedRecipeIds = this.selectedRecipeIds.filter(id => validIds.has(id));
-					this.loadIngredientsForSelectedRecipes(); // ADD THIS LINE
-				}
+						if (this.selectedRecipeIds.length > 0) {
+							const validIds = new Set(this.availableRecipes.map(r => r.id));
+							this.selectedRecipeIds = this.selectedRecipeIds.filter(id => validIds.has(id));
+							this.loadIngredientsForSelectedRecipes();
+						}
 
-				this.requestViewUpdate();
+						this.requestViewUpdate();
+					},
+					error: () => {
+						// Fallback: show only authored recipes if saved fails
+						this.availableRecipes = authoredRecipes || [];
+						this.availableRecipes.sort((a, b) => a.name.localeCompare(b.name));
+						this.recipesLoadError = '';
+						this.applyRecipeFilter();
+
+						if (this.selectedRecipeIds.length > 0) {
+							const validIds = new Set(this.availableRecipes.map(r => r.id));
+							this.selectedRecipeIds = this.selectedRecipeIds.filter(id => validIds.has(id));
+							this.loadIngredientsForSelectedRecipes();
+						}
+
+						this.requestViewUpdate();
+					}
+				});
 			},
 			error: () => {
 				this.availableRecipes = [];
@@ -767,6 +792,24 @@ export class MealManagement implements OnChanges {
 				this.requestViewUpdate();
 			}
 		});
+	}
+
+	private mergeAndDeduplicateRecipes(authored: Recipe[], saved: Recipe[]): Recipe[] {
+		const map = new Map<number, Recipe>();
+
+		// Add authored first (they take precedence if duplicate)
+		for (const recipe of authored) {
+			map.set(recipe.id, recipe);
+		}
+
+		// Add saved only if not already present
+		for (const recipe of saved) {
+			if (!map.has(recipe.id)) {
+				map.set(recipe.id, recipe);
+			}
+		}
+
+		return Array.from(map.values());
 	}
 
 	private loadRoomMembers(): void {

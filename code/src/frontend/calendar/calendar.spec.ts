@@ -25,7 +25,9 @@ describe('Calendar', () => {
 		} as any;
 		const ingredientsFrontendService = {
 			getIngredientsForRoom: vi.fn().mockReturnValue(of([])),
-			getIngredientsForRecipe: vi.fn().mockReturnValue(of([]))
+			getIngredientsForRecipe: vi.fn().mockReturnValue(of([])),
+			getBoughtIngredientsForRoom: vi.fn().mockReturnValue(of([])),
+			getPersonalBoughtIngredients: vi.fn().mockReturnValue(of([]))
 		} as any;
 		const mealService = {
 			getMealsByRoomCode: vi.fn().mockReturnValue(of([
@@ -67,7 +69,7 @@ describe('Calendar', () => {
 				}
 			]
 		})
-		.compileComponents();
+			.compileComponents();
 
 		let fixture: ComponentFixture<Calendar> = TestBed.createComponent(Calendar);
 		component = fixture.componentInstance;

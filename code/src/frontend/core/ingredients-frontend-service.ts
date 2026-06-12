@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import {map, Observable} from 'rxjs';
 import { environment } from '../../environments/environment';
 import { Ingredient } from '../../backend/model';
 
@@ -19,6 +19,38 @@ export class IngredientsFrontendService {
 	private apiBase = getApiBase();
 
 	constructor(private http: HttpClient) {
+	}
+
+	public getBoughtIngredientsForRoom(roomCode: string): Observable<Ingredient[]> {
+		const apiUrl = `${this.apiBase}/shopping/room/${encodeURIComponent(roomCode)}`;
+		return this.http.get<Ingredient[]>(apiUrl).pipe(
+			map((bought: any[]) => bought.map(b => ({
+				name: b.ingredientName,
+				measurement: b.measurement,
+				amount: Number(b.amount)
+			})))
+		);
+	}
+
+	public getAllRoomIngredientsForUser(username: string): Observable<Ingredient[]> {
+		const apiUrl = `${this.apiBase}/ingredients/user/${encodeURIComponent(username)}/rooms`;
+		return this.http.get<Ingredient[]>(apiUrl);
+	}
+
+	public getBoughtIngredientsForUserRooms(username: string): Observable<Ingredient[]> {
+		const apiUrl = `${this.apiBase}/ingredients/user/${encodeURIComponent(username)}/bought`;
+		return this.http.get<Ingredient[]>(apiUrl);
+	}
+
+	public getPersonalBoughtIngredients(username: string): Observable<Ingredient[]> {
+		const apiUrl = `${this.apiBase}/shopping/personal/${encodeURIComponent(username)}`;
+		return this.http.get<Ingredient[]>(apiUrl).pipe(
+			map((bought: any[]) => bought.map(b => ({
+				name: b.ingredientName,
+				measurement: b.measurement,
+				amount: Number(b.amount)
+			})))
+		);
 	}
 
 	public getIngredientsForPrefix(prefix: string, username: string): Observable<Ingredient[]> {
