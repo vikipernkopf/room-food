@@ -11,6 +11,7 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/auth-service';
 import { IngredientsFrontendService } from '../../core/ingredients-frontend-service';
 import { Shopping } from '../../shopping/shopping';
+import { forkJoin } from 'rxjs';
 
 interface Ingredient {
 	name: string;
@@ -29,6 +30,7 @@ interface Ingredient {
 export class IngredientList implements OnInit {
 	readonly shoppingModal = viewChild(Shopping);
 
+	// Ingredients from MealIngredientAssignment minus bought/personal bought
 	readonly ingredients = signal<Ingredient[]>([]);
 	readonly loading = signal(true);
 	readonly username = signal('');
@@ -52,9 +54,53 @@ export class IngredientList implements OnInit {
 
 	loadIngredients(username: string): void {
 		this.loading.set(true);
-		this.ingredientsFrontendService.getIngredientsForUser(username).subscribe({
-			next: ings => {
-				this.ingredients.set(ings);
+		this.ingredients.set([]);
+
+		// Load assigned ingredients and subtract bought in parallel
+		forkJoin({
+			assigned: this.ingredientsFrontendService.getIngredientsForUser(username),
+			bought: this.ingredientsFrontendService.getBoughtIngredientsForUserRooms(username),
+			personalBought: this.ingredientsFrontendService.getPersonalBoughtIngredients(username)
+		}).subscribe({
+			next: ({ assigned, bought, personalBought }) => {
+				const neededMap = new Map<string, Ingredient>();
+
+				// Start with assigned ingredients from MealIngredientAssignment
+				(assigned || []).forEach((ing: Ingredient) => {
+					const key = ing.name + '||' + ing.measurement;
+					const existing = neededMap.get(key);
+					if (existing) {
+						existing.amount += Number(ing.amount);
+					} else {
+						neededMap.set(key, { ...ing, amount: Number(ing.amount) });
+					}
+				});
+
+				// Subtract room-level bought
+				(bought || []).forEach((b: Ingredient) => {
+					const key = b.name + '||' + b.measurement;
+					const needed = neededMap.get(key);
+					if (needed) {
+						needed.amount -= Number(b.amount);
+						if (needed.amount <= 0) {
+							neededMap.delete(key);
+						}
+					}
+				});
+
+				// Subtract personal bought
+				(personalBought || []).forEach((p: Ingredient) => {
+					const key = p.name + '||' + p.measurement;
+					const needed = neededMap.get(key);
+					if (needed) {
+						needed.amount -= Number(p.amount);
+						if (needed.amount <= 0) {
+							neededMap.delete(key);
+						}
+					}
+				});
+
+				this.ingredients.set(Array.from(neededMap.values()));
 				this.loading.set(false);
 			},
 			error: () => {

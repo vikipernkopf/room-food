@@ -15,6 +15,40 @@ export class IngredientsService extends ServiceBase {
 		this.roomsService = new RoomsService(this.unit);
 	}
 
+	public getBoughtIngredientsForRoom(roomCode: string): Ingredient[] {
+		return this.unit.prepare(`
+        select ingredient_name as name, measurement, cast(amount as real) as amount
+        from BoughtIngredient
+        where room_code = :roomCode
+    `, { roomCode }).all() as unknown as Ingredient[];
+	}
+
+	public getAllRoomIngredientsForUser(username: string): Ingredient[] {
+		return this.unit.prepare(`
+		select ri.ingredient_name as name, ri.measurement, cast(ri.amount as real) as amount
+		from RoomIngredient ri
+		join RoomUserMember rum on ri.room_code = rum.room_code
+		where rum.username = :username
+	`, { username }).all() as unknown as Ingredient[];
+	}
+
+	public getBoughtIngredientsForUserRooms(username: string): Ingredient[] {
+		return this.unit.prepare(`
+		select bi.ingredient_name as name, bi.measurement, cast(bi.amount as real) as amount
+		from BoughtIngredient bi
+		join RoomUserMember rum on bi.room_code = rum.room_code
+		where rum.username = :username
+	`, { username }).all() as unknown as Ingredient[];
+	}
+
+	public getPersonalBoughtIngredients(username: string): Ingredient[] {
+		return this.unit.prepare(`
+        select ingredient_name as name, measurement, cast(amount as real) as amount
+        from PersonalBoughtIngredient
+        where username = :username
+    `, { username }).all() as unknown as Ingredient[];
+	}
+
 	public getIngredientsForPrefix(prefix: string, user: string): Ingredient[] {
 		return this.unit.prepare(`
 			select i.name, i.default_measurement as measurement, 0 as amount

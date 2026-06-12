@@ -70,6 +70,101 @@ ingredientsRouter.post('/ingredients', async (req, res): Promise<void> => {
 	}
 });
 
+ingredientsRouter.get('/ingredients/user/:username/rooms', async (req, res): Promise<void> => {
+	const { username } = req.params;
+	if (!username) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Username is required' });
+		return;
+	}
+	const unit = new Unit(true);
+	try {
+		const ingredientsService = new IngredientsService(unit);
+		const ingredients = ingredientsService.getAllRoomIngredientsForUser(username);
+		unit.complete();
+		res.status(StatusCodes.OK).json(ingredients || []);
+	} catch (error) {
+		unit.complete();
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to fetch room ingredients' });
+	}
+});
+
+ingredientsRouter.get('/ingredients/user/:username/bought', async (req, res): Promise<void> => {
+	const { username } = req.params;
+	if (!username) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Username is required' });
+		return;
+	}
+	const unit = new Unit(true);
+	try {
+		const ingredientsService = new IngredientsService(unit);
+		const ingredients = ingredientsService.getBoughtIngredientsForUserRooms(username);
+		unit.complete();
+		res.status(StatusCodes.OK).json(ingredients || []);
+	} catch (error) {
+		unit.complete();
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to fetch bought ingredients' });
+	}
+});
+
+ingredientsRouter.get('/room/:roomCode/bought-ingredients', async (req, res): Promise<void> => {
+	const { roomCode } = req.params;
+	if (!roomCode) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Room code is required' });
+		return;
+	}
+	const unit = new Unit(true);
+	try {
+		const ingredientsService = new IngredientsService(unit);
+		const ingredients = ingredientsService.getBoughtIngredientsForRoom(roomCode);
+		unit.complete();
+		res.status(StatusCodes.OK).json(ingredients || []);
+	} catch (error) {
+		unit.complete();
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to fetch bought ingredients' });
+	}
+});
+
+ingredientsRouter.get('/user/:username/bought-ingredients', async (req, res): Promise<void> => {
+	const { username } = req.params;
+	if (!username) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Username is required' });
+		return;
+	}
+	const unit = new Unit(true);
+	try {
+		const ingredientsService = new IngredientsService(unit);
+		const ingredients = ingredientsService.getPersonalBoughtIngredients(username);
+		unit.complete();
+		res.status(StatusCodes.OK).json(ingredients || []);
+	} catch (error) {
+		unit.complete();
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to fetch personal bought ingredients' });
+	}
+});
+
+ingredientsRouter.get('/room/:roomCode/bought-ingredients', async (req, res): Promise<void> => {
+	const { roomCode } = req.params;
+
+	if (!roomCode) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Room code is required' });
+		return;
+	}
+
+	const unit = new Unit(true);
+
+	try {
+		const ingredientsService = new IngredientsService(unit);
+		const ingredients = ingredientsService.getBoughtIngredientsForRoom(roomCode);
+
+		unit.complete();
+		res.status(StatusCodes.OK).json(ingredients || []);
+	} catch (error) {
+		unit.complete();
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to fetch bought ingredients' });
+		console.error('Error fetching bought ingredients:', error);
+	}
+});
+
 ingredientsRouter.post('/recipes/:recipeId/ingredients', async (req, res): Promise<void> => {
 	const recipeId = Number(req.params.recipeId);
 	const username = String((req.body as { username?: string })?.username ?? '').trim();
