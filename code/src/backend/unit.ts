@@ -66,10 +66,9 @@ class DB {
 		});
 
 		db.pragma('foreign_keys = ON');
-		// Use the migration-less table creation during development / debugging so
-		// existing migration logic remains in the file but is not executed.
-		// This ensures the schema is created directly and deterministically.
+
 		DB.ensureTablesCreatedWithoutMigration(db);
+
 		return db;
 	}
 

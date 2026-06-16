@@ -76,7 +76,7 @@ export class SignUp {
 				: model.dob;
 
 			const payload: SignUpCredentials = {
-				username: model.username,
+				username: model.username.toLowerCase(),
 				password: model.password,
 				email: model.email,
 				firstName: model.firstName,
