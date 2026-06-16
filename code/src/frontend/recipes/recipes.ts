@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '../core/auth-service';
 import { RecipeService } from '../core/recipe-service';
 import { Ingredient, Recipe, RecipeCreatePayload, RecipeUpdatePayload, RecipeVisibility } from '../../backend/model';
-import { DEFAULT_RECIPE_IMAGE } from '../core/user-form-validation';
+import { DEFAULT_RECIPE_IMAGE } from '../core/default-images';
 import { IngredientsFrontendService } from '../core/ingredients-frontend-service';
 
 export type RecipeFormValue = {
