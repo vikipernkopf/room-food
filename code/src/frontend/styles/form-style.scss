@@ -471,6 +471,11 @@ textarea.input-field {
 	text-align: left;
 }
 
+.field-message-container {
+	display: flex;
+	flex-direction: column;
+}
+
 // ---------------------------------------------------------
 // 6. MATERIAL DEEP OVERRIDES (CDK & ANGULAR MATERIAL)
 // ---------------------------------------------------------

@@ -10,7 +10,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../core/auth-service';
 import { RecipeService } from '../../core/recipe-service';
 import { Ingredient, RecipeCreatePayload, RecipeVisibility } from '../../../backend/model';
-import { DEFAULT_RECIPE_IMAGE } from '../../core/user-form-validation';
+import { DEFAULT_RECIPE_IMAGE } from '../../core/default-images';
 import { SearchIngredient } from '../../search-ingredient/search-ingredient';
 import { IngredientsFrontendService } from '../../core/ingredients-frontend-service';
 import { firstValueFrom } from 'rxjs';
