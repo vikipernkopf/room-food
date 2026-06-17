@@ -67,7 +67,7 @@ class DB {
 
 		db.pragma('foreign_keys = ON');
 
-		DB.ensureTablesCreatedWithoutMigration(db);
+		DB.ensureTablesCreated(db);
 
 		return db;
 	}
@@ -77,6 +77,251 @@ class DB {
 	// (unused) so you can re-enable migrations later if desired.
 	private static ensureTablesCreatedWithoutMigration(connection: BetterSqlite3.Database): void {
 		console.log('Ensuring database tables (no migrations) and creating schema...');
+
+		connection.exec(
+			`create table if not exists Room
+			(
+				code            text not null,
+				name            text not null,
+				profile_picture text,
+
+				constraint pk_code primary key (code)
+				) strict`
+		);
+
+		connection.exec(
+			`create table if not exists User
+			(
+				id              integer primary key autoincrement,
+				username        text not null,
+				password        text not null,
+				email           text,
+				first_name      text,
+				last_name       text,
+				bio             text,
+				dob             text,
+				profile_picture text,
+
+				constraint uq_user unique (username),
+				constraint uq_user_email unique (email)
+
+				) strict`
+		);
+
+		connection.exec(
+			`create table if not exists RoomUserMember
+			(
+				username  text not null,
+				room_code text not null,
+				role      text not null,
+
+				constraint pk_room_member primary key (username, room_code),
+				constraint fk_username foreign key (username) references User (username) ON DELETE CASCADE,
+				constraint fk_room_code foreign key (room_code) references Room (code) ON DELETE CASCADE
+
+				) strict`
+		);
+
+		connection.exec(
+			`create table if not exists RoomUserRequest
+			(
+				username  text not null,
+				room_code text not null,
+
+				constraint pk_room_member primary key (username, room_code),
+				constraint fk_username foreign key (username) references User (username) ON DELETE CASCADE,
+				constraint fk_room_code foreign key (room_code) references Room (code) ON DELETE CASCADE
+
+				) strict`
+		);
+
+		connection.exec(
+			`create table if not exists Recipe
+			(
+				id          integer primary key autoincrement,
+				name        text not null,
+				description text,
+				image       text,
+				visibility  text not null default 'private'
+					constraint ck_recipe_visibility check (visibility in ('public', 'private')),
+				author      integer not null,
+				instructions text not null default '',
+
+				constraint fk_author foreign key (author) REFERENCES User (id) ON DELETE CASCADE
+				) strict`
+		);
+
+		connection.exec(
+			`create table if not exists RecipeMealType
+			(
+				recipe_id integer not null,
+				meal_type text    not null,
+
+				constraint pk_recipe_meal_type primary key (recipe_id, meal_type),
+				constraint fk_recipe_id foreign key (recipe_id) references Recipe (id) ON DELETE CASCADE
+				) strict`
+		);
+
+		connection.exec(
+			`create table if not exists SavedRecipe
+			(
+				user_id   integer not null,
+				recipe_id integer not null,
+
+				constraint pk_saved_recipe primary key (user_id, recipe_id),
+				constraint fk_saved_recipe_user_id foreign key (user_id) references User (id) ON DELETE CASCADE,
+				constraint fk_saved_recipe_recipe_id foreign key (recipe_id) references Recipe (id) ON DELETE CASCADE
+				) strict`
+		);
+
+		connection.exec(
+			`create table if not exists MealRecipe
+			(
+				meal_id   integer not null,
+				recipe_id integer not null,
+
+				constraint pk_meal_recipe primary key (meal_id, recipe_id),
+				constraint fk_meal_id foreign key (meal_id) references Meal (id) ON DELETE CASCADE,
+				constraint fk_recipe_id foreign key (recipe_id) references Recipe (id) ON DELETE CASCADE
+				) strict`
+		);
+
+		connection.exec(
+			`create table if not exists Meal
+			(
+				id          integer primary key autoincrement,
+				time        text not null,
+				endTime	 text not null,
+				name        text,
+				mealType    text not null default 'breakfast-0',
+				responsible text,
+				roomCode    text not null,
+				constraint fk_responsible foreign key (responsible) REFERENCES User (username) ON DELETE CASCADE
+
+				) strict`
+		);
+
+		connection.exec(
+			`create table if not exists MealResponsibleUser
+			(
+				meal_id  integer not null,
+				username text    not null,
+
+				constraint pk_meal_responsible_user primary key (meal_id, username),
+				constraint fk_meal_id foreign key (meal_id) references Meal (id) ON DELETE CASCADE,
+				constraint fk_username foreign key (username) references User (username) ON DELETE CASCADE
+				) strict`
+		);
+
+		connection.exec(
+			`create table if not exists Ingredient
+			(
+				id              integer primary key autoincrement,
+				name	         text not null,
+				default_measurement text,
+				user text,
+
+				constraint uq_name unique (name)
+
+				) strict`
+		);
+
+		connection.exec(
+			`create table if not exists RecipeIngredient
+			(
+				recipe_id		 integer not null,
+				ingredient_name text not null,
+				measurement text not null,
+				amount text not null,
+
+				constraint fk_recipe foreign key (recipe_id) references Recipe(id) ON DELETE CASCADE
+
+				) strict`
+		);
+
+		connection.exec(
+			`create table if not exists RoomIngredient
+			(
+				room_code		 text not null,
+				ingredient_name text not null,
+				measurement text not null,
+				amount text not null,
+
+				constraint pk_room_ingredient primary key (room_code, ingredient_name, measurement),
+				constraint fk_room_code foreign key (room_code) references Room(code) ON DELETE CASCADE
+
+				) strict`
+		);
+
+		connection.exec(`
+			CREATE TABLE IF NOT EXISTS BoughtIngredient (
+				room_code          TEXT NOT NULL,
+				ingredient_name    TEXT NOT NULL,
+				measurement        TEXT NOT NULL,
+				amount             TEXT NOT NULL,
+				bought_by_username TEXT NOT NULL,
+				bought_at          TEXT NOT NULL,
+				CONSTRAINT pk_bought_ingredient PRIMARY KEY (room_code, ingredient_name, measurement),
+				CONSTRAINT fk_bought_room FOREIGN KEY (room_code) REFERENCES Room(code) ON DELETE CASCADE
+			) STRICT
+		`);
+
+		connection.exec(
+			`create table if not exists MealEatingUser
+			(
+				meal_id integer not null,
+				user_id integer not null,
+
+				constraint pk_meal_eating_user primary key (meal_id, user_id),
+				constraint fk_meal_id foreign key (meal_id) references Meal (id) ON DELETE CASCADE,
+				constraint fk_username foreign key (user_id) references User (id) ON DELETE CASCADE
+			)
+		`);
+
+		connection.exec(
+			`create table if not exists MealIngredientAssignment
+			(
+				meal_id integer not null,
+				ingredient_name text not null,
+				assigned_to_username text not null,
+
+				constraint pk_meal_ingredient_assignment primary key (meal_id, ingredient_name, assigned_to_username),
+				constraint fk_meal_id foreign key (meal_id) references Meal (id) ON DELETE CASCADE,
+				constraint fk_username foreign key (assigned_to_username) references User (username) ON DELETE CASCADE
+				) strict`
+		);
+
+		console.log('Schema creation (no migrations) completed');
+	}
+
+	public static beginTransaction(connection: BetterSqlite3.Database): void {
+		connection.exec('begin transaction;');
+	}
+
+	public static commitTransaction(connection: BetterSqlite3.Database): void {
+		connection.exec('commit;');
+	}
+
+	public static rollbackTransaction(connection: BetterSqlite3.Database): void {
+		connection.exec('rollback;');
+	}
+
+	private static logStatement(statement: string | unknown): void {
+		if (typeof statement !== 'string') {
+			return;
+		}
+
+		const start = statement.slice(0, 6).trim().toLowerCase();
+
+		if (start.startsWith('pragma') || start.startsWith('create')) {
+			return;
+		}
+
+		console.log(`SQL: ${statement}`);
+	}
+
+	private static ensureTablesCreated(connection: BetterSqlite3.Database): void {
+		console.log('Ensuring database tables with migrations and creating schema...');
 
 		connection.exec(
 			`create table if not exists Room
@@ -317,762 +562,32 @@ class DB {
 				) strict`
 		);
 
-		console.log('Schema creation (no migrations) completed');
+		this.migrateIngredientsTables(connection);
+
+		console.log('Schema creation with migrations completed');
 	}
 
-	public static beginTransaction(connection: BetterSqlite3.Database): void {
-		connection.exec('begin transaction;');
-	}
+	private static migrateIngredientsTables(connection: BetterSqlite3.Database): void {
+		console.log('Running ingredient table migrations...');
 
-	public static commitTransaction(connection: BetterSqlite3.Database): void {
-		connection.exec('commit;');
-	}
+		connection.exec('PRAGMA foreign_keys = OFF');
 
-	public static rollbackTransaction(connection: BetterSqlite3.Database): void {
-		connection.exec('rollback;');
-	}
-
-	private static logStatement(statement: string | unknown): void {
-		if (typeof statement !== 'string') {
-			return;
-		}
-
-		const start = statement.slice(0, 6).trim().toLowerCase();
-
-		if (start.startsWith('pragma') || start.startsWith('create')) {
-			return;
-		}
-
-		console.log(`SQL: ${statement}`);
-	}
-
-	private static ensureTablesCreated(connection: BetterSqlite3.Database): void {
-		console.log('Ensuring database tables and running migrations...');
-		connection.exec(
-			`create table if not exists Room
-			(
-				code            text not null,
-				name            text not null,
-				profile_picture text,
-
-				constraint pk_code primary key (code)
-				) strict`
-		);
-		DB.migrateRoomTableToProfilePicture(connection);
-		connection.exec(
-			`create table if not exists User
-			(
-				id              integer primary key autoincrement,
-				username        text not null,
-				password        text not null,
-				email           text,
-				first_name      text,
-				last_name       text,
-				bio             text,
-				dob             text,
-				profile_picture text,
-
-				constraint uq_user unique (username),
-				constraint uq_user_email unique (email)
-
-				) strict`
-		);
-		connection.exec(
-			`create table if not exists RoomUserMember
-			(
-				username  text not null,
-				room_code text not null,
-				role      text not null,
-
-				constraint pk_room_member primary key (username, room_code),
-				constraint fk_username foreign key (username) references User (username) ON DELETE CASCADE,
-				constraint fk_room_code foreign key (room_code) references Room (code) ON DELETE CASCADE
-
-				) strict`
-		);
-		connection.exec(
-			`create table if not exists RoomUserRequest
-			(
-				username  text not null,
-				room_code text not null,
-
-				constraint pk_room_member primary key (username, room_code),
-				constraint fk_username foreign key (username) references User (username) ON DELETE CASCADE,
-				constraint fk_room_code foreign key (room_code) references Room (code) ON DELETE CASCADE
-
-				) strict`
-		);
-
-		DB.migrateUserTableToProfileColumns(connection);
-
-		connection.exec(
-			`create table if not exists Recipe
-			(
-				id          integer primary key autoincrement,
-				name        text not null,
-				description text,
-				image       text,
-				visibility  text not null default 'private'
-				constraint ck_recipe_visibility check (visibility in ('public', 'private')),
-				author      integer not null,
-				instructions text not null default '',
-
-				constraint fk_author foreign key (author) REFERENCES User (id) ON DELETE CASCADE
-				) strict`
-		);
-
-		connection.exec(
-			`create table if not exists RecipeMealType
-			(
-				recipe_id integer not null,
-				meal_type text    not null,
-
-				constraint pk_recipe_meal_type primary key (recipe_id, meal_type),
-				constraint fk_recipe_id foreign key (recipe_id) references Recipe (id) ON DELETE CASCADE
-				) strict`
-		);
-
-		connection.exec(
-			`create table if not exists SavedRecipe
-			(
-				user_id   integer not null,
-				recipe_id integer not null,
-
-				constraint pk_saved_recipe primary key (user_id, recipe_id),
-				constraint fk_saved_recipe_user_id foreign key (user_id) references User (id) ON DELETE CASCADE,
-				constraint fk_saved_recipe_recipe_id foreign key (recipe_id) references Recipe (id) ON DELETE CASCADE
-				) strict`
-		);
-
-		connection.exec(
-			`create table if not exists Meal
-			(
-				id          integer primary key autoincrement,
-				time        text not null,
-				endTime	 text not null,
-				name        text,
-				mealType    text not null default 'breakfast-0',
-				responsible text,
-				roomCode    text not null,
-				constraint fk_responsible foreign key (responsible) REFERENCES User (username) ON DELETE CASCADE
-
-				) strict`
-		);
-
-		connection.exec(
-			`create table if not exists MealResponsibleUser
-			(
-				meal_id  integer not null,
-				username text    not null,
-
-				constraint pk_meal_responsible_user primary key (meal_id, username),
-				constraint fk_meal_id foreign key (meal_id) references Meal (id) ON DELETE CASCADE,
-				constraint fk_username foreign key (username) references User (username) ON DELETE CASCADE
-				) strict`
-		);
-
-		connection.exec(
-			`create table if not exists Ingredient
-			(
-				id              integer primary key autoincrement,
-				name	         text not null,
-				default_measurement text,
-				user text,
-
-				constraint uq_name unique (name)
-
-				) strict`
-		);
-
-		connection.exec(
-			`create table if not exists RecipeIngredient
-			(
-				recipe_id		 text not null,
-				ingredient_name text not null,
-				measurement text not null,
-				amount text not null,
-
-				constraint fk_recipe foreign key (recipe_id) references Recipe(id) ON DELETE CASCADE
-
-				) strict`
-		);
-
-		connection.exec(
-			`create table if not exists RoomIngredient
-			(
-				room_code		 text not null,
-				ingredient_name text not null,
-				measurement text not null,
-				amount text not null,
-
-				constraint pk_room_ingredient primary key (room_code, ingredient_name, measurement),
-				constraint fk_room_code foreign key (room_code) references Room(code) ON DELETE CASCADE
-
-				) strict`
-		);
-
-		connection.exec(
-			`create table if not exists UserIngredient
-			 (
-				 username        text not null,
-				 ingredient_name text not null,
-				 measurement     text not null,
-				 amount          text not null,
-				 used_at         text not null default (datetime('now')),
-
-				 constraint pk_user_ingredient primary key (username, ingredient_name, measurement),
-				 constraint fk_user_ingredient_user foreign key (username) references User(username) ON DELETE CASCADE
-			 ) strict`
-		);
-
-		// Migrations are intentionally disabled while developing with the
-		// migration-less schema creation method. Keep the migration calls
-		// here (commented out) so they can be re-enabled later if needed.
-		// DB.migrateMealTableToIncludeEndTime(connection);
-		// DB.migrateMealTableToIncludeCooked(connection);
-		// DB.migrateRecipeAndMealTables(connection);
-		// DB.migrateIngredientsAndEating(connection);
-		// DB.migrateMealIngredientAssignment(connection);
-		// DB.migrateUserIngredientTable(connection);
-		// DB.migrateShoppingTables(connection);
-		// DB.migrateAmountToReal(connection);
-		// DB.migrateAddInstructionsToRecipe(connection);
-	}
-
-	private static migrateUserIngredientTable(connection: BetterSqlite3.Database): void {
-		console.log('Migrating UserIngredient table...');
-
-		connection.exec(
-			`create table if not exists UserIngredient
-			 (
-				 username        text not null,
-				 ingredient_name text not null,
-				 measurement     text not null,
-				 amount          text not null,
-				 used_at         text not null default (datetime('now')),
-
-				 constraint pk_user_ingredient primary key (username, ingredient_name, measurement),
-				 constraint fk_user_ingredient_user foreign key (username) references User(username) ON DELETE CASCADE
-			 ) strict`
-		);
-
-		console.log('✓ UserIngredient migration completed');
-	}
-
-	private static migrateShoppingTables(connection: BetterSqlite3.Database): void {
-		console.log('Migrating shopping tables...');
-
-		connection.exec(`
-			CREATE TABLE IF NOT EXISTS BoughtIngredient (
-															room_code          TEXT NOT NULL,
-				                                            ingredient_name    TEXT NOT NULL,
-				                                            measurement        TEXT NOT NULL,
-				                                            amount             TEXT NOT NULL,
-				                                            bought_by_username TEXT NOT NULL,
-				                                            bought_at          TEXT NOT NULL,
-				                                            CONSTRAINT pk_bought_ingredient
-				                                            PRIMARY KEY (room_code, ingredient_name, measurement),
-				CONSTRAINT fk_bought_room
-				FOREIGN KEY (room_code) REFERENCES Room(code) ON DELETE CASCADE
-				) STRICT
-		`);
-
-		connection.exec(`
-			CREATE TABLE IF NOT EXISTS PersonalBoughtIngredient (
-																	username        TEXT NOT NULL,
-				                                                    ingredient_name TEXT NOT NULL,
-				                                                    measurement     TEXT NOT NULL,
-				                                                    amount          TEXT NOT NULL,
-				                                                    bought_at       TEXT NOT NULL,
-				                                                    CONSTRAINT pk_personal_bought
-				                                                    PRIMARY KEY (username, ingredient_name, measurement),
-				CONSTRAINT fk_personal_bought_user
-				FOREIGN KEY (username) REFERENCES User(username) ON DELETE CASCADE
-				) STRICT
-		`);
-
-		console.log('✓ ShoppingModal tables migration completed');
-	}
-	private static migrateRoomTableToProfilePicture(connection: BetterSqlite3.Database): void {
-		const columns = connection.prepare(`pragma table_info(Room)`).all() as Array<{
-			name: string
-		}>;
-		const existingColumns = new Set(columns.map(column => column.name));
-
-		if (!existingColumns.has('profile_picture')) {
-			connection.exec(`alter table Room
-				add column profile_picture text;`);
-		}
-	}
-
-	private static migrateUserTableToProfileColumns(connection: BetterSqlite3.Database): void {
-		const columns = connection.prepare(`pragma table_info(User)`).all() as Array<{
-			name: string
-		}>;
-		const existingColumns = new Set(columns.map(column => column.name));
-
-		const migrations: string[] = [];
-
-		if (!existingColumns.has('email')) {
-			migrations.push(`alter table User
-				add column email text;`);
-		}
-
-		if (!existingColumns.has('first_name')) {
-			migrations.push(`alter table User
-				add column first_name text;`);
-		}
-
-		if (!existingColumns.has('last_name')) {
-			migrations.push(`alter table User
-				add column last_name text;`);
-		}
-
-		if (!existingColumns.has('bio')) {
-			migrations.push(`alter table User
-				add column bio text;`);
-		}
-
-		if (!existingColumns.has('dob')) {
-			migrations.push(`alter table User
-				add column dob text;`);
-		}
-
-		if (!existingColumns.has('profile_picture')) {
-			migrations.push(`alter table User
-				add column profile_picture text;`);
-		}
-
-		if (migrations.length > 0) {
-			connection.exec(migrations.join('\n'));
-		}
-
-		connection.exec(`create unique index if not exists uq_user_email on User (lower(email));`);
-	}
-
-	private static migrateMealTableToIncludeEndTime(connection: BetterSqlite3.Database): void {
-		const columns = connection.prepare(`pragma table_info(Meal)`).all() as Array<{ name: string }>;
-		const existingColumns = new Set(columns.map((column) => column.name));
-
-		if (!existingColumns.has('endTime')) {
-			connection.exec(`alter table Meal add column endTime text;`);
-		}
-
-		if (!existingColumns.has('mealType')) {
-			connection.exec(`alter table Meal add column mealType text not null default 'breakfast-0';`);
-		}
-	}
-
-	private static migrateRecipeAndMealTables(connection: BetterSqlite3.Database): void {
-		connection.pragma('foreign_keys = OFF');
 		try {
-			const mealTableInfo = connection.prepare(
-				`select sql
-				 from sqlite_master
-				 where type = 'table'
-				   and name = 'Meal'`
-			).get() as {
-				sql?: string
-			} | undefined;
-
-			const recipeTableInfo = connection.prepare(
-				`select sql
-				 from sqlite_master
-				 where type = 'table'
-				   and name = 'Recipe'`
-			).get() as {
-				sql?: string
-			} | undefined;
-
-			const recipeColumns = connection.prepare(`pragma table_info(Recipe)`).all() as Array<{
-				name: string
-			}>;
-			const recipeColumnNames = new Set(recipeColumns.map(column => column.name.toLowerCase()));
-
-			const mealSql = (mealTableInfo?.sql ?? '').toLowerCase();
-			const recipeSql = (recipeTableInfo?.sql ?? '').toLowerCase();
-
-			// Check if Meal table has legacy unique constraint on time
-			const mealHasLegacyUniqueTime = mealSql.includes('uq_mealtime') || mealSql.includes('unique (time)');
-
-			const recipeHasMealTypeColumn = recipeColumnNames.has('mealtype');
-			const recipeHasDescriptionColumn = recipeColumnNames.has('description');
-			const recipeHasImageColumn = recipeColumnNames.has('image');
-			const recipeHasVisibilityColumn = recipeColumnNames.has('visibility');
-			const recipeHasAuthorColumn = recipeColumnNames.has('author');
-			const recipeHasLegacyIdDefault = recipeSql.includes('default (abs(random())');
-			const recipeHasLegacyUqRecipe = recipeSql.includes('uq_recipe');
-			const recipeNeedsFullMigration =
-				recipeHasMealTypeColumn ||
-				!recipeHasDescriptionColumn ||
-				!recipeHasImageColumn ||
-				!recipeHasAuthorColumn ||
-				recipeHasLegacyIdDefault ||
-				recipeHasLegacyUqRecipe;
-			const recipeNeedsVisibilityOnlyMigration = !recipeHasVisibilityColumn && !recipeNeedsFullMigration;
-
-			if (mealHasLegacyUniqueTime) {
-				console.log('Migrating Meal table: removing legacy unique constraint on time...');
-				connection.exec(`
-					alter table Meal
-						rename to Meal_legacy;
-
-					create table Meal
-					(
-						id          integer primary key autoincrement,
-						time        text not null,
-						endTime     text,
-						name        text,
-						mealType    text not null default 'breakfast-0',
-						responsible text,
-						roomCode    text not null,
-						constraint fk_responsible foreign key (responsible) REFERENCES User (username) ON DELETE CASCADE
-					) strict;
-
-					insert into Meal(id, time, name, responsible, roomCode)
-					select id,
-						time,
-						name,
-						responsible,
-						roomCode
-					from Meal_legacy;
-
-					drop table Meal_legacy;
-				`);
-				console.log('✓ Meal migration completed');
-			}
-
-			if (recipeNeedsVisibilityOnlyMigration) {
-				console.log('Migrating Recipe table: adding missing visibility column...');
-				connection.exec(`alter table Recipe
-					add column visibility text not null default 'private'
-						constraint ck_recipe_visibility check (visibility in ('public', 'private'));`);
-				console.log('✓ Recipe visibility migration completed');
-			}
-
-			if (recipeNeedsFullMigration) {
-				console.log(
-					'Migrating Recipe table: converting mealType to new schema with RecipeMealType junction table...');
-
-				const hasStaleRecipeLegacyTable = connection.prepare(
-					`select name
-					 from sqlite_master
-					 where type = 'table'
-					   and name = 'Recipe_legacy'`
-				).get() !== undefined;
-
-				if (hasStaleRecipeLegacyTable) {
-					console.warn('Detected stale Recipe_legacy table; dropping it before Recipe migration.');
-					connection.exec(`drop table Recipe_legacy;`);
-				}
-
-				connection.exec(`
-					alter table Recipe
-						rename to Recipe_legacy;
-
-					create table Recipe
-					(
-						id          integer primary key autoincrement,
-						name        text not null,
-						description text,
-						image       text,
-						visibility  text not null default 'private'
-							constraint ck_recipe_visibility check (visibility in ('public', 'private')),
-						author      integer not null,
-
-						constraint fk_author foreign key (author) REFERENCES User (id) ON DELETE CASCADE
-					) strict;
-				`);
-
-				const legacyRecipeColumns = connection.prepare(`pragma table_info(Recipe_legacy)`).all() as Array<{
-					name: string
-				}>;
-				const legacyRecipeColumnNames = new Set(legacyRecipeColumns.map(column => column.name.toLowerCase()));
-
-				const legacyDescriptionExpr = legacyRecipeColumnNames.has('description') ? 'description' : 'null';
-				const legacyImageExpr = legacyRecipeColumnNames.has('image') ? 'image' : 'null';
-				const legacyVisibilityExpr = legacyRecipeColumnNames.has('visibility')
-					? `case
-						when lower(trim(legacy.visibility)) = 'public' then 'public'
-						when lower(trim(legacy.visibility)) = 'private' then 'private'
-						else 'private'
-					end`
-					: `'private'`;
-				const legacyAuthorExpr = DB.getLegacyRecipeAuthorExpr(legacyRecipeColumnNames, 'legacy');
-
-				if (legacyAuthorExpr === null) {
-					console.warn(
-						'Recipe migration: no legacy author column found; existing legacy recipes were skipped.'
-					);
-				} else {
-					connection.exec(`
-						insert into Recipe(id, name, description, image, visibility, author)
-						select id, name, description, image, visibility, resolved_author
-						from (
-								 select legacy.id                                            as id,
-							            legacy.name                                          as name,
-							            ${legacyDescriptionExpr}                              as description,
-							            ${legacyImageExpr}                                    as image,
-							            ${legacyVisibilityExpr}                               as visibility,
-							            ${legacyAuthorExpr}                                   as resolved_author
-							     from Recipe_legacy legacy
-							 )
-						where resolved_author is not null;
-					`);
-				}
-
-				if (legacyRecipeColumnNames.has('mealtype')) {
-					connection.exec(`
-						insert into RecipeMealType(recipe_id, meal_type)
-						select id as recipe_id, mealType as meal_type
-						from Recipe_legacy;
-					`);
-				}
-
-				connection.exec(`drop table Recipe_legacy;`);
-				console.log('✓ Recipe migration completed');
-			}
-
-			// Ensure RecipeMealType table exists for recipes
-			const recipeMealTypeExists = connection.prepare(
-				`select name from sqlite_master where type = 'table' and name = 'RecipeMealType'`
-			).get();
-			const recipeMealTypeFkRows = connection.prepare(
-				`pragma foreign_key_list(RecipeMealType)`
-			).all() as Array<{
-				table: string
-			}>;
-			const recipeMealTypeFkTargetsRecipe = recipeMealTypeFkRows.some(
-				fk => fk.table.toLowerCase() === 'recipe'
-			);
-			const recipeMealTypeNeedsFkRepair = !!recipeMealTypeExists && !recipeMealTypeFkTargetsRecipe;
-
-			if (!recipeMealTypeExists && !recipeNeedsFullMigration) {
-				// Table should have been created in ensureTablesCreated, this is just a safety check
-				connection.exec(`
-					create table if not exists RecipeMealType
-					(
-						recipe_id integer not null,
-						meal_type text    not null,
-
-						constraint pk_recipe_meal_type primary key (recipe_id, meal_type),
-						constraint fk_recipe_id foreign key (recipe_id) references Recipe (id) ON DELETE CASCADE
-						) strict
-				`);
-			}
-
-			if (recipeMealTypeNeedsFkRepair) {
-				console.log('Repairing RecipeMealType FK target to reference Recipe table...');
-				connection.exec(`
-					alter table RecipeMealType
-						rename to RecipeMealType_legacy;
-
-					create table RecipeMealType
-					(
-						recipe_id integer not null,
-						meal_type text    not null,
-
-						constraint pk_recipe_meal_type primary key (recipe_id, meal_type),
-						constraint fk_recipe_id foreign key (recipe_id) references Recipe (id) ON DELETE CASCADE
-					) strict;
-
-					insert into RecipeMealType(recipe_id, meal_type)
-					select legacy.recipe_id, legacy.meal_type
-					from RecipeMealType_legacy legacy
-					where exists(
-						select 1 as existing_recipe
-						from Recipe r
-						where r.id = legacy.recipe_id
-					);
-
-					drop table RecipeMealType_legacy;
-				`);
-				console.log('✓ RecipeMealType FK repair completed');
-			}
-
-			// Ensure MealRecipe table exists
-			const mealRecipeExists = connection.prepare(
-				`select name from sqlite_master where type = 'table' and name = 'MealRecipe'`
-			).get();
-
-			if (!mealRecipeExists) {
-				connection.exec(`
-					create table if not exists MealRecipe
-					(
-						meal_id   integer not null,
-						recipe_id integer not null,
-
-						constraint pk_meal_recipe primary key (meal_id, recipe_id),
-						constraint fk_meal_id foreign key (meal_id) references Meal (id) ON DELETE CASCADE,
-						constraint fk_recipe_id foreign key (recipe_id) references Recipe (id) ON DELETE CASCADE
-						) strict
-				`);
-			}
-
-			// Ensure MealResponsibleUser table exists
-			const mealResponsibleUserExists = connection.prepare(
-				`select name from sqlite_master where type = 'table' and name = 'MealResponsibleUser'`
-			).get();
-
-			if (!mealResponsibleUserExists) {
-				connection.exec(`
-					create table if not exists MealResponsibleUser
-					(
-						meal_id  integer not null,
-						username text    not null,
-
-						constraint pk_meal_responsible_user primary key (meal_id, username),
-						constraint fk_meal_id foreign key (meal_id) references Meal (id) ON DELETE CASCADE,
-						constraint fk_username foreign key (username) references User (username) ON DELETE CASCADE
-						) strict
-				`);
-			}
-
-			const savedRecipeExists = connection.prepare(
-				`select name from sqlite_master where type = 'table' and name = 'SavedRecipe'`
-			).get();
-
-			if (!savedRecipeExists) {
-				connection.exec(`
-					create table if not exists SavedRecipe
-					(
-						user_id   integer not null,
-						recipe_id integer not null,
-
-						constraint pk_saved_recipe primary key (user_id, recipe_id),
-						constraint fk_saved_recipe_user_id foreign key (user_id) references User (id) ON DELETE CASCADE,
-						constraint fk_saved_recipe_recipe_id
-						foreign key (recipe_id) references Recipe (id) ON DELETE CASCADE
-						) strict
-				`);
-			}
-
-			// Repair RecipeIngredient FK to include ON DELETE CASCADE
-			const recipeIngredientExists = connection.prepare(
-				`select name from sqlite_master where type = 'table' and name = 'RecipeIngredient'`
-			).get();
-
-			const recipeIngredientFkRows = connection.prepare(
-				`pragma foreign_key_list(RecipeIngredient)`
-			).all() as Array<{
-				table: string;
-				on_delete: string;
-			}>;
-			const recipeIngredientFkHasCascade = recipeIngredientFkRows.some(
-				fk => fk.table.toLowerCase() === 'recipe' && fk.on_delete.toUpperCase() === 'CASCADE'
-			);
-			const recipeIngredientNeedsFkRepair = !!recipeIngredientExists && !recipeIngredientFkHasCascade;
-
-			if (recipeIngredientNeedsFkRepair) {
-				console.log('Repairing RecipeIngredient FK to add ON DELETE CASCADE...');
-				connection.exec(`
-					alter table RecipeIngredient
-						rename to RecipeIngredient_legacy;
-
-					create table RecipeIngredient
-					(
-						recipe_id       text not null,
-						ingredient_name text not null,
-						measurement     text not null,
-						amount          text not null,
-
-						constraint fk_recipe foreign key (recipe_id) references Recipe (id) ON DELETE CASCADE
-					) strict;
-
-					-- noinspection SqlMissingColumnAliases
-					insert into RecipeIngredient(recipe_id, ingredient_name, measurement, amount)
-					select legacy.recipe_id, legacy.ingredient_name, legacy.measurement, legacy.amount
-					from RecipeIngredient_legacy legacy
-					where exists(select 1
-					             from Recipe r
-					             where r.id = legacy.recipe_id);
-
-					drop table RecipeIngredient_legacy;
-				`);
-				console.log('✓ RecipeIngredient FK repair completed');
-			}
-
-			console.log('Database schema migration check completed');
-		} finally {
-			connection.pragma('foreign_keys = ON');
+			connection.exec(`DROP TABLE IF EXISTS UserIngredient`);
+			console.log('Dropped UserIngredient table (if existed).');
+		} catch (e) {
+			console.log('UserIngredient table did not exist or already dropped.');
 		}
-	}
 
-	private static migrateIngredientsAndEating(connection: BetterSqlite3.Database) {
-		console.log('Migrating Ingredients and RecipeIngredient and MealEatingUser tables...');
-
-		connection.exec(
-			`create table if not exists Ingredient
-			(
-				id                  integer primary key autoincrement,
-				name                text not null,
-				default_measurement text,
-				user                text,
-
-				constraint uq_name unique (name)
-				) strict`
-		);
-
-		connection.exec(
-			`create table if not exists RecipeIngredient
-			(
-				recipe_id       integer not null,
-				ingredient_name text not null,
-				measurement     text not null,
-				amount          text not null,
-
-				constraint pk_recipe_ingredient primary key (recipe_id, ingredient_name),
-				constraint fk_recipe foreign key (recipe_id) references Recipe(id) ON DELETE CASCADE,
-				constraint fk_ingredient foreign key (ingredient_name) references Ingredient(name) ON DELETE CASCADE
-				) strict`
-		);
-
-		connection.exec(
-			`create table if not exists MealEatingUser
-			(
-				meal_id integer not null,
-				user_id integer not null,
-
-				constraint pk_meal_eating_user primary key (meal_id, user_id),
-				constraint fk_meal_id foreign key (meal_id) references Meal (id) ON DELETE CASCADE,
-				constraint fk_username foreign key (user_id) references User (id) ON DELETE CASCADE
-				)`
-		);
-
-		console.log('✓ Ingredient migration completed');
-	}
-
-	private static migrateMealIngredientAssignment(connection: BetterSqlite3.Database) {
-		console.log('Migrating MealIngredientAssignment table...');
-
-		connection.exec(
-			`create table if not exists MealIngredientAssignment
-			(
-				meal_id integer not null,
-				ingredient_name text not null,
-				assigned_to_username text not null,
-
-				constraint pk_meal_ingredient_assignment primary key (meal_id, ingredient_name, assigned_to_username),
-				constraint fk_meal_id foreign key (meal_id) references Meal (id) ON DELETE CASCADE,
-				constraint fk_username foreign key (assigned_to_username) references User (username) ON DELETE CASCADE
-				) strict`
-		);
-
-		console.log('✓ MealIngredientAssignment migration completed');
-	}
-
-	private static migrateMealTableToIncludeCooked(connection: BetterSqlite3.Database): void {
-		// Check current columns in the Meal table
-		const columns = connection.prepare(`pragma table_info(Meal)`).all() as Array<{ name: string }>;
-		const existingColumns = new Set(columns.map((column) => column.name));
-
-		// Add 'cooked' column if it doesn't exist
-		// We use integer (0 or 1) with a default of 0 (false)
-		if (!existingColumns.has('cooked')) {
-			console.log('Migrating Meal table: adding "cooked" column...');
-			connection.exec(`alter table Meal add column cooked integer not null default 0;`);
-			console.log('✓ Meal cooked column migration completed');
+		try {
+			connection.exec(`DROP TABLE IF EXISTS PersonalBoughtIngredient`);
+			console.log('Dropped PersonalBoughtIngredient table (if existed).');
+		} catch (e) {
+			console.log('PersonalBoughtIngredient table did not exist or already dropped.');
 		}
+
+		connection.exec('PRAGMA foreign_keys = ON');
+		console.log('Ingredient table migrations completed.');
 	}
 
 	public static migrateAmountToReal(connection: BetterSqlite3.Database): void {
@@ -1154,29 +669,6 @@ class DB {
 		// 5. Promote the staged schema definition to the official active designation
 		connection.exec(`ALTER TABLE Recipe_new RENAME TO Recipe;`);
 		console.log('✓ Recipe instructions migration completed');
-	}
-
-	private static getLegacyRecipeAuthorExpr(
-		legacyRecipeColumnNames: Set<string>, sourceAlias: string): string | null {
-		if (legacyRecipeColumnNames.has('author')) {
-			return `${sourceAlias}.author`;
-		}
-
-		const directIdColumns = ['author_id', 'authorid', 'user_id', 'userid'];
-		const directIdColumn = directIdColumns.find(column => legacyRecipeColumnNames.has(column));
-		if (directIdColumn !== undefined) {
-			return `${sourceAlias}.${directIdColumn}`;
-		}
-
-		const usernameColumns = ['author_username', 'authorusername', 'username', 'author_name', 'authorname'];
-		const usernameColumn = usernameColumns.find(column => legacyRecipeColumnNames.has(column));
-		if (usernameColumn !== undefined) {
-			return `(select u.id from User u
-				where lower(u.username) = lower(${sourceAlias}.${usernameColumn})
-				limit 1)`;
-		}
-
-		return null;
 	}
 }
 

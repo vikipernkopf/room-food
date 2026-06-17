@@ -74,7 +74,7 @@ export class ShoppingService extends ServiceBase {
 		return success;
 	}
 
-	public markPersonalIngredientBought(
+	/*public markPersonalIngredientBought(
 		username: string,
 		ingredientName: string,
 		measurement: string,
@@ -128,5 +128,5 @@ export class ShoppingService extends ServiceBase {
       WHERE username = :username
     `, { username }));
 		return success;
-	}
+	}*/
 }

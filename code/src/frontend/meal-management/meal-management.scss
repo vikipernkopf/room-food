@@ -157,6 +157,10 @@ section {
 		color: $color-label-gray;
 		line-height: 1.4;
 	}
+
+	&:hover {
+		text-decoration: underline;
+	}
 }
 
 .view-ingredients {

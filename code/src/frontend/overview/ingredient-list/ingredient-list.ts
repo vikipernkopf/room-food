@@ -50,7 +50,8 @@ export class IngredientList implements OnInit {
 		});
 	}
 
-	ngOnInit(): void {}
+	ngOnInit(): void {
+	}
 
 	loadIngredients(username: string): void {
 		this.loading.set(true);
@@ -59,10 +60,12 @@ export class IngredientList implements OnInit {
 		// Load assigned ingredients and subtract bought in parallel
 		forkJoin({
 			assigned: this.ingredientsFrontendService.getIngredientsForUser(username),
-			bought: this.ingredientsFrontendService.getBoughtIngredientsForUserRooms(username),
-			personalBought: this.ingredientsFrontendService.getPersonalBoughtIngredients(username)
+			bought: this.ingredientsFrontendService.getBoughtIngredientsForUserRooms(username)
 		}).subscribe({
-			next: ({ assigned, bought, personalBought }) => {
+			next: ({
+				assigned,
+				bought
+			}) => {
 				const neededMap = new Map<string, Ingredient>();
 
 				// Start with assigned ingredients from MealIngredientAssignment
@@ -72,7 +75,10 @@ export class IngredientList implements OnInit {
 					if (existing) {
 						existing.amount += Number(ing.amount);
 					} else {
-						neededMap.set(key, { ...ing, amount: Number(ing.amount) });
+						neededMap.set(key, {
+							...ing,
+							amount: Number(ing.amount)
+						});
 					}
 				});
 
@@ -82,18 +88,6 @@ export class IngredientList implements OnInit {
 					const needed = neededMap.get(key);
 					if (needed) {
 						needed.amount -= Number(b.amount);
-						if (needed.amount <= 0) {
-							neededMap.delete(key);
-						}
-					}
-				});
-
-				// Subtract personal bought
-				(personalBought || []).forEach((p: Ingredient) => {
-					const key = p.name + '||' + p.measurement;
-					const needed = neededMap.get(key);
-					if (needed) {
-						needed.amount -= Number(p.amount);
 						if (needed.amount <= 0) {
 							neededMap.delete(key);
 						}

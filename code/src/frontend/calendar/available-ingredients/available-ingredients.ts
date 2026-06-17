@@ -43,14 +43,12 @@ export class AvailableIngredients implements OnInit {
 	readonly roomCode = input<string>('');
 	readonly shoppingModal = viewChild(Shopping);
 
-	// Needed ingredients (aggregated from meals, minus available, bought, and personal bought)
+	// Needed ingredients (aggregated from meals, minus available, and bought)
 	readonly neededIngredients = signal<Ingredient[]>([]);
 	// Available ingredients (from room stock)
 	readonly availableIngredients = signal<Ingredient[]>([]);
 	// Bought ingredients (from BoughtIngredient table - room-level)
 	readonly boughtIngredients = signal<Ingredient[]>([]);
-	// Personal bought ingredients (from PersonalBoughtIngredient table - user-level)
-	readonly personalBoughtIngredients = signal<Ingredient[]>([]);
 	readonly loading = signal(true);
 
 	// Add ingredient form signals
@@ -89,18 +87,18 @@ export class AvailableIngredients implements OnInit {
 		this.neededIngredients.set([]);
 		this.availableIngredients.set([]);
 		this.boughtIngredients.set([]);
-		this.personalBoughtIngredients.set([]);
 
-		// Load room stock, bought, and personal bought in parallel
+		// Load room stock, and bought in parallel
 		forkJoin({
 			roomIngredients: this.ingredientsFrontendService.getIngredientsForRoom(code),
-			boughtIngredients: this.ingredientsFrontendService.getBoughtIngredientsForRoom(code),
-			personalBought: this.ingredientsFrontendService.getPersonalBoughtIngredients(username)
+			boughtIngredients: this.ingredientsFrontendService.getBoughtIngredientsForRoom(code)
 		}).subscribe({
-			next: ({ roomIngredients, boughtIngredients, personalBought }) => {
+			next: ({
+				roomIngredients,
+				boughtIngredients
+			}) => {
 				this.availableIngredients.set(roomIngredients || []);
 				this.boughtIngredients.set(boughtIngredients || []);
-				this.personalBoughtIngredients.set(personalBought || []);
 
 				// Now load and compute needed ingredients
 				this.computeNeededIngredients(code);
@@ -109,7 +107,6 @@ export class AvailableIngredients implements OnInit {
 				console.error('Error loading room/bought ingredients:', err);
 				this.availableIngredients.set([]);
 				this.boughtIngredients.set([]);
-				this.personalBoughtIngredients.set([]);
 				this.computeNeededIngredients(code);
 			}
 		});
@@ -174,18 +171,6 @@ export class AvailableIngredients implements OnInit {
 						const needed = neededMap.get(key);
 						if (needed) {
 							needed.amount -= Number(bought.amount);
-							if (needed.amount <= 0) {
-								neededMap.delete(key);
-							}
-						}
-					}
-
-					// Subtract user-level personal bought ingredients
-					for (const personal of this.personalBoughtIngredients()) {
-						const key = personal.name + '||' + personal.measurement;
-						const needed = neededMap.get(key);
-						if (needed) {
-							needed.amount -= Number(personal.amount);
 							if (needed.amount <= 0) {
 								neededMap.delete(key);
 							}
@@ -286,13 +271,13 @@ export class AvailableIngredients implements OnInit {
 
 	deleteIngredient(ingredientName: string, measurement: string): void {
 		this.ingredientsFrontendService.deleteIngredientFromRoom(this.roomCode(), ingredientName, measurement)
-			.subscribe({
-				next: () => this.loadIngredients(),
-				error: err => {
-					console.error('Error deleting ingredient:', err);
-					this.ingredientError.set('Failed to delete ingredient');
-				}
-			});
+		.subscribe({
+			next: () => this.loadIngredients(),
+			error: err => {
+				console.error('Error deleting ingredient:', err);
+				this.ingredientError.set('Failed to delete ingredient');
+			}
+		});
 	}
 
 	public async removeIngredients(ingredients: Ingredient[]): Promise<void> {

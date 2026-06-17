@@ -26,6 +26,7 @@ import { MealService } from '../core/meal-service';
 import { RecipeService } from '../core/recipe-service';
 import { RoomService } from '../core/room-service';
 import { MatCheckbox } from '@angular/material/checkbox';
+import { Router } from '@angular/router';
 
 interface MealType {
 	value: string;
@@ -130,10 +131,18 @@ export class MealManagement implements OnChanges {
 		private mealService: MealService,
 		private recipeService: RecipeService,
 		private roomService: RoomService,
+		private router: Router,
 		cdr?: ChangeDetectorRef
 	) {
 		this.currentUser = this.authService.currentUser;
 		this.cdr = cdr ?? null;
+	}
+
+	protected openRecipeInNewTab(recipeId: number): void {
+		const url = this.router.serializeUrl(
+			this.router.createUrlTree(['/recipes', 'edit', recipeId])
+		);
+		window.open(url, '_blank');
 	}
 
 	// ----------------------- Lifecycle ------------------------------
@@ -291,6 +300,7 @@ export class MealManagement implements OnChanges {
 				this.eatingPeople.update(people => new Set([...people, username]));
 				// Trigger change detection to recalculate scaled ingredients
 				this.requestViewUpdate();
+				console.log(`Added user ${username} to eating people`);
 			},
 			error: err => console.error('Error adding eating user:', err)
 		});
@@ -544,7 +554,7 @@ export class MealManagement implements OnChanges {
 			room: effectiveRoomCode,
 			recipeIds: [...this.selectedRecipeIds],
 			responsibleUsers: [...this.selectedResponsibleUsers],
-			eatingUsernames: this.isCurrentUserEating() ? [currentUsername] : [],
+			eatingUsernames: this.eatingPeopleArray(),
 			cooked: this.isCooked,
 			ingredientAssignments: this.mapIngredientAssignmentsToObject()
 		};

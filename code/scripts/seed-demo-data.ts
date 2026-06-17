@@ -906,6 +906,57 @@ const ROOM_INGREDIENTS: RoomIngredientSeed[] = [
 	}
 ];
 
+const BOUGHT_INGREDIENTS: Array<{
+	roomCode: string;
+	ingredientName: string;
+	measurement: string;
+	amount: number;
+	boughtByUsername: string;
+}> = [
+	{
+		roomCode: 'room-001',
+		ingredientName: 'Pasta',
+		measurement: 'grams',
+		amount: 500,
+		boughtByUsername: 'alice'
+	},
+	{
+		roomCode: 'room-001',
+		ingredientName: 'Tomato',
+		measurement: 'units',
+		amount: 6,
+		boughtByUsername: 'bob'
+	},
+	{
+		roomCode: 'room-001',
+		ingredientName: 'Ground Beef',
+		measurement: 'grams',
+		amount: 300,
+		boughtByUsername: 'charlie'
+	},
+	{
+		roomCode: 'room-002',
+		ingredientName: 'Chicken Breast',
+		measurement: 'grams',
+		amount: 800,
+		boughtByUsername: 'diana'
+	},
+	{
+		roomCode: 'room-002',
+		ingredientName: 'Broccoli',
+		measurement: 'grams',
+		amount: 400,
+		boughtByUsername: 'alice'
+	},
+	{
+		roomCode: 'room-003',
+		ingredientName: 'Flour',
+		measurement: 'grams',
+		amount: 600,
+		boughtByUsername: 'bob'
+	}
+];
+
 const MEAL_PLANS: MealPlan[] = [
 	{
 		name: 'Next Week Breakfast Prep',
@@ -1087,6 +1138,7 @@ export function seedDemoData(dbPath: string): void {
 		const recipeIds = insertRecipes(db, userIds);
 		insertSavedRecipes(db, userIds, recipeIds);
 		insertMeals(db, userIds, roomCodes, recipeIds);
+		insertBoughtIngredients(db, roomCodes, userIds);
 
 		db.exec('commit;');
 		db.pragma('foreign_keys = ON');
@@ -1196,7 +1248,7 @@ function insertIngredients(db: BetterSqlite3.Database): void {
 	console.log('\n🥘 Creating ingredients...');
 
 	const insertIngredient = db.prepare(`
-		insert into Ingredient (name, default_measurement)
+		insert or ignore into Ingredient (name, default_measurement)
 		values (?, ?)
 	`);
 
@@ -1368,6 +1420,35 @@ function insertMeals(
 	}
 }
 
+function insertBoughtIngredients(
+	db: BetterSqlite3.Database,
+	roomCodes: Set<string>,
+	userIds: Map<string, number>
+): void {
+	console.log('\n🛒 Seeding bought ingredients...');
+
+	const insertBought = db.prepare(`
+		insert into BoughtIngredient (room_code, ingredient_name, measurement, amount, bought_by_username, bought_at)
+		values (?, ?, ?, ?, ?, ?)
+	`);
+
+	for (const entry of BOUGHT_INGREDIENTS) {
+		if (!roomCodes.has(entry.roomCode)) {
+			throw new Error(`Unknown room code in bought ingredient seed: ${entry.roomCode}`);
+		}
+		requiredUserId(userIds, entry.boughtByUsername);
+		insertBought.run(
+			entry.roomCode,
+			entry.ingredientName,
+			entry.measurement,
+			entry.amount,
+			entry.boughtByUsername,
+			new Date().toISOString()
+		);
+		console.log(`  ✓ ${entry.ingredientName} (${entry.amount} ${entry.measurement}) for ${entry.roomCode}`);
+	}
+}
+
 function printSummary(db: BetterSqlite3.Database): void {
 	console.log('\n✅ Seed data complete!');
 	console.log('\n📊 Summary:');
@@ -1378,6 +1459,7 @@ function printSummary(db: BetterSqlite3.Database): void {
 		['Room memberships', 'RoomUserMember'],
 		['Ingredients', 'Ingredient'],
 		['Room ingredients', 'RoomIngredient'],
+		['Bought ingredients', 'BoughtIngredient'],
 		['Recipes', 'Recipe'],
 		['Recipe ingredients', 'RecipeIngredient'],
 		['Recipe meal types', 'RecipeMealType'],

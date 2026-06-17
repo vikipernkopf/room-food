@@ -124,7 +124,7 @@ ingredientsRouter.get('/room/:roomCode/bought-ingredients', async (req, res): Pr
 	}
 });
 
-ingredientsRouter.get('/user/:username/bought-ingredients', async (req, res): Promise<void> => {
+/*ingredientsRouter.get('/user/:username/bought-ingredients', async (req, res): Promise<void> => {
 	const { username } = req.params;
 	if (!username) {
 		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Username is required' });
@@ -140,7 +140,7 @@ ingredientsRouter.get('/user/:username/bought-ingredients', async (req, res): Pr
 		unit.complete();
 		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to fetch personal bought ingredients' });
 	}
-});
+});*/
 
 ingredientsRouter.get('/room/:roomCode/bought-ingredients', async (req, res): Promise<void> => {
 	const { roomCode } = req.params;

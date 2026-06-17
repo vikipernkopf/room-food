@@ -73,7 +73,7 @@ shoppingRouter.delete('/shopping/room/:roomCode/clear', async (req, res): Promis
 	}
 });
 
-shoppingRouter.get('/shopping/personal/:username', async (req, res): Promise<void> => {
+/*shoppingRouter.get('/shopping/personal/:username', async (req, res): Promise<void> => {
 	const { username } = req.params;
 	if (!username) { res.status(StatusCodes.BAD_REQUEST).json({ error: 'username required' }); return; }
 	const unit = new Unit(true);
@@ -138,4 +138,4 @@ shoppingRouter.delete('/shopping/personal/:username/clear', async (req, res): Pr
 		console.error(e);
 		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed' });
 	}
-});
+});*/
