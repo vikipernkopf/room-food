@@ -16,7 +16,7 @@
 							<path
 								d="M480-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47ZM160-160v-112q0-34 17.5-62.5T224-378q62-31 126-46.5T480-440q66 0 130 15.5T736-378q29 15 46.5 43.5T800-272v112H160Z"/>
 						</svg>
-						{{ currentUser()?.username }} will prepare this at {{ formattedStartTime }}
+						{{ getSelectedResponsibleUsersLabel() }} will prepare this at {{ formattedStartTime }}
 					</span>
 					@if (selectedDate) {
 						<span class="view-meta__date">
@@ -50,7 +50,9 @@
 						<h3 class="view-recipes__title">Recipes</h3>
 						<div class="view-recipes__list">
 							@for (recipe of selectedRecipes; track recipe.id) {
-								<div class="view-recipe-card">
+								<div class="view-recipe-card" (click)="openRecipeInNewTab(recipe.id)" role="link"
+									tabindex="0" (keydown.enter)="openRecipeInNewTab(recipe.id)"
+									[attr.aria-label]="'Edit recipe: ' + recipe.name">
 									@if (recipe.image) {
 										<img class="view-recipe-card__image" [src]="recipe.image" [alt]="recipe.name">
 									}

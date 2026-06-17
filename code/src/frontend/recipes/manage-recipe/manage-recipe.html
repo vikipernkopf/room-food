@@ -1,33 +1,39 @@
 <div class="create-recipe-container">
-	<form class="form-grid" (ngSubmit)="submitForm()">
+	<form class="form-grid" [formRoot]="recipeForm" (submit)="submitForm(); $event.preventDefault()">
 		<div class="header-container">
 			<h2 class="header">{{ isEditMode() ? 'Edit Recipe' : 'Create New Recipe' }}</h2>
 		</div>
 
-		<form class="form-grid sub-form recipe-name-form">
+		<div class="form-grid sub-form recipe-name-form">
 			<h2 class="section-title">Recipe Information</h2>
 
 			<div class="field-group field-group--full">
 				<label class="field-label">Recipe Name *</label>
-				<input class="input-field" type="text" [formControl]="recipeNameControl" placeholder="Grandma's pasta">
-				@if (recipeNameControl.touched && recipeNameControl.hasError('required')) {
-					<p class="field-error">Recipe name is required.</p>
-				}
+				<input class="input-field" type="text" [formField]="recipeForm.name" placeholder="Grandma's pasta">
+				<div class="field-message-container">
+					@let nameField = recipeForm.name();
+					@if (nameField.touched() && nameField.errors().length > 0) {
+						@for (error of nameField.errors(); track error.kind) {
+							<span class="field-error">{{ error.message }}</span>
+						}
+					}
+				</div>
 			</div>
 
 			<div class="field-group field-group--full">
 				<label class="field-label">Description</label>
-				<textarea class="input-field" [formControl]="recipeDescriptionControl" rows="3"></textarea>
+				<textarea class="input-field" [formField]="recipeForm.description" rows="3"></textarea>
 			</div>
 
 			<div class="field-group field-group--full">
 				<label class="field-label">Image URL</label>
-				<input class="input-field" type="url" [formControl]="recipeImageControl">
+				<input class="input-field" type="url" [formField]="recipeForm.image">
 			</div>
 
 			<div class="field-group">
 				<label class="field-label">Meal Types</label>
-				<mat-select class="select-input" [formControl]="recipeMealTypesControl" multiple>
+				<mat-select class="select-input" [value]="model().mealTypes"
+					(selectionChange)="model.update(m => ({ ...m, mealTypes: $event.value }))" multiple>
 					@for (mealType of mealTypeOptions; track mealType.value) {
 						<mat-option [value]="mealType.value">{{ mealType.viewValue }}</mat-option>
 					}
@@ -36,16 +42,17 @@
 
 			<div class="field-group">
 				<label class="field-label">Visibility</label>
-				<mat-select class="select-input" [formControl]="recipeVisibilityControl">
+				<mat-select class="select-input" [value]="model().visibility"
+					(selectionChange)="model.update(m => ({ ...m, visibility: $event.value }))">
 					<mat-option value="private">Private</mat-option>
 					<mat-option value="public">Public</mat-option>
 				</mat-select>
 			</div>
-		</form>
+		</div>
 
-		<form class="form-grid form-grid--single-column sub-form">
+		<div class="form-grid form-grid--single-column sub-form">
 			<h2 class="section-title">Ingredients</h2>
-			<form class="form-grid ingredients-form">
+			<div class="form-grid ingredients-form">
 				<div class="field-group ingredient-name">
 					<label class="field-label">Ingredient Name</label>
 					<app-search-ingredient (ingredientSelected)="onIngredientSelected($event)"></app-search-ingredient>
@@ -61,7 +68,13 @@
 						(input)="currentIngredientMeasurement.set($any($event.target).value)">
 				</div>
 				<button type="button" class="btn-primary btn-add-ingredient" (click)="addIngredient()">+</button>
-			</form>
+			</div>
+
+			<div class="field-message-container">
+				@if (ingredientError()) {
+					<span class="field-error">{{ ingredientError() }}</span>
+				}
+			</div>
 
 			@if (ingredients().length > 0) {
 				<div class="ingredients-list">
@@ -81,22 +94,29 @@
 					}
 				</div>
 			}
-		</form>
+		</div>
 
-		<form class="form-grid form-grid--single-column sub-form">
+		<div class="form-grid form-grid--single-column sub-form">
 			<h2 class="section-title">Cooking Steps</h2>
 			<div class="field-group">
 				<label class="field-label">Instructions *</label>
-				<textarea class="input-field" [formControl]="recipeStepsControl" rows="6"></textarea>
+				<textarea class="input-field" [formField]="recipeForm.instructions" rows="6"></textarea>
+				<div class="field-message-container">
+					@let stepsField = recipeForm.instructions();
+					@if (stepsField.touched() && stepsField.errors().length > 0) {
+						@for (error of stepsField.errors(); track error.kind) {
+							<span class="field-error">{{ error.message }}</span>
+						}
+					}
+				</div>
 			</div>
-		</form>
+		</div>
 
 		<div class="action-row">
 			@if (saveError()) {
-				<div class="error-text">{{ saveError() }}</div>
+				<span class="error-text">{{ saveError() }}</span>
 			}
-			<!--suppress NestedConditionalExpressionJS -->
-			<button type="submit" class="btn-primary" [disabled]="isSaving()">
+			<button type="submit" class="btn-primary" [disabled]="isSaving() || recipeForm().invalid()">
 				{{ isSaving() ? (isEditMode() ? 'Saving Changes...' : 'Creating Recipe...') : (isEditMode()
 				? 'Save Changes' : 'Create Recipe') }}
 			</button>

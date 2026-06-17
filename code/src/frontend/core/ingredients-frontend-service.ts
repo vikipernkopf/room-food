@@ -42,7 +42,7 @@ export class IngredientsFrontendService {
 		return this.http.get<Ingredient[]>(apiUrl);
 	}
 
-	public getPersonalBoughtIngredients(username: string): Observable<Ingredient[]> {
+	/*public getPersonalBoughtIngredients(username: string): Observable<Ingredient[]> {
 		const apiUrl = `${this.apiBase}/shopping/personal/${encodeURIComponent(username)}`;
 		return this.http.get<Ingredient[]>(apiUrl).pipe(
 			map((bought: any[]) => bought.map(b => ({
@@ -51,7 +51,7 @@ export class IngredientsFrontendService {
 				amount: Number(b.amount)
 			})))
 		);
-	}
+	}*/
 
 	public getIngredientsForPrefix(prefix: string, username: string): Observable<Ingredient[]> {
 		const apiUrl = `${this.apiBase}/ingredients/prefix/${encodeURIComponent(prefix)}?username=${encodeURIComponent(username)}`;

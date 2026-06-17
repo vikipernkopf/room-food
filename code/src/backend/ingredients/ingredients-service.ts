@@ -17,37 +17,37 @@ export class IngredientsService extends ServiceBase {
 
 	public getBoughtIngredientsForRoom(roomCode: string): Ingredient[] {
 		return this.unit.prepare(`
-        select ingredient_name as name, measurement, cast(amount as real) as amount
-        from BoughtIngredient
-        where room_code = :roomCode
-    `, { roomCode }).all() as unknown as Ingredient[];
+			select ingredient_name as name, measurement, cast(amount as real) as amount
+			from BoughtIngredient
+			where room_code = :roomCode
+		`, { roomCode }).all() as unknown as Ingredient[];
 	}
 
 	public getAllRoomIngredientsForUser(username: string): Ingredient[] {
 		return this.unit.prepare(`
-		select ri.ingredient_name as name, ri.measurement, cast(ri.amount as real) as amount
-		from RoomIngredient ri
-		join RoomUserMember rum on ri.room_code = rum.room_code
-		where rum.username = :username
-	`, { username }).all() as unknown as Ingredient[];
+			select ri.ingredient_name as name, ri.measurement, cast(ri.amount as real) as amount
+			from RoomIngredient ri
+				     join RoomUserMember rum on ri.room_code = rum.room_code
+			where rum.username = :username
+		`, { username }).all() as unknown as Ingredient[];
 	}
 
 	public getBoughtIngredientsForUserRooms(username: string): Ingredient[] {
 		return this.unit.prepare(`
-		select bi.ingredient_name as name, bi.measurement, cast(bi.amount as real) as amount
-		from BoughtIngredient bi
-		join RoomUserMember rum on bi.room_code = rum.room_code
-		where rum.username = :username
-	`, { username }).all() as unknown as Ingredient[];
+			select bi.ingredient_name as name, bi.measurement, cast(bi.amount as real) as amount
+			from BoughtIngredient bi
+				     join RoomUserMember rum on bi.room_code = rum.room_code
+			where rum.username = :username
+		`, { username }).all() as unknown as Ingredient[];
 	}
 
-	public getPersonalBoughtIngredients(username: string): Ingredient[] {
+	/*public getPersonalBoughtIngredients(username: string): Ingredient[] {
 		return this.unit.prepare(`
-        select ingredient_name as name, measurement, cast(amount as real) as amount
-        from PersonalBoughtIngredient
-        where username = :username
-    `, { username }).all() as unknown as Ingredient[];
-	}
+			select ingredient_name as name, measurement, cast(amount as real) as amount
+			from PersonalBoughtIngredient
+			where username = :username
+		`, { username }).all() as unknown as Ingredient[];
+	}*/
 
 	public getIngredientsForPrefix(prefix: string, user: string): Ingredient[] {
 		return this.unit.prepare(`
@@ -64,7 +64,8 @@ export class IngredientsService extends ServiceBase {
 
 	public addIngredient(name: string, measurement: string, user: string | null): boolean {
 		const [success] = this.executeStmt(this.unit.prepare(`
-			insert into Ingredient(name, default_measurement, user) VALUES (:n, :m, :u);
+			insert into Ingredient(name, default_measurement, user)
+			VALUES (:n, :m, :u);
 		`, {
 			n: name,
 			m: measurement,
@@ -77,9 +78,11 @@ export class IngredientsService extends ServiceBase {
 	public addIngredientToRecipe(ingredient: Ingredient, recipeId: number, user: string): boolean {
 		//only add ingredient if user is the one who created the recipe
 		const isOwner = this.unit.prepare(`
-			select 1 from Recipe r
-							  join User u on u.id = r.author
-			where r.id = :recipeId and u.username = :user
+			select 1
+			from Recipe r
+				     join User u on u.id = r.author
+			where r.id = :recipeId
+			  and u.username = :user
 		`, {
 			recipeId,
 			user
@@ -112,7 +115,8 @@ export class IngredientsService extends ServiceBase {
 
 	public getDefaultMeasurement(name: string): string {
 		const result = this.unit.prepare(`
-			select default_measurement from Ingredient
+			select default_measurement
+			from Ingredient
 			where name = :name
 		`, { name }).get() as {
 			default_measurement: string
@@ -124,13 +128,13 @@ export class IngredientsService extends ServiceBase {
 	public getIngredientsToBuyForUser(username: string): Ingredient[] {
 		// Only include ingredients that are explicitly assigned to the user via MealIngredientAssignment
 		return this.unit.prepare(`
-			select
-				ri.ingredient_name as name,
-				ri.measurement,
-				sum(cast(ri.amount as real)) as amount
+			select ri.ingredient_name           as name,
+			       ri.measurement,
+			       sum(cast(ri.amount as real)) as amount
 			from MealIngredientAssignment mia
-					 join MealRecipe mr on mr.meal_id = mia.meal_id
-				     join RecipeIngredient ri on ri.recipe_id = mr.recipe_id and ri.ingredient_name = mia.ingredient_name
+				     join MealRecipe mr on mr.meal_id = mia.meal_id
+				     join RecipeIngredient ri
+				          on ri.recipe_id = mr.recipe_id and ri.ingredient_name = mia.ingredient_name
 			where mia.assigned_to_username = :username
 			group by ri.ingredient_name, ri.measurement
 			order by ri.ingredient_name
@@ -149,8 +153,7 @@ export class IngredientsService extends ServiceBase {
 		const [success] = this.executeStmt(this.unit.prepare(`
 			insert into RoomIngredient (room_code, ingredient_name, measurement, amount)
 			VALUES (:roomCode, :ingredientName, :measurement, :amount)
-			ON CONFLICT DO UPDATE SET
-				amount = CAST(amount AS REAL) + CAST(excluded.amount AS REAL)
+			ON CONFLICT DO UPDATE SET amount = CAST(amount AS REAL) + CAST(excluded.amount AS REAL)
 		`, {
 			roomCode,
 			ingredientName: ingredient.name,
@@ -163,8 +166,11 @@ export class IngredientsService extends ServiceBase {
 
 	public deleteIngredientFromRoom(ingredientName: string, measurement: string, roomCode: string): boolean {
 		const [success] = this.executeStmt(this.unit.prepare(`
-			delete from RoomIngredient
-			where room_code = :roomCode and ingredient_name = :ingredientName and measurement = :measurement
+			delete
+			from RoomIngredient
+			where room_code = :roomCode
+			  and ingredient_name = :ingredientName
+			  and measurement = :measurement
 		`, {
 			roomCode,
 			ingredientName,
@@ -174,11 +180,14 @@ export class IngredientsService extends ServiceBase {
 		return success;
 	}
 
-	public updateIngredientAmountInRoom(ingredientName: string, measurement: string, roomCode: string, newAmount: number): boolean {
+	public updateIngredientAmountInRoom(ingredientName: string, measurement: string, roomCode: string,
+		newAmount: number): boolean {
 		const [success] = this.executeStmt(this.unit.prepare(`
 			update RoomIngredient
 			set amount = :newAmount
-			where room_code = :roomCode and ingredient_name = :ingredientName and measurement = :measurement
+			where room_code = :roomCode
+			  and ingredient_name = :ingredientName
+			  and measurement = :measurement
 		`, {
 			roomCode,
 			ingredientName,
@@ -195,16 +204,15 @@ export class IngredientsService extends ServiceBase {
 
 	public saveUserIngredient(username: string, ingredient: Ingredient): boolean {
 		const [success] = this.executeStmt(this.unit.prepare(`
-			insert into UserIngredient(username, ingredient_name, measurement, amount, used_at)
-			VALUES (:username, :ingredientName, :measurement, :amount, datetime('now'))
-			on conflict(username, ingredient_name, measurement) do update set
-				amount = excluded.amount,
-				used_at = datetime('now')
+			insert into Ingredient(name, default_measurement, user)
+			VALUES (:name, :measurement, :user)
+			on conflict(name) do update set
+			default_measurement = excluded.default_measurement,
+			user = excluded.user
 		`, {
-			username,
-			ingredientName: ingredient.name,
+			name: ingredient.name,
 			measurement: ingredient.measurement,
-			amount: ingredient.amount
+			user: username
 		}));
 
 		return success;
@@ -212,11 +220,11 @@ export class IngredientsService extends ServiceBase {
 
 	public getUserIngredientsForPrefix(prefix: string, username: string): Ingredient[] {
 		return this.unit.prepare(`
-			select ingredient_name as name, measurement, cast(amount as real) as amount
-			from UserIngredient
-			where lower(ingredient_name) like lower(:prefix || '%')
-			  and username = :username
-			order by used_at desc
+			select name, default_measurement as measurement, 0 as amount
+			from Ingredient
+			where lower(name) like lower(:prefix || '%')
+			  and (user is null or user = :username)
+			order by case when user = :username then 0 else 1 end, name
 			limit 20
 		`, {
 			prefix,
@@ -226,10 +234,10 @@ export class IngredientsService extends ServiceBase {
 
 	public getAllUserIngredients(username: string): Ingredient[] {
 		return this.unit.prepare(`
-			select ingredient_name as name, measurement, cast(amount as real) as amount
-			from UserIngredient
-			where username = :username
-			order by used_at desc
+			select name, default_measurement as measurement, 0 as amount
+			from Ingredient
+			where user is null or user = :username
+			order by case when user = :username then 0 else 1 end, name
 		`, {
 			username
 		}).all() as unknown as Ingredient[];

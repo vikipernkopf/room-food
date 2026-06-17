@@ -1,12 +1,12 @@
 import { Component, effect, inject, input, OnInit, signal } from '@angular/core';
-import { FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { Router } from '@angular/router';
+import { form, required, minLength, FormField, FormRoot, submit } from '@angular/forms/signals';
 import { AuthService } from '../../core/auth-service';
 import { RecipeService } from '../../core/recipe-service';
 import { Ingredient, RecipeCreatePayload, RecipeVisibility } from '../../../backend/model';
@@ -20,19 +20,37 @@ export type RecipeMealType = {
 	viewValue: string;
 };
 
+interface RecipeFormModel {
+	name: string;
+	description: string;
+	image: string;
+	mealTypes: string[];
+	visibility: RecipeVisibility;
+	instructions: string;
+}
+
+const INITIAL_RECIPE_MODEL: RecipeFormModel = {
+	name: '',
+	description: '',
+	image: '',
+	mealTypes: [],
+	visibility: 'private',
+	instructions: ''
+};
+
 @Component({
 	selector: 'app-create-recipe',
 	standalone: true,
 	imports: [
 		CommonModule,
-		FormsModule,
-		ReactiveFormsModule,
 		MatFormFieldModule,
 		MatInputModule,
 		MatSelectModule,
 		MatButtonModule,
 		MatIconModule,
-		SearchIngredient
+		SearchIngredient,
+		FormField,
+		FormRoot
 	],
 	templateUrl: './manage-recipe.html',
 	styleUrl: './manage-recipe.scss'
@@ -53,12 +71,13 @@ export class ManageRecipe implements OnInit {
 
 	protected readonly isEditMode = signal(false);
 
-	protected readonly recipeNameControl = new FormControl('', [Validators.required, Validators.minLength(3)]);
-	protected readonly recipeDescriptionControl = new FormControl('');
-	protected readonly recipeImageControl = new FormControl('');
-	protected readonly recipeMealTypesControl = new FormControl<string[]>([], { nonNullable: true });
-	protected readonly recipeVisibilityControl = new FormControl<RecipeVisibility>('private', { nonNullable: true });
-	protected readonly recipeStepsControl = new FormControl('', [Validators.required]);
+	protected readonly model = signal<RecipeFormModel>({ ...INITIAL_RECIPE_MODEL });
+
+	protected readonly recipeForm = form(this.model, path => {
+		required(path.name, { message: 'Recipe name is required.' });
+		minLength(path.name, 3, { message: 'Recipe name must be at least 3 characters.' });
+		required(path.instructions, { message: 'Instructions are required.' });
+	});
 
 	protected readonly ingredients = signal<Array<{
 		name: string;
@@ -67,7 +86,7 @@ export class ManageRecipe implements OnInit {
 	}>>([]);
 	protected readonly currentIngredientName = signal('');
 	protected readonly currentIngredientMeasurement = signal('');
-	protected readonly currentIngredientAmount = signal('');
+	protected readonly currentIngredientAmount = signal<number | ''>('');
 
 	protected readonly mealTypeOptions: RecipeMealType[] = [
 		{
@@ -93,8 +112,6 @@ export class ManageRecipe implements OnInit {
 
 		effect(() => {
 			const id = this.recipeId();
-			console.log(id);
-
 			if (id !== null && id !== undefined) {
 				this.isEditMode.set(true);
 				this.loadRecipeForEditing(id);
@@ -126,15 +143,14 @@ export class ManageRecipe implements OnInit {
 		this.recipeService.getRecipeById(id).subscribe({
 			next: recipe => {
 				if (recipe) {
-					this.recipeNameControl.setValue(recipe.name ?? '');
-					this.recipeDescriptionControl.setValue(recipe.description ?? '');
-					this.recipeImageControl.setValue(recipe.image ?? '');
-					this.recipeMealTypesControl.setValue(recipe.mealTypes ?? []);
-					this.recipeVisibilityControl.setValue(recipe.visibility ?? 'private');
-
-					// Fixed: Explicitly populating cooking steps from API layout structure
-					this.recipeStepsControl.setValue((recipe as any).instructions || recipe.description || '');
-
+					this.model.set({
+						name: recipe.name ?? '',
+						description: recipe.description ?? '',
+						image: recipe.image ?? '',
+						mealTypes: recipe.mealTypes ?? [],
+						visibility: recipe.visibility ?? 'private',
+						instructions: (recipe as any).instructions || recipe.description || ''
+					});
 					this.ingredients.set(recipe.ingredients ?? []);
 				}
 			},
@@ -186,79 +202,37 @@ export class ManageRecipe implements OnInit {
 		this.ingredients.update(list => list.filter((_, i) => i !== index));
 	}
 
-	submitForm(): void {
-		if (this.isEditMode()) {
-			this.updateRecipe();
-		} else {
-			this.createRecipe();
-		}
-	}
-
-	createRecipe() {
+	async submitForm(): Promise<void> {
 		const username = this.authService.currentUser()?.username;
 		if (!username) {
-			this.saveError.set('You must be logged in to create a recipe');
+			this.saveError.set('You must be logged in to manage a recipe');
 			return;
 		}
 
 		this.isSaving.set(true);
 		this.saveError.set('');
 
-		const payload: RecipeCreatePayload = this.buildFormPayload(username);
+		await submit(this.recipeForm, async f => {
+			const id = this.recipeId();
+			const payload: RecipeCreatePayload = {
+				authorUsername: username,
+				name: f.name().value().trim(),
+				description: f.description().value().trim() || undefined,
+				image: f.image().value().trim() || this.defaultRecipeImage,
+				mealTypes: f.mealTypes().value(),
+				visibility: f.visibility().value(),
+				ingredients: this.ingredients(),
+				instructions: f.instructions().value().trim()
+			} as any;
 
-		this.recipeService.createRecipe(payload).subscribe({
-			next: () => this.handlePostSaveActions(),
-			error: err => {
-				this.isSaving.set(false);
-				this.saveError.set(err?.error?.message || 'Failed to create recipe');
+			if (this.isEditMode() && id) {
+				await firstValueFrom(this.recipeService.updateRecipe(id, payload as any));
+			} else {
+				await firstValueFrom(this.recipeService.createRecipe(payload));
 			}
-		});
-	}
 
-	updateRecipe() {
-		const username = this.authService.currentUser()?.username;
-		const id = this.recipeId();
+			this.isSaving.set(false);
 
-		if (!username || !id) {
-			this.saveError.set('Invalid reference state or missing authentication credentials.');
-			return;
-		}
-
-		this.isSaving.set(true);
-		this.saveError.set('');
-
-		const payload = {
-			...this.buildFormPayload(username),
-			id
-		};
-
-		this.recipeService.updateRecipe(id, payload as any).subscribe({
-			next: () => this.handlePostSaveActions(),
-			error: err => {
-				this.isSaving.set(false);
-				this.saveError.set(err?.error?.message || 'Failed to update recipe changes.');
-			}
-		});
-	}
-
-	private buildFormPayload(username: string): RecipeCreatePayload {
-		return {
-			authorUsername: username,
-			name: this.recipeNameControl.value?.trim() ?? '',
-			description: this.recipeDescriptionControl.value?.trim() || undefined,
-			image: this.recipeImageControl.value?.trim() || this.defaultRecipeImage,
-			mealTypes: this.recipeMealTypesControl.value ?? [],
-			visibility: this.recipeVisibilityControl.value ?? 'private',
-			ingredients: this.ingredients(),
-			instructions: this.recipeStepsControl.value?.trim() ?? ''
-		} as any;
-	}
-
-	private async handlePostSaveActions() {
-		this.isSaving.set(false);
-		const username = this.authService.currentUser()?.username;
-
-		if (username) {
 			for (const ing of this.ingredients()) {
 				try {
 					await firstValueFrom(this.ingredientService.saveUserIngredient(username, ing));
@@ -266,18 +240,17 @@ export class ManageRecipe implements OnInit {
 					console.error('Failed to save ingredient to user history:', err);
 				}
 			}
-		}
 
-		this.router.navigate(['/recipes']).then(() => this.resetForm());
+			this.router.navigate(['/recipes']).then(() => this.resetForm());
+		});
+
+		this.isSaving.set(false);
 	}
 
 	private resetForm() {
-		this.recipeNameControl.reset('');
-		this.recipeDescriptionControl.reset('');
-		this.recipeImageControl.reset('');
-		this.recipeMealTypesControl.reset([]);
-		this.recipeVisibilityControl.reset('private');
-		this.recipeStepsControl.reset('');
+		this.model.set({ ...INITIAL_RECIPE_MODEL });
 		this.ingredients.set([]);
+		this.saveError.set('');
+		this.ingredientError.set('');
 	}
 }
