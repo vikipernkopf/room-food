@@ -141,7 +141,10 @@ recipesRouter.post('/recipes/:id/save', async (req, res): Promise<void> => {
 		}
 
 		unit.complete(true);
-		res.status(StatusCodes.OK).json({ id: recipeId, saved: true });
+		res.status(StatusCodes.OK).json({
+			id: recipeId,
+			saved: true
+		});
 	} catch (error) {
 		unit.complete(false);
 		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to save recipe' });
@@ -154,8 +157,8 @@ recipesRouter.post('/recipes', async (req, res): Promise<void> => {
 
 	if (!payload.name || !payload.authorUsername || !Array.isArray(payload.ingredients) || typeof payload.instructions
 		!== 'string') {
-		res.status(StatusCodes.BAD_REQUEST).
-		json({ error: 'Invalid recipe data: name, author, ingredients, and instructions are required.' });
+		res.status(StatusCodes.BAD_REQUEST)
+		.json({ error: 'Invalid recipe data: name, author, ingredients, and instructions are required.' });
 		return;
 	}
 
@@ -207,9 +210,9 @@ recipesRouter.put('/recipes/:id', async (req, res) => {
 	}
 });
 
-function isRecipeVisibility(value: unknown): value is RecipeVisibility {
+/*function isRecipeVisibility(value: unknown): value is RecipeVisibility {
 	return value === 'public' || value === 'private';
-}
+}*/
 
 recipesRouter.delete('/recipes/:id', async (req, res): Promise<void> => {
 	const recipeId = Number(req.params.id);
@@ -281,12 +284,17 @@ recipesRouter.get('/recipes/:id', async (req, res): Promise<void> => {
 
 	try {
 		const recipesService = new RecipesService(unit);
-		// Assuming your core RecipesService has a getRecipeById method implemented
 		const recipe = recipesService.getRecipeById(recipeId);
 
-		if (!recipe) {
+		if (recipe === 'not_found') {
 			unit.complete();
 			res.status(StatusCodes.NOT_FOUND).json({ error: 'Recipe not found' });
+			return;
+		}
+
+		if (recipe === 'error') {
+			unit.complete();
+			res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to fetch recipe details' });
 			return;
 		}
 

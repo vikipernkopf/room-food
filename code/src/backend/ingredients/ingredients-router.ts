@@ -1,10 +1,14 @@
 import express from 'express';
 import { StatusCodes } from 'http-status-codes';
+import { Ingredient } from '../model';
 import { Unit } from '../unit';
 import { IngredientsService } from './ingredients-service';
-import { Ingredient } from '../model';
 
 export const ingredientsRouter = express.Router();
+
+// ------------------------------------------------------------------
+// Ingredient search / lookup
+// ------------------------------------------------------------------
 
 ingredientsRouter.get('/ingredients/prefix/:prefix', async (req, res): Promise<void> => {
 	const { prefix } = req.params;
@@ -36,9 +40,15 @@ ingredientsRouter.get('/ingredients/prefix/:prefix', async (req, res): Promise<v
 });
 
 ingredientsRouter.post('/ingredients', async (req, res): Promise<void> => {
-	const name = String((req.body as { name?: string })?.name ?? '').trim();
-	const measurement = String((req.body as { measurement?: string })?.measurement ?? '').trim();
-	const username = String((req.body as { username?: string })?.username ?? '').trim();
+	const name = String((req.body as {
+		name?: string
+	})?.name ?? '').trim();
+	const measurement = String((req.body as {
+		measurement?: string
+	})?.measurement ?? '').trim();
+	const username = String((req.body as {
+		username?: string
+	})?.username ?? '').trim();
 
 	if (!name) {
 		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Ingredient name is required' });
@@ -58,7 +68,11 @@ ingredientsRouter.post('/ingredients', async (req, res): Promise<void> => {
 
 		if (success) {
 			unit.complete(true);
-			res.status(StatusCodes.CREATED).json({ name, measurement, username: username || null });
+			res.status(StatusCodes.CREATED).json({
+				name,
+				measurement,
+				username: username || null
+			});
 		} else {
 			unit.complete(false);
 			res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to add ingredient' });
@@ -69,6 +83,10 @@ ingredientsRouter.post('/ingredients', async (req, res): Promise<void> => {
 		console.error('Error adding ingredient:', error);
 	}
 });
+
+// ------------------------------------------------------------------
+// User room ingredients & bought ingredients
+// ------------------------------------------------------------------
 
 ingredientsRouter.get('/ingredients/user/:username/rooms', async (req, res): Promise<void> => {
 	const { username } = req.params;
@@ -106,6 +124,10 @@ ingredientsRouter.get('/ingredients/user/:username/bought', async (req, res): Pr
 	}
 });
 
+// ------------------------------------------------------------------
+// Room bought ingredients
+// ------------------------------------------------------------------
+
 ingredientsRouter.get('/room/:roomCode/bought-ingredients', async (req, res): Promise<void> => {
 	const { roomCode } = req.params;
 	if (!roomCode) {
@@ -116,46 +138,6 @@ ingredientsRouter.get('/room/:roomCode/bought-ingredients', async (req, res): Pr
 	try {
 		const ingredientsService = new IngredientsService(unit);
 		const ingredients = ingredientsService.getBoughtIngredientsForRoom(roomCode);
-		unit.complete();
-		res.status(StatusCodes.OK).json(ingredients || []);
-	} catch (error) {
-		unit.complete();
-		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to fetch bought ingredients' });
-	}
-});
-
-/*ingredientsRouter.get('/user/:username/bought-ingredients', async (req, res): Promise<void> => {
-	const { username } = req.params;
-	if (!username) {
-		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Username is required' });
-		return;
-	}
-	const unit = new Unit(true);
-	try {
-		const ingredientsService = new IngredientsService(unit);
-		const ingredients = ingredientsService.getPersonalBoughtIngredients(username);
-		unit.complete();
-		res.status(StatusCodes.OK).json(ingredients || []);
-	} catch (error) {
-		unit.complete();
-		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to fetch personal bought ingredients' });
-	}
-});*/
-
-ingredientsRouter.get('/room/:roomCode/bought-ingredients', async (req, res): Promise<void> => {
-	const { roomCode } = req.params;
-
-	if (!roomCode) {
-		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Room code is required' });
-		return;
-	}
-
-	const unit = new Unit(true);
-
-	try {
-		const ingredientsService = new IngredientsService(unit);
-		const ingredients = ingredientsService.getBoughtIngredientsForRoom(roomCode);
-
 		unit.complete();
 		res.status(StatusCodes.OK).json(ingredients || []);
 	} catch (error) {
@@ -165,10 +147,18 @@ ingredientsRouter.get('/room/:roomCode/bought-ingredients', async (req, res): Pr
 	}
 });
 
+// ------------------------------------------------------------------
+// Recipe ingredients
+// ------------------------------------------------------------------
+
 ingredientsRouter.post('/recipes/:recipeId/ingredients', async (req, res): Promise<void> => {
 	const recipeId = Number(req.params.recipeId);
-	const username = String((req.body as { username?: string })?.username ?? '').trim();
-	const ingredient = (req.body as { ingredient?: Ingredient })?.ingredient;
+	const username = String((req.body as {
+		username?: string
+	})?.username ?? '').trim();
+	const ingredient = (req.body as {
+		ingredient?: Ingredient
+	})?.ingredient;
 
 	if (!Number.isInteger(recipeId) || recipeId <= 0) {
 		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid recipe id' });
@@ -181,7 +171,8 @@ ingredientsRouter.post('/recipes/:recipeId/ingredients', async (req, res): Promi
 	}
 
 	if (!ingredient || !ingredient.name || ingredient.measurement === undefined || ingredient.amount === undefined) {
-		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Valid ingredient object with name, measurement, and amount is required' });
+		res.status(StatusCodes.BAD_REQUEST)
+		.json({ error: 'Valid ingredient object with name, measurement, and amount is required' });
 		return;
 	}
 
@@ -193,12 +184,17 @@ ingredientsRouter.post('/recipes/:recipeId/ingredients', async (req, res): Promi
 
 		if (!success) {
 			unit.complete(false);
-			res.status(StatusCodes.FORBIDDEN).json({ error: 'You do not have permission to add ingredients to this recipe' });
+			res.status(StatusCodes.FORBIDDEN)
+			.json({ error: 'You do not have permission to add ingredients to this recipe' });
 			return;
 		}
 
 		unit.complete(true);
-		res.status(StatusCodes.CREATED).json({ recipeId, ingredient, added: true });
+		res.status(StatusCodes.CREATED).json({
+			recipeId,
+			ingredient,
+			added: true
+		});
 	} catch (error) {
 		unit.complete(false);
 		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to add ingredient to recipe' });
@@ -229,6 +225,10 @@ ingredientsRouter.get('/recipes/:recipeId/ingredients', async (req, res): Promis
 	}
 });
 
+// ------------------------------------------------------------------
+// Default measurement lookup
+// ------------------------------------------------------------------
+
 ingredientsRouter.get('/ingredients/measurement/:name', async (req, res): Promise<void> => {
 	const { name } = req.params;
 
@@ -244,13 +244,20 @@ ingredientsRouter.get('/ingredients/measurement/:name', async (req, res): Promis
 		const measurement = ingredientsService.getDefaultMeasurement(name);
 
 		unit.complete();
-		res.status(StatusCodes.OK).json({ name, measurement });
+		res.status(StatusCodes.OK).json({
+			name,
+			measurement
+		});
 	} catch (error) {
 		unit.complete();
 		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to fetch default measurement' });
 		console.error('Error fetching default measurement:', error);
 	}
 });
+
+// ------------------------------------------------------------------
+// Shopping list: ingredients to buy for a user
+// ------------------------------------------------------------------
 
 ingredientsRouter.get('/ingredients/:username', async (req, res): Promise<void> => {
 	const { username } = req.params;
@@ -284,7 +291,10 @@ ingredientsRouter.get('/ingredients/:username', async (req, res): Promise<void> 
 	}
 });
 
-// Room Ingredients endpoints
+// ------------------------------------------------------------------
+// Room ingredients
+// ------------------------------------------------------------------
+
 ingredientsRouter.get('/room/:roomCode/ingredients', async (req, res): Promise<void> => {
 	const { roomCode } = req.params;
 
@@ -310,7 +320,9 @@ ingredientsRouter.get('/room/:roomCode/ingredients', async (req, res): Promise<v
 
 ingredientsRouter.post('/room/:roomCode/ingredients', async (req, res): Promise<void> => {
 	const { roomCode } = req.params;
-	const ingredient = (req.body as { ingredient?: Ingredient })?.ingredient;
+	const ingredient = (req.body as {
+		ingredient?: Ingredient
+	})?.ingredient;
 
 	if (!roomCode) {
 		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Room code is required' });
@@ -318,7 +330,8 @@ ingredientsRouter.post('/room/:roomCode/ingredients', async (req, res): Promise<
 	}
 
 	if (!ingredient || !ingredient.name || ingredient.measurement === undefined || ingredient.amount === undefined) {
-		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Valid ingredient object with name, measurement, and amount is required' });
+		res.status(StatusCodes.BAD_REQUEST)
+		.json({ error: 'Valid ingredient object with name, measurement, and amount is required' });
 		return;
 	}
 
@@ -335,7 +348,11 @@ ingredientsRouter.post('/room/:roomCode/ingredients', async (req, res): Promise<
 		}
 
 		unit.complete(true);
-		res.status(StatusCodes.CREATED).json({ roomCode, ingredient, added: true });
+		res.status(StatusCodes.CREATED).json({
+			roomCode,
+			ingredient,
+			added: true
+		});
 	} catch (error) {
 		unit.complete(false);
 		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to add ingredient to room' });
@@ -343,11 +360,16 @@ ingredientsRouter.post('/room/:roomCode/ingredients', async (req, res): Promise<
 	}
 });
 
-ingredientsRouter.delete('/room/:roomCode/ingredients/:ingredientName/:measurement', async (req, res): Promise<void> => {
-	const { roomCode, ingredientName, measurement } = req.params;
+// Delete specific RoomIngredient
+ingredientsRouter.delete('/room/:roomCode/ingredients/:ingredientId', async (req, res): Promise<void> => {
+	const {
+		roomCode,
+		ingredientId
+	} = req.params;
 
-	if (!roomCode || !ingredientName || !measurement) {
-		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Room code, ingredient name, and measurement are required' });
+	if (!roomCode || !ingredientId) {
+		res.status(StatusCodes.BAD_REQUEST)
+		.json({ error: 'Room code and ingredient id are required' });
 		return;
 	}
 
@@ -356,8 +378,7 @@ ingredientsRouter.delete('/room/:roomCode/ingredients/:ingredientName/:measureme
 	try {
 		const ingredientsService = new IngredientsService(unit);
 		const success = ingredientsService.deleteIngredientFromRoom(
-			decodeURIComponent(ingredientName),
-			decodeURIComponent(measurement),
+			Number(ingredientId),
 			roomCode
 		);
 
@@ -376,12 +397,57 @@ ingredientsRouter.delete('/room/:roomCode/ingredients/:ingredientName/:measureme
 	}
 });
 
-ingredientsRouter.put('/room/:roomCode/ingredients/:ingredientName/:measurement', async (req, res): Promise<void> => {
-	const { roomCode, ingredientName, measurement } = req.params;
-	const { amount } = req.body as { amount?: number };
+// Delete aggregated Bought ingredients
+ingredientsRouter.delete('/room/:roomCode/bought-ingredients/:ingredientName/:measurement',
+	async (req, res): Promise<void> => {
+	const {
+		roomCode,
+		ingredientName,
+		measurement
+	} = req.params;
 
 	if (!roomCode || !ingredientName || !measurement) {
-		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Room code, ingredient name, and measurement are required' });
+		res.status(StatusCodes.BAD_REQUEST)
+		.json({ error: 'Room code, ingredient name, and measurement are required' });
+		return;
+	}
+
+	const unit = new Unit(false);
+
+	try {
+		const ingredientsService = new IngredientsService(unit);
+		const success = ingredientsService.removeBoughtIngredientsFromRoom(
+			decodeURIComponent(ingredientName),
+			decodeURIComponent(measurement),
+			roomCode
+		);
+
+		if (!success) {
+			unit.complete(false);
+			res.status(StatusCodes.NOT_FOUND).json({ error: 'Ingredients not found' });
+			return;
+		}
+
+		unit.complete(true);
+		res.status(StatusCodes.OK).json({ success: true });
+	} catch (error) {
+		unit.complete(false);
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to remove bought ingredients' });
+		console.error('Error removing bought ingredients:', error);
+	}
+});
+
+ingredientsRouter.put('/room/:roomCode/ingredients/:ingredientId', async (req, res): Promise<void> => {
+	const {
+		roomCode,
+		ingredientId
+	} = req.params;
+	const { amount } = req.body as {
+		amount?: number
+	};
+
+	if (!roomCode || !ingredientId) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Room code and ingredient id are required' });
 		return;
 	}
 
@@ -395,8 +461,7 @@ ingredientsRouter.put('/room/:roomCode/ingredients/:ingredientName/:measurement'
 	try {
 		const ingredientsService = new IngredientsService(unit);
 		const success = ingredientsService.updateIngredientAmountInRoom(
-			decodeURIComponent(ingredientName),
-			decodeURIComponent(measurement),
+			Number(ingredientId),
 			roomCode,
 			amount
 		);
@@ -417,11 +482,189 @@ ingredientsRouter.put('/room/:roomCode/ingredients/:ingredientName/:measurement'
 });
 
 // ------------------------------------------------------------------
+// Meal ingredient assignment (assign recipe ingredients to users)
+// ------------------------------------------------------------------
+
+ingredientsRouter.post('/meals/:mealId/ingredients/:ingredientId/assign', async (req, res): Promise<void> => {
+	const mealId = Number(req.params.mealId);
+	const ingredientId = Number(req.params.ingredientId);
+	const username = String((req.body as {
+		username?: string
+	})?.username ?? '').trim();
+
+	if (!Number.isInteger(mealId) || mealId <= 0) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid meal id' });
+		return;
+	}
+
+	if (!Number.isInteger(ingredientId) || ingredientId <= 0) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid ingredient id' });
+		return;
+	}
+
+	if (!username) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Username is required' });
+		return;
+	}
+
+	const unit = new Unit(false);
+
+	try {
+		const ingredientsService = new IngredientsService(unit);
+		const success = ingredientsService.assignIngredientToUser(mealId, ingredientId, username);
+
+		if (!success) {
+			unit.complete(false);
+			res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to assign ingredient to user' });
+			return;
+		}
+
+		unit.complete(true);
+		res.status(StatusCodes.CREATED).json({
+			mealId,
+			ingredientId,
+			username,
+			assigned: true
+		});
+	} catch (error) {
+		unit.complete(false);
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to assign ingredient to user' });
+		console.error('Error assigning ingredient to user:', error);
+	}
+});
+
+ingredientsRouter.get('/meals/:mealId/ingredients/assigned', async (req, res): Promise<void> => {
+	const mealId = Number(req.params.mealId);
+
+	if (!Number.isInteger(mealId) || mealId <= 0) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid meal id' });
+		return;
+	}
+
+	const unit = new Unit(true);
+
+	try {
+		const ingredientsService = new IngredientsService(unit);
+		const assignments = ingredientsService.getAssignedIngredientsForMeal(mealId);
+
+		unit.complete();
+		res.status(StatusCodes.OK).json(assignments || []);
+	} catch (error) {
+		unit.complete();
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to fetch assigned ingredients' });
+		console.error('Error fetching assigned ingredients:', error);
+	}
+});
+
+// ------------------------------------------------------------------
+// Mark ingredient as bought / not bought
+// ------------------------------------------------------------------
+
+ingredientsRouter.post('/meals/:mealId/ingredients/:ingredientId/bought', async (req, res): Promise<void> => {
+	const mealId = Number(req.params.mealId);
+	const ingredientId = Number(req.params.ingredientId);
+	const username = String((req.body as {
+		username?: string
+	})?.username ?? '').trim();
+
+	if (!Number.isInteger(mealId) || mealId <= 0) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid meal id' });
+		return;
+	}
+
+	if (!Number.isInteger(ingredientId) || ingredientId <= 0) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid ingredient id' });
+		return;
+	}
+
+	if (!username) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Username is required' });
+		return;
+	}
+
+	const unit = new Unit(false);
+
+	try {
+		const ingredientsService = new IngredientsService(unit);
+		const success = ingredientsService.markIngredientAsBought(mealId, ingredientId, username);
+
+		if (!success) {
+			unit.complete(false);
+			res.status(StatusCodes.NOT_FOUND).json({ error: 'Assignment not found' });
+			return;
+		}
+
+		unit.complete(true);
+		res.status(StatusCodes.OK).json({
+			mealId,
+			ingredientId,
+			username,
+			bought: true
+		});
+	} catch (error) {
+		unit.complete(false);
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to mark ingredient as bought' });
+		console.error('Error marking ingredient as bought:', error);
+	}
+});
+
+ingredientsRouter.delete('/meals/:mealId/ingredients/:ingredientId/bought', async (req, res): Promise<void> => {
+	const mealId = Number(req.params.mealId);
+	const ingredientId = Number(req.params.ingredientId);
+	const username = String((req.body as {
+		username?: string
+	})?.username ?? '').trim();
+
+	if (!Number.isInteger(mealId) || mealId <= 0) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid meal id' });
+		return;
+	}
+
+	if (!Number.isInteger(ingredientId) || ingredientId <= 0) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid ingredient id' });
+		return;
+	}
+
+	if (!username) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Username is required' });
+		return;
+	}
+
+	const unit = new Unit(false);
+
+	try {
+		const ingredientsService = new IngredientsService(unit);
+		const success = ingredientsService.markIngredientAsNotBought(mealId, ingredientId, username);
+
+		if (!success) {
+			unit.complete(false);
+			res.status(StatusCodes.NOT_FOUND).json({ error: 'Assignment not found' });
+			return;
+		}
+
+		unit.complete(true);
+		res.status(StatusCodes.OK).json({
+			mealId,
+			ingredientId,
+			username,
+			bought: false
+		});
+	} catch (error) {
+		unit.complete(false);
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to mark ingredient as not bought' });
+		console.error('Error marking ingredient as not bought:', error);
+	}
+});
+
+// ------------------------------------------------------------------
 // User-specific ingredient history routes
 // ------------------------------------------------------------------
 
 ingredientsRouter.get('/ingredients/user/:username/prefix/:prefix', async (req, res): Promise<void> => {
-	const { username, prefix } = req.params;
+	const {
+		username,
+		prefix
+	} = req.params;
 
 	if (!username) {
 		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Username is required' });
@@ -473,7 +716,9 @@ ingredientsRouter.get('/ingredients/user/:username/all', async (req, res): Promi
 
 ingredientsRouter.post('/ingredients/user/:username', async (req, res): Promise<void> => {
 	const { username } = req.params;
-	const ingredient = (req.body as { ingredient?: Ingredient })?.ingredient;
+	const ingredient = (req.body as {
+		ingredient?: Ingredient
+	})?.ingredient;
 
 	if (!username) {
 		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Username is required' });
@@ -481,7 +726,8 @@ ingredientsRouter.post('/ingredients/user/:username', async (req, res): Promise<
 	}
 
 	if (!ingredient || !ingredient.name || ingredient.measurement === undefined || ingredient.amount === undefined) {
-		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Valid ingredient object with name, measurement, and amount is required' });
+		res.status(StatusCodes.BAD_REQUEST)
+		.json({ error: 'Valid ingredient object with name, measurement, and amount is required' });
 		return;
 	}
 
@@ -498,7 +744,11 @@ ingredientsRouter.post('/ingredients/user/:username', async (req, res): Promise<
 		}
 
 		unit.complete(true);
-		res.status(StatusCodes.CREATED).json({ username, ingredient, saved: true });
+		res.status(StatusCodes.CREATED).json({
+			username,
+			ingredient,
+			saved: true
+		});
 	} catch (error) {
 		unit.complete(false);
 		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to save user ingredient' });

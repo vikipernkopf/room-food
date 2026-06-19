@@ -5,15 +5,13 @@ import { Meal, User } from '../../backend/model';
 import { Observable } from 'rxjs';
 
 function getApiBase(): string {
-	// Runtime override: window.__API_URL can be injected into the page (e.g. by a script
-	// in index.html) so the deployed static site can point to any backend without rebuild.
 	const win = typeof window === 'undefined' ? undefined : window as any;
 	const runtime = win && (win.__API_URL || win.API_URL);
 	return runtime || environment.apiUrl || '/api';
 }
 
 @Injectable({
-	providedIn: 'root',
+	providedIn: 'root'
 })
 export class MealService {
 	private apiBase = getApiBase();
@@ -21,67 +19,6 @@ export class MealService {
 
 	constructor(private http: HttpClient) {
 	}
-
-	// noinspection JSUnusedGlobalSymbols
-	public getAllMealsOfUser(user: User | null): WritableSignal<Meal[]> {
-		const mealsSignal = signal<Meal[]>([]);
-
-		const username = user?.username || null;
-
-		if (!username) {
-			console.log('No username provided, returning empty signal');
-
-			return mealsSignal;
-		}
-
-		const apiUrl = `${this.apiBase}/meals/${username}`;
-
-		console.log('Fetching meals for user:', username);
-
-		this.http.get<Meal[]>(apiUrl).subscribe({
-			next: meals => {
-				console.log('Successfully fetched meals:', meals);
-				mealsSignal.set(meals);
-			},
-			error: error => {
-				console.error('Error fetching meals:', error);
-				console.error('Error status:', error.status);
-				console.error('Error message:', error.message);
-				mealsSignal.set([]);
-			}
-		});
-
-		return mealsSignal;
-	}
-
-	/*public getAllMealsForRoom(room: string | null): WritableSignal<Meal[]> {
-		const mealsSignal = signal<Meal[]>([]);
-
-		if (!room) {
-			console.log('No room code provided, returning empty signal');
-
-			return mealsSignal;
-		}
-
-		const apiUrl = `${this.apiBase}/room_meals/${room}`;
-
-		console.log('Fetching meals for room:', room);
-
-		this.http.get<Meal[]>(apiUrl).subscribe({
-			next: meals => {
-				console.log('Successfully fetched meals:', meals);
-				mealsSignal.set(meals);
-			},
-			error: error => {
-				console.error('Error fetching meals:', error);
-				console.error('Error status:', error.status);
-				console.error('Error message:', error.message);
-				mealsSignal.set([]);
-			}
-		});
-
-		return mealsSignal;
-	}*/
 
 	public getMealsByUsername(username: string): Observable<Meal[]> {
 		const apiUrl = `${this.apiBase}/meals/${username}`;
@@ -112,8 +49,7 @@ export class MealService {
 			updatedMeal: {
 				...updatedMeal,
 				time: updatedMeal.time instanceof Date ? updatedMeal.time.toISOString() : updatedMeal.time,
-				endTime: updatedMeal.endTime instanceof Date ? updatedMeal.endTime.toISOString() : updatedMeal.endTime,
-				cooked: updatedMeal.cooked
+				endTime: updatedMeal.endTime instanceof Date ? updatedMeal.endTime.toISOString() : updatedMeal.endTime
 			}
 		};
 		return this.http.put<Meal>(apiUrl, payload);
@@ -130,18 +66,6 @@ export class MealService {
 		}>(apiUrl);
 	}
 
-	public addEatingUser(mealId: number, username: string):
-		Observable<{ mealId: number; username: string; added: boolean }> {
-		const apiUrl = `${this.apiBase}/meal/${mealId}/eating-user/${username}`;
-		return this.http.post<{ mealId: number; username: string; added: boolean }>(apiUrl, {});
-	}
-
-	public removeEatingUser(mealId: number, username: string):
-		Observable<{ mealId: number; username: string; removed: boolean }> {
-		const apiUrl = `${this.apiBase}/meal/${mealId}/eating-user/${username}`;
-		return this.http.delete<{ mealId: number; username: string; removed: boolean }>(apiUrl);
-	}
-
 	public getEatingUsers(mealId: number): Observable<{
 		mealId: number;
 		eatingUsers: string[]
@@ -153,30 +77,54 @@ export class MealService {
 		}>(apiUrl);
 	}
 
-	public assignIngredientToUser(mealId: number, ingredientName: string, username: string):
-		Observable<{ mealId: number; ingredientName: string; username: string }> {
+	public assignIngredientToUser(mealId: number, ingredientId: number, username: string):
+		Observable<{
+			mealId: number;
+			ingredientId: number;
+			username: string;
+			assigned: boolean
+		}> {
 		const apiUrl = `${this.apiBase}/meal/${mealId}/ingredient-assignment`;
-		return this.http.post<{ mealId: number; ingredientName: string; username: string }>(apiUrl, {
-			ingredientName,
+		return this.http.post<{
+			mealId: number;
+			ingredientId: number;
+			username: string;
+			assigned: boolean
+		}>(apiUrl, {
+			ingredientId,
 			username
 		});
 	}
 
-	public removeIngredientAssignment(mealId: number, ingredientName: string, username: string):
-		Observable<{ mealId: number; ingredientName: string; username: string; removed: boolean }> {
-		const apiUrl = `${this.apiBase}/meal/${mealId}/ingredient-assignment/${encodeURIComponent(ingredientName)}
-			/${encodeURIComponent(username)}`;
-		return this.http.delete<{ mealId: number; ingredientName: string; username: string; removed: boolean }>(apiUrl);
+	public removeIngredientAssignment(mealId: number, ingredientId: number, username: string):
+		Observable<{
+			mealId: number;
+			ingredientId: number;
+			username: string;
+			removed: boolean
+		}> {
+		const apiUrl = `${this.apiBase}/meal/${mealId}/ingredient-assignment/${ingredientId}/${encodeURIComponent(
+			username)}`;
+		return this.http.delete<{
+			mealId: number;
+			ingredientId: number;
+			username: string;
+			removed: boolean
+		}>(apiUrl);
 	}
 
 	public getIngredientAssignments(mealId: number): Observable<{
 		mealId: number;
-		ingredientAssignments: { [key: string]: string[] }
+		ingredientAssignments: {
+			[key: number]: string[]
+		}
 	}> {
 		const apiUrl = `${this.apiBase}/meal/${mealId}/ingredient-assignments`;
 		return this.http.get<{
 			mealId: number;
-			ingredientAssignments: { [key: string]: string[] }
+			ingredientAssignments: {
+				[key: number]: string[]
+			}
 		}>(apiUrl);
 	}
 }

@@ -1,4 +1,4 @@
-import { Component, effect, inject, input, OnInit, signal } from '@angular/core';
+import { Component, effect, inject, input, OnInit, signal, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -62,6 +62,7 @@ export class ManageRecipe implements OnInit {
 	private readonly authService = inject(AuthService);
 	private readonly ingredientService = inject(IngredientsFrontendService);
 	private readonly router = inject(Router);
+	private readonly searchIngredient = viewChild<any>('searchIngredient');
 
 	protected readonly currentUser = this.authService.currentUser;
 	protected readonly isSaving = signal(false);
@@ -147,7 +148,7 @@ export class ManageRecipe implements OnInit {
 						name: recipe.name ?? '',
 						description: recipe.description ?? '',
 						image: recipe.image ?? '',
-						mealTypes: recipe.mealTypes ?? [],
+						mealTypes: (recipe.mealTypes ?? []).map(type => type.replace(/-\d+$/, '').trim()),
 						visibility: recipe.visibility ?? 'private',
 						instructions: (recipe as any).instructions || recipe.description || ''
 					});
@@ -178,11 +179,7 @@ export class ManageRecipe implements OnInit {
 			return;
 		}
 
-		const newIngredient = {
-			name,
-			measurement,
-			amount
-		};
+		const newIngredient = { name, measurement, amount };
 		const found = this.ingredients().find(s => s.name === newIngredient.name);
 
 		if (found) {
@@ -193,9 +190,13 @@ export class ManageRecipe implements OnInit {
 			this.ingredients.update(list => [...list, newIngredient]);
 		}
 
+		this.currentIngredientName.set('');
 		this.currentIngredientMeasurement.set('');
 		this.currentIngredientAmount.set('');
 		this.ingredientError.set('');
+
+		// Reset the child component's internal input field
+		this.searchIngredient()?.clear();
 	}
 
 	removeIngredient(index: number) {

@@ -1,36 +1,35 @@
-import {
-	ChangeDetectionStrategy,
-	ChangeDetectorRef,
-	Component, computed,
-	EventEmitter,
-	Input,
-	OnChanges,
-	Output,
-	signal,
-	SimpleChanges,
-	WritableSignal
-} from '@angular/core';
 import { CommonModule } from '@angular/common';
+import {
+	ChangeDetectionStrategy, ChangeDetectorRef, Component, computed, EventEmitter, Input, OnChanges, Output, signal,
+	SimpleChanges, WritableSignal
+} from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCheckbox } from '@angular/material/checkbox';
+import { provideNativeDateAdapter } from '@angular/material/core';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { FormsModule } from '@angular/forms';
-import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatTimepickerModule } from '@angular/material/timepicker';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
-import { provideNativeDateAdapter } from '@angular/material/core';
-import { AuthService } from '../core/auth-service';
+import { Router } from '@angular/router';
 import { Meal, Recipe, User } from '../../backend/model';
+import { AuthService } from '../core/auth-service';
 import { MealService } from '../core/meal-service';
 import { RecipeService } from '../core/recipe-service';
 import { RoomService } from '../core/room-service';
-import { MatCheckbox } from '@angular/material/checkbox';
-import { Router } from '@angular/router';
 
 interface MealType {
 	value: string;
 	viewValue: string;
+}
+
+interface RecipeIngredient {
+	id: number;
+	name: string;
+	measurement: string;
+	amount: number;
 }
 
 @Component({
@@ -80,7 +79,7 @@ export class MealManagement implements OnChanges {
 	protected readonly showMore = signal(false);
 	protected readonly eatingPeople: WritableSignal<Set<string>> = signal(new Set());
 	protected readonly currentUser: WritableSignal<User | null>;
-	protected ingredientAssignments: Map<string, Set<string>> = new Map(); // Map<ingredientName, Set<usernames>>
+	protected ingredientAssignments: Map<number, Set<string>> = new Map(); // Map<ingredientId, Set<usernames>>
 	protected ingredientAssignmentDropdown: string = ''; // For mat-select binding
 
 	protected dish: string = '';
@@ -89,8 +88,6 @@ export class MealManagement implements OnChanges {
 	protected selectedStartTime: Date | null = null;
 	protected selectedEndTime: Date | null = null;
 	protected isCooked: boolean = false;
-	//protected minTime: Date = new Date(new Date().setHours(5, 0, 0, 0));
-	//protected maxTime: Date = new Date(new Date().setHours(23, 0, 0, 0));
 	protected showError: boolean = false;
 	protected isSubmitting: boolean = false;
 	protected selectedRecipeIds: number[] = [];
@@ -149,7 +146,7 @@ export class MealManagement implements OnChanges {
 
 	ngOnChanges(changes: SimpleChanges): void {
 		if (changes['mealToEdit'] && this.mealToEdit) {
-			if (!this.isCookedUpdateInProgress) {   // ← add this guard
+			if (!this.isCookedUpdateInProgress) {
 				this.prefillFormFromInput();
 			}
 		} else if (changes['initialDate'] || changes['initialTime']) {
@@ -183,7 +180,6 @@ export class MealManagement implements OnChanges {
 	protected get selectedRecipes(): Recipe[] {
 		const idSet = new Set(this.selectedRecipeIds);
 		this.availableRecipes.sort((a, b) => a.name.localeCompare(b.name));
-
 		return this.availableRecipes.filter(recipe => idSet.has(recipe.id));
 	}
 
@@ -227,7 +223,6 @@ export class MealManagement implements OnChanges {
 	} {
 		const start = this.selectedStartTime;
 		const end = this.selectedEndTime;
-
 		if (!start || !end) {
 			return {
 				start: null,
@@ -282,7 +277,6 @@ export class MealManagement implements OnChanges {
 
 	// ----------------------- Eating people ------------------------------
 
-	// Filtered array excluding the current user to prevent duplicate listings
 	otherEatingPeopleArray = computed(() => {
 		const current = this.currentUser()?.username;
 		return this.eatingPeopleArray().filter(person => person !== current);
@@ -291,39 +285,58 @@ export class MealManagement implements OnChanges {
 	protected addCurrentUserToEating(): void {
 		const username = this.currentUser()?.username;
 		const mealId = this.mealToEdit?.id;
-		if (!username || !mealId) {
+		if (!username || !mealId || !this.mealToEdit) {
 			return;
 		}
 
-		this.mealService.addEatingUser(mealId, username).subscribe({
-			next: () => {
-				this.eatingPeople.update(people => new Set([...people, username]));
-				// Trigger change detection to recalculate scaled ingredients
-				this.requestViewUpdate();
-				console.log(`Added user ${username} to eating people`);
-			},
-			error: err => console.error('Error adding eating user:', err)
-		});
+		// Update state locally
+		this.eatingPeople.update(people => new Set([...people, username]));
+		this.requestViewUpdate();
+
+		// Save the total synchronized payload immediately to the backend
+		this.syncEatingStatusWithBackend();
 	}
 
 	protected removeCurrentUserFromEating(): void {
 		const username = this.currentUser()?.username;
 		const mealId = this.mealToEdit?.id;
-		if (!username || !mealId) {
+		if (!username || !mealId || !this.mealToEdit) {
 			return;
 		}
 
-		this.mealService.removeEatingUser(mealId, username).subscribe({
+		// Update state locally
+		this.eatingPeople.update(people => {
+			const next = new Set(people);
+			next.delete(username);
+			return next;
+		});
+		this.requestViewUpdate();
+
+		// Save the total synchronized payload immediately to the backend
+		this.syncEatingStatusWithBackend();
+	}
+
+	private syncEatingStatusWithBackend(): void {
+		const mealId = this.mealToEdit?.id;
+		if (!mealId || !this.mealToEdit) {
+			return;
+		}
+
+		const updatedMeal: Meal = {
+			...this.mealToEdit,
+			time: new Date(this.mealToEdit.time),
+			endTime: new Date(this.mealToEdit.endTime),
+			eatingUsernames: this.eatingPeopleArray(),
+			recipeIds: [...this.selectedRecipeIds],
+			responsibleUsers: [...this.selectedResponsibleUsers],
+			ingredientAssignments: this.mapIngredientAssignmentsToObject()
+		};
+
+		this.mealService.updateMeal(mealId, updatedMeal).subscribe({
 			next: () => {
-				this.eatingPeople.update(people => {
-					const next = new Set(people);
-					next.delete(username);
-					return next;
-				});
-				// Trigger change detection to recalculate scaled ingredients
-				this.requestViewUpdate();
+				this.mealSaved.emit();
 			},
-			error: err => console.error('Error removing eating user:', err)
+			error: err => console.error('Error synchronizing eating status payload:', err)
 		});
 	}
 
@@ -335,37 +348,19 @@ export class MealManagement implements OnChanges {
 		return Array.from(this.eatingPeople()).sort();
 	}
 
-	/*protected isUserEating(username: string): boolean {
-	 return this.eatingPeople().has(username);
-	 }*/
+	// ----------------------- Recipes & Ingredients ------------------------------
 
-	/*protected canRemoveUser(username: string): boolean {
-	 return this.isUserEating(username);
-	 }*/
-
-	// ----------------------- Recipes ------------------------------
-
-	protected recipeIngredients: {
-		ingredientName: string;
-		measurement: string;
-		amount: number
-	}[] = [];
+	protected recipeIngredients: RecipeIngredient[] = [];
 	protected ingredientsLoading: boolean = false;
 
-	protected get scaledIngredients(): {
-		ingredientName: string;
-		measurement: string;
-		amount: number
-	}[] {
-		// Scale ingredients based on number of eating people
+	protected get scaledIngredients(): RecipeIngredient[] {
 		const people = this.eatingPeople().size;
 		return this.recipeIngredients
 		.map(ing => ({
 			...ing,
-			// Round to 2 decimal places for cleaner display
 			amount: Math.round(ing.amount * people * 100) / 100
 		}))
-		.sort((a, b) => a.ingredientName.localeCompare(b.ingredientName));
+		.sort((a, b) => a.name.localeCompare(b.name));
 	}
 
 	private loadIngredientsForSelectedRecipes(): void {
@@ -380,41 +375,30 @@ export class MealManagement implements OnChanges {
 			this.recipeService.getIngredientsForRecipe(id)
 		);
 
-		// Debug: log which recipe IDs we are fetching ingredients for
 		console.log('loadIngredientsForSelectedRecipes: fetching ingredients for recipeIds:', this.selectedRecipeIds);
 
-		// Fire all requests and merge results
-		// When the same ingredient appears in multiple recipes, sum the amounts
 		let completed = 0;
-		const merged = new Map<string, {
-			ingredientName: string;
-			measurement: string;
-			amount: number
-		}>();
+		const merged = new Map<number, RecipeIngredient>();
 
 		calls.forEach((call, idx) =>
 			call.subscribe({
 				next: ingredients => {
-					// Debug: log results per recipe
-					console.log(`loadIngredientsForSelectedRecipes: fetched ${ingredients.length} ingredients for recipe ${this.selectedRecipeIds[idx]}`, ingredients);
+					console.log(
+						`loadIngredientsForSelectedRecipes: fetched ${ingredients.length} ingredients for recipe ${this.selectedRecipeIds[idx]}`,
+						ingredients);
 					for (const ing of ingredients) {
-						// Create unique key combining ingredient name and measurement
-						// This allows ingredients with different measurements to be separate
-						const key = `${ing.ingredientName}__${ing.measurement}`;
-						const existing = merged.get(key);
-						if (existing) {
-							// If ingredient already exists with same measurement, add amounts
+						const key = `${ing.id}__${ing.measurement}`;
+						const existing = merged.get(ing.id);
+						if (existing && existing.measurement === ing.measurement) {
 							existing.amount += ing.amount;
 						} else {
-							// New ingredient, add it to the map
-							merged.set(key, { ...ing });
+							merged.set(ing.id, { ...ing });
 						}
 					}
 					completed++;
 					if (completed === calls.length) {
-						// Convert map to sorted array
 						this.recipeIngredients = Array.from(merged.values())
-						.sort((a, b) => a.ingredientName.localeCompare(b.ingredientName));
+						.sort((a, b) => a.name.localeCompare(b.name));
 						this.ingredientsLoading = false;
 						this.requestViewUpdate();
 					}
@@ -439,7 +423,7 @@ export class MealManagement implements OnChanges {
 		this.selectedRecipeIds = this.normalizeRecipeIds(recipeIds);
 		this.applyRecipeFilter();
 		this.clearErrors();
-		this.loadIngredientsForSelectedRecipes(); // add this line
+		this.loadIngredientsForSelectedRecipes();
 		this.requestViewUpdate();
 	}
 
@@ -465,10 +449,6 @@ export class MealManagement implements OnChanges {
 		return `${names.length} recipes selected`;
 	}
 
-	/*public handleRecipeChange(val: unknown[]) {
-	 this.onRecipeSelectionChange(val as number[]);
-	 }*/
-
 	// ----------------------- Responsible users ------------------------------
 
 	public onResponsibleUsersChange(usernames: string[]): void {
@@ -483,10 +463,6 @@ export class MealManagement implements OnChanges {
 		}
 		return this.selectedResponsibleUsers.join(', ');
 	}
-
-	/*public handleResponsibleUsersChange(val: unknown[]) {
-	 this.onResponsibleUsersChange(val as string[]);
-	 }*/
 
 	// ----------------------- Room ------------------------------
 
@@ -550,7 +526,6 @@ export class MealManagement implements OnChanges {
 			endTime: finalEndDate,
 			name: this.dish,
 			mealType: this.selectedValue,
-			responsible: currentUsername,
 			room: effectiveRoomCode,
 			recipeIds: [...this.selectedRecipeIds],
 			responsibleUsers: [...this.selectedResponsibleUsers],
@@ -572,66 +547,21 @@ export class MealManagement implements OnChanges {
 
 		this.isSubmitting = true;
 
-		if (this.dish
-			&& this.selectedValue
-			&& this.selectedDate
-			&& this.selectedStartTime
-			&& this.selectedEndTime
-			&& currentUsername
-			&& effectiveRoomCode) {
-
-			// 1. Create a fresh Date object for Start from the selected Date
-			const finalDate = new Date(this.selectedDate);
-			finalDate.setHours(this.selectedStartTime.getHours());
-			finalDate.setMinutes(this.selectedStartTime.getMinutes());
-			finalDate.setSeconds(0);
-			finalDate.setMilliseconds(0);
-
-			const finalEndDate = new Date(this.selectedDate);
-			finalEndDate.setHours(this.selectedEndTime.getHours());
-			finalEndDate.setMinutes(this.selectedEndTime.getMinutes());
-			finalEndDate.setSeconds(0);
-			finalEndDate.setMilliseconds(0);
-
-			console.log('START STRING:', finalDate.toISOString());
-			console.log('END STRING:', finalEndDate.toISOString());
-
-			/*const newMeal: Meal = {
-			 time: finalDate,
-			 endTime: finalEndDate,
-			 name: this.dish,
-			 mealType: this.selectedValue,
-			 responsible: currentUsername,
-			 room: effectiveRoomCode,
-			 recipeIds: [...this.selectedRecipeIds],
-			 responsibleUsers: [...this.selectedResponsibleUsers],
-			 cooked: this.isCooked
-			 };*/
-
-			const editMealId = this.mealToEdit?.id;
-
-			if (this.isEditMode && !editMealId) {
-				this.mealService.saveError.set('Unable to update meal: missing meal id');
-				return;
+		request.subscribe({
+			next: meal => {
+				console.log('Successfully saved meal:', meal);
+				this.mealService.saveError.set('');
+				this.isSubmitting = false;
+				this.mealSaved.emit();
+				this.closePopup();
+			},
+			error: err => {
+				console.error('Error saving meal:', err);
+				this.isSubmitting = false;
+				this.mealService.saveError.set(
+					'Unable to save meal: ' + (err.error?.error || err.message || 'Unknown error'));
 			}
-
-			request.subscribe({
-				next: meal => {
-					console.log('Successfully saved meal:', meal);
-					this.mealService.saveError.set('');
-
-					this.isSubmitting = false;
-					this.mealSaved.emit();
-					this.closePopup();
-				},
-				error: err => {
-					console.error('Error saving meal:', err);
-					this.isSubmitting = false;
-					this.mealService.saveError.set(
-						'Unable to save meal: ' + (err.error?.error || err.message || 'Unknown error'));
-				}
-			});
-		}
+		});
 	}
 
 	protected deleteMeal(): void {
@@ -680,7 +610,6 @@ export class MealManagement implements OnChanges {
 			this.applyRecipeFilter();
 			this.loadIngredientsForSelectedRecipes();
 			this.requestViewUpdate();
-			console.log('prefillFormFromInput called, this is inside the if mealToEdit:', this.mealToEdit);
 			return;
 		}
 
@@ -699,7 +628,6 @@ export class MealManagement implements OnChanges {
 		this.isViewMode.set(true);
 		this.loadEatingUsers();
 		this.requestViewUpdate();
-		console.log('prefillFormFromInput called, mealToEdit:', this.mealToEdit?.id);
 	}
 
 	private applyInitialDateTime(): void {
@@ -758,13 +686,13 @@ export class MealManagement implements OnChanges {
 		}
 
 		this.recipeService.getRecipesByAuthorUsername(username).subscribe({
-			next: authoredRecipes => {
-				// Fetch saved recipes in parallel
+			next: authoredRecipes =>
 				this.recipeService.getSavedRecipesByUsername(username).subscribe({
 					next: savedRecipes => {
-						// Merge authored and saved, deduplicate by id
-						const merged = this.mergeAndDeduplicateRecipes(authoredRecipes || [], savedRecipes || []);
-						this.availableRecipes = merged;
+						this.availableRecipes = MealManagement.mergeAndDeduplicateRecipes(
+							Array.isArray(authoredRecipes) ? authoredRecipes : [],
+							Array.isArray(savedRecipes) ? savedRecipes : []
+						).filter((r): r is Recipe => !!r && typeof r.name === 'string');
 						this.availableRecipes.sort((a, b) => a.name.localeCompare(b.name));
 						this.recipesLoadError = '';
 						this.applyRecipeFilter();
@@ -778,8 +706,8 @@ export class MealManagement implements OnChanges {
 						this.requestViewUpdate();
 					},
 					error: () => {
-						// Fallback: show only authored recipes if saved fails
-						this.availableRecipes = authoredRecipes || [];
+						this.availableRecipes = (Array.isArray(authoredRecipes) ? authoredRecipes : [])
+						.filter((r): r is Recipe => !!r && typeof r.name === 'string');
 						this.availableRecipes.sort((a, b) => a.name.localeCompare(b.name));
 						this.recipesLoadError = '';
 						this.applyRecipeFilter();
@@ -792,8 +720,7 @@ export class MealManagement implements OnChanges {
 
 						this.requestViewUpdate();
 					}
-				});
-			},
+				}),
 			error: () => {
 				this.availableRecipes = [];
 				this.filteredRecipes = [];
@@ -804,21 +731,16 @@ export class MealManagement implements OnChanges {
 		});
 	}
 
-	private mergeAndDeduplicateRecipes(authored: Recipe[], saved: Recipe[]): Recipe[] {
+	private static mergeAndDeduplicateRecipes(authored: Recipe[], saved: Recipe[]): Recipe[] {
 		const map = new Map<number, Recipe>();
-
-		// Add authored first (they take precedence if duplicate)
 		for (const recipe of authored) {
 			map.set(recipe.id, recipe);
 		}
-
-		// Add saved only if not already present
 		for (const recipe of saved) {
 			if (!map.has(recipe.id)) {
 				map.set(recipe.id, recipe);
 			}
 		}
-
 		return Array.from(map.values());
 	}
 
@@ -831,13 +753,6 @@ export class MealManagement implements OnChanges {
 			this.availableRoomMembers = [];
 			this.roomMembersLoadError = '';
 			this.requestViewUpdate();
-			return;
-		}
-
-		let start = this.selectedStartTime;
-		let end = this.selectedEndTime;
-
-		if (!start || !end) {
 			return;
 		}
 
@@ -857,21 +772,6 @@ export class MealManagement implements OnChanges {
 	}
 
 	private loadEatingUsers(): void {
-		const startHours = this.selectedStartTime?.getHours() ?? 0;
-		const endHours = this.selectedEndTime?.getHours() ?? 0;
-		const errors = this.timeErrors ?? 0;
-
-		if (startHours < 5 || startHours >= 24) {
-			errors.start = 'Time must be between 5 AM and 11 PM';
-		}
-		if (endHours < 5 || endHours >= 24) {
-			errors.end = 'Time must be between 5 AM and 11 PM';
-		}
-
-		if (endHours <= startHours) {
-			errors.end = 'End time must be after start time';
-		}
-
 		const mealId = this.mealToEdit?.id;
 		console.log('loadEatingUsers called, mealId:', mealId);
 
@@ -885,7 +785,7 @@ export class MealManagement implements OnChanges {
 				console.log('getEatingUsers response:', response);
 				this.eatingPeople.set(new Set(response.eatingUsers));
 				this.loadIngredientAssignments();
-				this.showMore.set(this.showMore()); // force signal graph update
+				this.showMore.set(this.showMore());
 				this.requestViewUpdate();
 			},
 			error: err => {
@@ -906,8 +806,11 @@ export class MealManagement implements OnChanges {
 		this.mealService.getIngredientAssignments(mealId).subscribe({
 			next: response => {
 				this.ingredientAssignments.clear();
-				for (const [ingredientName, usernames] of Object.entries(response.ingredientAssignments)) {
-					this.ingredientAssignments.set(ingredientName, new Set(usernames));
+				for (const [ingredientIdStr, usernames] of Object.entries(response.ingredientAssignments)) {
+					const ingredientId = Number(ingredientIdStr);
+					if (Number.isInteger(ingredientId) && ingredientId > 0) {
+						this.ingredientAssignments.set(ingredientId, new Set(usernames));
+					}
 				}
 				this.requestViewUpdate();
 			},
@@ -919,7 +822,7 @@ export class MealManagement implements OnChanges {
 		});
 	}
 
-	protected assignIngredientToUser(ingredientName: string, username: string): void {
+	protected assignIngredientToUser(ingredientId: number, username: string): void {
 		const mealId = this.mealToEdit?.id;
 		if (!mealId) {
 			console.error('No meal ID available. Please save the meal first before assigning ingredients.');
@@ -927,15 +830,15 @@ export class MealManagement implements OnChanges {
 			return;
 		}
 
-		console.log('Saving ingredient for username: ' + ingredientName + ' - ' + username);
+		console.log('Assigning ingredient id:', ingredientId, 'to user:', username);
 
-		this.mealService.assignIngredientToUser(mealId, ingredientName, username).subscribe({
+		this.mealService.assignIngredientToUser(mealId, ingredientId, username).subscribe({
 			next: () => {
-				if (!this.ingredientAssignments.has(ingredientName)) {
-					this.ingredientAssignments.set(ingredientName, new Set());
+				if (!this.ingredientAssignments.has(ingredientId)) {
+					this.ingredientAssignments.set(ingredientId, new Set());
 				}
-				this.ingredientAssignments.get(ingredientName)!.add(username);
-				this.ingredientAssignmentDropdown = ''; // Reset dropdown
+				this.ingredientAssignments.get(ingredientId)!.add(username);
+				this.ingredientAssignmentDropdown = '';
 				this.requestViewUpdate();
 			},
 			error: err => {
@@ -945,20 +848,20 @@ export class MealManagement implements OnChanges {
 		});
 	}
 
-	protected removeIngredientAssignment(ingredientName: string, username: string): void {
+	protected removeIngredientAssignment(ingredientId: number, username: string): void {
 		const mealId = this.mealToEdit?.id;
 		if (!mealId) {
 			console.error('No meal selected');
 			return;
 		}
 
-		this.mealService.removeIngredientAssignment(mealId, ingredientName, username).subscribe({
+		this.mealService.removeIngredientAssignment(mealId, ingredientId, username).subscribe({
 			next: () => {
-				const assignedUsers = this.ingredientAssignments.get(ingredientName);
+				const assignedUsers = this.ingredientAssignments.get(ingredientId);
 				if (assignedUsers) {
 					assignedUsers.delete(username);
 					if (assignedUsers.size === 0) {
-						this.ingredientAssignments.delete(ingredientName);
+						this.ingredientAssignments.delete(ingredientId);
 					}
 				}
 				this.requestViewUpdate();
@@ -967,18 +870,18 @@ export class MealManagement implements OnChanges {
 		});
 	}
 
-	protected getAssignedUsersForIngredient(ingredientName: string): string[] {
-		return Array.from(this.ingredientAssignments.get(ingredientName) ?? new Set<string>()).sort();
+	protected getAssignedUsersForIngredient(ingredientId: number): string[] {
+		return Array.from(this.ingredientAssignments.get(ingredientId) ?? new Set<string>()).sort();
 	}
 
 	private mapIngredientAssignmentsToObject(): {
-		[ingredientName: string]: string[]
+		[ingredientId: number]: string[]
 	} {
 		const result: {
-			[ingredientName: string]: string[]
+			[ingredientId: number]: string[]
 		} = {};
-		this.ingredientAssignments.forEach((usernames, ingredientName) => {
-			result[ingredientName] = Array.from(usernames);
+		this.ingredientAssignments.forEach((usernames, ingredientId) => {
+			result[ingredientId] = Array.from(usernames);
 		});
 		return result;
 	}
@@ -987,13 +890,14 @@ export class MealManagement implements OnChanges {
 		if (!Array.isArray(recipeIds)) {
 			return [];
 		}
-
 		const normalized = recipeIds.map(Number).filter(id => Number.isInteger(id) && id > 0);
 		return Array.from(new Set(normalized));
 	}
 
 	protected cookedCheckBox(): void {
-		if(this.isCooked) return;
+		if (this.isCooked) {
+			return;
+		}
 
 		this.isCooked = !this.isCooked;
 		this.isCookedUpdateInProgress = true;
@@ -1035,13 +939,4 @@ export class MealManagement implements OnChanges {
 			}
 		});
 	}
-
-	/*private normalizeResponsibleUsers(usernames: string[] | undefined): string[] {
-	 if (!Array.isArray(usernames)) {
-	 return [];
-	 }
-
-	 const normalized = usernames.map(u => String(u).trim()).filter(u => u.length > 0);
-	 return Array.from(new Set(normalized));
-	 }*/
 }

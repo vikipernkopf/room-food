@@ -1,12 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import {map, Observable} from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { Ingredient } from '../../backend/model';
 
 function getApiBase(): string {
-	// Runtime override: window.__API_URL can be injected into the page (e.g. by a script
-	// in index.html) so the deployed static site can point to any backend without rebuild.
 	const win = typeof window === 'undefined' ? undefined : window as any;
 	const runtime = win && (win.__API_URL || win.API_URL);
 	return runtime || environment.apiUrl || '/api';
@@ -21,13 +19,28 @@ export class IngredientsFrontendService {
 	constructor(private http: HttpClient) {
 	}
 
-	public getBoughtIngredientsForRoom(roomCode: string): Observable<Ingredient[]> {
+	public unmarkIngredientsForRoom(roomCode: string, ingredientId: number): Observable<{ success: boolean }> {
+		const apiUrl = `${this.apiBase}/shopping/room/${encodeURIComponent(roomCode)}/unmark/${ingredientId}`;
+		return this.http.delete<{ success: boolean }>(apiUrl);
+	}
+
+	public getBoughtIngredientsForRoom(roomCode: string): Observable<any[]> {
 		const apiUrl = `${this.apiBase}/shopping/room/${encodeURIComponent(roomCode)}`;
-		return this.http.get<Ingredient[]>(apiUrl).pipe(
+		return this.http.get<any[]>(apiUrl).pipe(
 			map((bought: any[]) => bought.map(b => ({
+				// Keep the same ID for the tracker
+				id: b.ingredientId,
+				ingredientId: b.ingredientId,
+
+				// Map the new aggregated fields
 				name: b.ingredientName,
 				measurement: b.measurement,
-				amount: Number(b.amount)
+				amount: Number(b.amount),
+
+				// Handle aggregated users (this will be a string like "Alice,Bob")
+				username: b.boughtByUsername
+
+				// 'mealId' is no longer unique per row, so you can remove or ignore it
 			})))
 		);
 	}
@@ -42,19 +55,9 @@ export class IngredientsFrontendService {
 		return this.http.get<Ingredient[]>(apiUrl);
 	}
 
-	/*public getPersonalBoughtIngredients(username: string): Observable<Ingredient[]> {
-		const apiUrl = `${this.apiBase}/shopping/personal/${encodeURIComponent(username)}`;
-		return this.http.get<Ingredient[]>(apiUrl).pipe(
-			map((bought: any[]) => bought.map(b => ({
-				name: b.ingredientName,
-				measurement: b.measurement,
-				amount: Number(b.amount)
-			})))
-		);
-	}*/
-
 	public getIngredientsForPrefix(prefix: string, username: string): Observable<Ingredient[]> {
-		const apiUrl = `${this.apiBase}/ingredients/prefix/${encodeURIComponent(prefix)}?username=${encodeURIComponent(username)}`;
+		const apiUrl = `${this.apiBase}/ingredients/prefix/${encodeURIComponent(prefix)}?username=${encodeURIComponent(
+			username)}`;
 		return this.http.get<Ingredient[]>(apiUrl);
 	}
 
@@ -68,7 +71,11 @@ export class IngredientsFrontendService {
 			name: string,
 			measurement: string,
 			username: string | null
-		}>(apiUrl, { name, measurement, username: username || null });
+		}>(apiUrl, {
+			name,
+			measurement,
+			username: username || null
+		});
 	}
 
 	public addIngredientToRecipe(recipeId: number, ingredient: Ingredient, username: string): Observable<{
@@ -81,7 +88,10 @@ export class IngredientsFrontendService {
 			recipeId: number,
 			ingredient: Ingredient,
 			added: boolean
-		}>(apiUrl, { ingredient, username });
+		}>(apiUrl, {
+			ingredient,
+			username
+		});
 	}
 
 	public getIngredientsForRecipe(recipeId: number): Observable<Ingredient[]> {
@@ -100,9 +110,9 @@ export class IngredientsFrontendService {
 		}>(apiUrl);
 	}
 
-	public getIngredientsForUser(username: string): Observable<Ingredient[]> {
+	public getIngredientsForUser(username: string): Observable<any[]> {
 		const apiUrl = `${this.apiBase}/ingredients/${username}`;
-		return this.http.get<Ingredient[]>(apiUrl);
+		return this.http.get<any[]>(apiUrl);
 	}
 
 	// Room ingredients endpoints
@@ -124,14 +134,96 @@ export class IngredientsFrontendService {
 		}>(apiUrl, { ingredient });
 	}
 
-	public deleteIngredientFromRoom(roomCode: string, ingredientName: string, measurement: string): Observable<{ success: boolean }> {
-		const apiUrl = `${this.apiBase}/room/${roomCode}/ingredients/${encodeURIComponent(ingredientName)}/${encodeURIComponent(measurement)}`;
+	public deleteIngredientFromRoom(roomCode: string, ingredientId: number): Observable<{
+		success: boolean
+	}> {
+		const apiUrl = `${this.apiBase}/room/${roomCode}/ingredients/${ingredientId}`;
+		return this.http.delete<{
+			success: boolean
+		}>(apiUrl);
+	}
+
+	public updateIngredientAmountInRoom(roomCode: string, ingredientId: number, amount: number): Observable<{
+		success: boolean
+	}> {
+		const apiUrl = `${this.apiBase}/room/${roomCode}/ingredients/${ingredientId}`;
+		return this.http.put<{
+			success: boolean
+		}>(apiUrl, { amount });
+	}
+
+	// ------------------------------------------------------------------
+	// Meal ingredient assignment endpoints
+	// ------------------------------------------------------------------
+
+	public getAssignedIngredientsForMeal(mealId: number): Observable<{
+		ingredientAssignments: {
+			[ingredientId: number]: string[]
+		}
+	}> {
+		const apiUrl = `${this.apiBase}/meals/${mealId}/ingredients/assigned`;
+		return this.http.get<{
+			ingredientAssignments: {
+				[ingredientId: number]: string[]
+			}
+		}>(apiUrl);
+	}
+
+	public assignIngredientToUser(mealId: number, ingredientId: number, username: string): Observable<{
+		mealId: number,
+		ingredientId: number,
+		username: string,
+		assigned: boolean
+	}> {
+		const apiUrl = `${this.apiBase}/meals/${mealId}/ingredients/${ingredientId}/assign`;
+		return this.http.post<{
+			mealId: number,
+			ingredientId: number,
+			username: string,
+			assigned: boolean
+		}>(apiUrl, { username });
+	}
+
+	public markIngredientAsBought(mealId: number, ingredientId: number, username: string): Observable<{
+		mealId: number,
+		ingredientId: number,
+		username: string,
+		bought: boolean
+	}> {
+		const apiUrl = `${this.apiBase}/meals/${mealId}/ingredients/${ingredientId}/bought`;
+		return this.http.post<{
+			mealId: number,
+			ingredientId: number,
+			username: string,
+			bought: boolean
+		}>(apiUrl, { username });
+	}
+
+	public markIngredientAsNotBought(mealId: number, ingredientId: number, username: string): Observable<{
+		mealId: number,
+		ingredientId: number,
+		username: string,
+		bought: boolean
+	}> {
+		const apiUrl = `${this.apiBase}/meals/${mealId}/ingredients/${ingredientId}/bought`;
+		return this.http.delete<{
+			mealId: number,
+			ingredientId: number,
+			username: string,
+			bought: boolean
+		}>(apiUrl, { body: { username } });
+	}
+
+	// 1. Delete for unaggregated 'Available' (RoomIngredient) items
+	public deleteRoomIngredient(roomCode: string, id: number): Observable<{ success: boolean }> {
+		const apiUrl = `${this.apiBase}/room/${roomCode}/ingredients/${id}`;
 		return this.http.delete<{ success: boolean }>(apiUrl);
 	}
 
-	public updateIngredientAmountInRoom(roomCode: string, ingredientName: string, measurement: string, amount: number): Observable<{ success: boolean }> {
-		const apiUrl = `${this.apiBase}/room/${roomCode}/ingredients/${encodeURIComponent(ingredientName)}/${encodeURIComponent(measurement)}`;
-		return this.http.put<{ success: boolean }>(apiUrl, { amount });
+	// 2. Delete for aggregated 'Bought' items
+	public removeBoughtIngredientsFromRoom(roomCode: string, name: string, measurement: string): Observable<{ success: boolean }> {
+		const apiUrl = `${this.apiBase}/room/${roomCode}/bought-ingredients/${encodeURIComponent(name)}/${encodeURIComponent(measurement)}`;
+		return this.http.delete<{ success: boolean }>(apiUrl);
 	}
 
 	// ------------------------------------------------------------------
@@ -139,7 +231,8 @@ export class IngredientsFrontendService {
 	// ------------------------------------------------------------------
 
 	public getUserIngredientsForPrefix(prefix: string, username: string): Observable<Ingredient[]> {
-		const apiUrl = `${this.apiBase}/ingredients/user/${encodeURIComponent(username)}/prefix/${encodeURIComponent(prefix)}`;
+		const apiUrl = `${this.apiBase}/ingredients/user/${encodeURIComponent(username)}/prefix/${encodeURIComponent(
+			prefix)}`;
 		return this.http.get<Ingredient[]>(apiUrl);
 	}
 

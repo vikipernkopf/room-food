@@ -40,25 +40,6 @@ export class Recipes {
 	protected readonly recipeToEdit = signal<Recipe | null>(null);
 	private readonly router = inject(Router);
 
-	/*protected readonly mealTypeOptions: RecipeMealType[] = [
-		{
-			value: 'breakfast',
-			viewValue: 'Breakfast'
-		},
-		{
-			value: 'lunch',
-			viewValue: 'Lunch'
-		},
-		{
-			value: 'dinner',
-			viewValue: 'Dinner'
-		},
-		{
-			value: 'snack',
-			viewValue: 'Snack'
-		}
-	];*/
-
 	constructor() {
 		effect(() => {
 			const username = this.currentUser()?.username?.trim();
@@ -316,12 +297,14 @@ export class Recipes {
 
 		// Add authored first (they take precedence if duplicate)
 		for (const recipe of authored || []) {
-			map.set(recipe.id, recipe);
+			if (recipe && typeof recipe.id === 'number') {
+				map.set(recipe.id, recipe);
+			}
 		}
 
 		// Add saved only if not already present
 		for (const recipe of saved || []) {
-			if (!map.has(recipe.id)) {
+			if (recipe && typeof recipe.id === 'number' && !map.has(recipe.id)) {
 				map.set(recipe.id, recipe);
 			}
 		}
@@ -343,10 +326,18 @@ export class Recipes {
 		});
 	}
 
+	protected formatMealType(type: string): string {
+		if (!type) {
+			return '';
+		}
+		const clean = type.replace(/-\d+$/, '').trim();
+		return clean.charAt(0).toUpperCase() + clean.slice(1);
+	}
+
 	private sortRecipesByName(recipes: Recipe[]): Recipe[] {
-		return [...recipes].sort((a, b) => a.name.localeCompare(b.name, undefined, {
-			sensitivity: 'base'
-		}));
+		return [...recipes].filter((r): r is Recipe => !!r && typeof r.name === 'string').sort((a, b) =>
+			a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+		);
 	}
 
 	protected getRecipeImage(recipe: Recipe): string {

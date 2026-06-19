@@ -4,15 +4,31 @@ import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 export interface BoughtIngredient {
-	ingredientName: string;
+	ingredientId: number;
+	name: string;
 	measurement: string;
 	amount: string;
 	boughtByUsername?: string;
 	boughtAt?: string;
 }
 
+export interface MarkBoughtRequest {
+	mealId: number;
+	ingredientId: number;
+	username: string;
+}
+
+export interface UnmarkBoughtRequest {
+	mealId: number;
+	ingredientId: number;
+	username: string;
+}
+
 function getApiBase(): string {
-	const win = typeof window === 'undefined' ? undefined : window as unknown as { __API_URL?: string; API_URL?: string };
+	const win = typeof window === 'undefined' ? undefined : window as unknown as {
+		__API_URL?: string;
+		API_URL?: string
+	};
 	return (win?.__API_URL ?? win?.API_URL) || environment.apiUrl || '/api';
 }
 
@@ -25,47 +41,39 @@ export class ShoppingFrontendService {
 		return this.http.get<BoughtIngredient[]>(`${this.api}/shopping/room/${encodeURIComponent(roomCode)}`);
 	}
 
-	markRoomBought(
-		roomCode: string,
-		ingredientName: string,
-		measurement: string,
-		amount: string,
-		boughtByUsername: string
-	): Observable<unknown> {
-		return this.http.post(`${this.api}/shopping/room/mark`, {
-			roomCode, ingredientName, measurement, amount, boughtByUsername
+	getPersonalAssignments(username: string): Observable<Array<{
+		ingredientId: number;
+		name: string;
+		measurement: string;
+		amount: number;
+		bought: boolean;
+		mealId: number;
+	}>> {
+		return this.http.get<any[]>(`${this.api}/shopping/personal/${encodeURIComponent(username)}`);
+	}
+
+	markRoomBought(mealId: number, ingredientId: number, username: string): Observable<unknown> {
+		return this.http.post(`${this.api}/shopping/mark`, { mealId, ingredientId, username });
+	}
+
+	unmarkRoomBought(mealId: number, ingredientId: number, username: string): Observable<unknown> {
+		return this.http.delete(`${this.api}/shopping/unmark`, {
+			body: { mealId, ingredientId, username }
 		});
 	}
 
-	unmarkRoomBought(roomCode: string, ingredientName: string, measurement: string): Observable<unknown> {
-		return this.http.delete(`${this.api}/shopping/room/unmark`, {
-			body: { roomCode, ingredientName, measurement }
+	markRoomBoughtBulk(requests: MarkBoughtRequest[]): Observable<unknown> {
+		return this.http.post(`${this.api}/shopping/mark-bulk`, { requests });
+	}
+
+	unmarkRoomBoughtBulk(requests: UnmarkBoughtRequest[]): Observable<unknown> {
+		return this.http.delete(`${this.api}/shopping/unmark-bulk`, {
+			body: { requests }
 		});
 	}
 
 	clearRoomBought(roomCode: string): Observable<unknown> {
 		return this.http.delete(`${this.api}/shopping/room/${encodeURIComponent(roomCode)}/clear`);
-	}
-
-	getPersonalBought(username: string): Observable<BoughtIngredient[]> {
-		return this.http.get<BoughtIngredient[]>(`${this.api}/shopping/personal/${encodeURIComponent(username)}`);
-	}
-
-	markPersonalBought(
-		username: string,
-		ingredientName: string,
-		measurement: string,
-		amount: string
-	): Observable<unknown> {
-		return this.http.post(`${this.api}/shopping/personal/mark`, {
-			username, ingredientName, measurement, amount
-		});
-	}
-
-	unmarkPersonalBought(username: string, ingredientName: string, measurement: string): Observable<unknown> {
-		return this.http.delete(`${this.api}/shopping/personal/unmark`, {
-			body: { username, ingredientName, measurement }
-		});
 	}
 
 	clearPersonalBought(username: string): Observable<unknown> {

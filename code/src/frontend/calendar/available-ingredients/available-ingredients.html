@@ -1,69 +1,73 @@
-<div class="header-row">
-	<h2>Needed Ingredients</h2>
-	@if (!loading() && neededIngredients().length > 0) {
-		<button class="btn-shop" type="button" (click)="openShopping()">
-			Mark as Shopped
-		</button>
-	}
-</div>
-
-@if (loading()) {
-	<p>Loading ingredients...</p>
-}
-
-@if (!loading() && neededIngredients().length === 0) {
-	<p>No ingredients needed.</p>
-}
-
-@if (!loading() && neededIngredients().length > 0) {
-	<ul>
-		@for (ingredient of neededIngredients(); track ingredient.name + '|' + ingredient.measurement) {
-			<li class="ingredient">
-				<div>
-					<strong>{{ ingredient.amount }}</strong>
-					<span>{{ ingredient.measurement }} of </span>
-					<strong>{{ ingredient.name }}</strong>
-				</div>
-			</li>
-		}
-	</ul>
-}
-
-<hr>
-
 <app-shopping-modal [roomCode]="roomCode()" mode="room" (saved)="onSaved()"></app-shopping-modal>
 
 <div class="ingredients-container">
-	<!-- Available Ingredients Section -->
 	<section class="ingredients-section">
-		<h2>Available Ingredients</h2>
+		<h2>Needed Ingredients</h2>
 
-		@if (!loading() && availableIngredients().length === 0) {
-			<p>No ingredients available.</p>
+		@if (loading()) {
+			<p>Loading ingredients...</p>
 		}
 
-		@if (!loading() && availableIngredients().length > 0) {
+		@if (!loading() && neededIngredients().length === 0) {
+			<p>No ingredients needed.</p>
+		}
+
+		@if (!loading() && neededIngredients().length > 0) {
 			<ul>
-				@for (ingredient of availableIngredients(); track ingredient.name + '|' + ingredient.measurement) {
+				@for (ingredient of neededIngredients(); track ingredient.name + '|' + ingredient.measurement) {
 					<li class="ingredient">
 						<div>
-							<strong>{{ ingredient.amount }}</strong>
+							<strong>{{ ingredient.amount | number: '1.0-4' }}</strong>
 							<span>{{ ingredient.measurement }} of </span>
 							<strong>{{ ingredient.name }}</strong>
 						</div>
-						<button class="delete-btn" (click)="deleteIngredient(ingredient.name, ingredient.measurement)">
+					</li>
+				}
+			</ul>
+
+			<button class="btn-shop" type="button" (click)="openShopping()">
+				Mark as Shopped
+			</button>
+		}
+	</section>
+
+	<hr>
+
+	<section class="ingredients-section">
+		<h2>Bought Ingredients</h2>
+
+		@if (!loading() && boughtIngredients().length === 0) {
+			<p>No bought ingredients.</p>
+		}
+
+		@if (!loading() && boughtIngredients().length > 0) {
+			<ul>
+				@for (ingredient of boughtIngredients(); track ingredient.name + '_' + ingredient.measurement) {
+					<li class="ingredient">
+						<div>
+							<strong>{{ ingredient.amount | number: '1.0-4' }}</strong>
+							<span>{{ ingredient.measurement }} of </span>
+							<strong>{{ ingredient.name }}</strong>
+						</div>
+						<button class="delete-btn" (click)="unmarkBoughtIngredient(ingredient)"
+							title="Remove all bought records for this ingredient">
 							X
 						</button>
 					</li>
 				}
 			</ul>
 		}
+	</section>
 
-		<!-- Add Ingredient Form -->
+	<hr>
+
+	<section class="ingredients-section">
+		<h2>Add Ingredient</h2>
+
 		<form class="form-grid form-grid--single-column">
 			<div class="field-group field-group--full">
 				<label class="field-label">Ingredient Name</label>
-				<app-search-ingredient
+				<app-search-ingredient #searchIngredient
 					(ingredientSelected)="onIngredientSelected($event)"></app-search-ingredient>
 			</div>
 
@@ -91,5 +95,32 @@
 				</button>
 			</div>
 		</form>
+	</section>
+
+	<hr>
+
+	<section class="ingredients-section">
+		<h2>Available Ingredients</h2>
+
+		@if (!loading() && availableIngredients().length === 0) {
+			<p>No ingredients available.</p>
+		}
+
+		@if (!loading() && availableIngredients().length > 0) {
+			<ul>
+				@for (ingredient of availableIngredients(); track ingredient.id) {
+					<li class="ingredient">
+						<div>
+							<strong>{{ ingredient.amount | number: '1.0-4' }}</strong>
+							<span>{{ ingredient.measurement }} of </span>
+							<strong>{{ ingredient.name }}</strong>
+						</div>
+						<button class="delete-btn" (click)="deleteIngredient(ingredient)">
+							X
+						</button>
+					</li>
+				}
+			</ul>
+		}
 	</section>
 </div>

@@ -57,7 +57,6 @@ export type Meal = {
 	name: string,
 	mealType: string,
 	room: string,
-	responsible: string,
 	responsibleUsers?: string[],
 	recipeIds?: number[],
 	cooked: boolean,
@@ -78,6 +77,7 @@ export type Ingredient = {
 	measurement: string;
 	amount: number;
 	assignedTo?: string; // username of who should buy this ingredient
+	id?: number;
 };
 
 /*export type IngredientAssignment = {

@@ -27,7 +27,8 @@ import {IngredientsFrontendService} from '../core/ingredients-frontend-service';
 	imports: [
 		MealManagement,
 		DatePipe,
-		AvailableIngredients
+		AvailableIngredients,
+		MealManagement
 	],
 	templateUrl: './calendar.html',
 	styleUrl: './calendar.scss',
@@ -338,7 +339,8 @@ export class Calendar implements OnInit {
 		}
 
 		if(updatedMeal.cooked){
-			await this.availableIngredientsTab()?.removeIngredients(await this.getIngredientsNeededForMeal(updatedMeal));
+			await this.availableIngredientsTab()?.removeIngredients(await
+				this.getIngredientsNeededForMeal(updatedMeal));
 		}
 		else{
 			//this.availableIngredientsTab()?.addIngredients(await this.getIngredientsNeededForMeal(updatedMeal));

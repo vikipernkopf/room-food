@@ -12,42 +12,43 @@ export class RecipesService extends ServiceBase {
 	}
 
 	public async getSavedRecipesByUsername(username: string): Promise<Recipe[]> {
-	const userId = this.users.getUserIdByUsername(username);
+		const userId = this.users.getUserIdByUsername(username);
 		if (userId === undefined) {
-		return [];
-	}
-
-	const recipes = this.unit.prepare<any>(`
-        select r.id,
-               r.name,
-               r.description,
-               r.image,
-               r.instructions,
-               r.visibility,
-               r.author,
-               u.username                                         as authorUsername,
-               coalesce(group_concat(distinct rmt.meal_type), '') as mealTypes,
-               (select json_group_array(json_object(
-                   'name', ingredient_name,
-                   'amount', amount,
-                   'measurement', measurement
-                                        )) as jga
-                from RecipeIngredient
-                where recipe_id = r.id)                           as ingredients,
-               1                                                  as isSavedByUser,
-               case when r.author = :userId then 1 else 0 end   as isOwnedByUser
-        from SavedRecipe sr
-                 join Recipe r on sr.recipe_id = r.id
-                 join User u on r.author = u.id
-                 left join RecipeMealType rmt on r.id = rmt.recipe_id
-        where sr.user_id = :userId
-        group by r.id, r.instructions
-    	`, {
-		userId
+			return [];
 		}
-	).all();
 
-	return RecipesService.mapRowsToRecipes(recipes);
+		const recipes = this.unit.prepare<any>(`
+			select r.id,
+			       r.name,
+			       r.description,
+			       r.image,
+			       r.instructions,
+			       r.visibility,
+			       r.author,
+			       u.username                                         as authorUsername,
+			       coalesce(group_concat(distinct rmt.meal_type), '') as mealTypes,
+			       (select json_group_array(json_object(
+				       'id', i.id,
+				       'name', i.name,
+				       'amount', ri.amount,
+				       'measurement', ri.measurement
+			                                )) as jga
+			        from RecipeIngredient ri
+				             join Ingredient i on ri.ingredient_id = i.id
+			        where ri.recipe_id = r.id)                        as ingredients,
+			       1                                                  as isSavedByUser,
+			       case when r.author = :userId then 1 else 0 end     as isOwnedByUser
+			from SavedRecipe sr
+				     join Recipe r on sr.recipe_id = r.id
+				     join User u on r.author = u.id
+				     left join RecipeMealType rmt on r.id = rmt.recipe_id
+			where sr.user_id = :userId
+			group by r.id, r.instructions
+		`, {
+			userId
+		}).all();
+
+		return RecipesService.mapRowsToRecipes(recipes);
 	}
 
 	public getRecipesByAuthorUsername(username: string): Recipe[] {
@@ -67,12 +68,14 @@ export class RecipesService extends ServiceBase {
 			       u.username                                         as authorUsername,
 			       coalesce(group_concat(distinct rmt.meal_type), '') as mealTypes,
 			       (select json_group_array(json_object(
-				       'name', ingredient_name,
-				       'amount', amount,
-				       'measurement', measurement
+				       'id', i.id,
+				       'name', i.name,
+				       'amount', ri.amount,
+				       'measurement', ri.measurement
 			                                )) as jga
-			        from RecipeIngredient
-			        where recipe_id = r.id)                           as ingredients,
+			        from RecipeIngredient ri
+				             join Ingredient i on ri.ingredient_id = i.id
+			        where ri.recipe_id = r.id)                        as ingredients,
 			       case when sr.user_id is not null then 1 else 0 end as isSavedByUser,
 			       case when r.author = :viewerId then 1 else 0 end   as isOwnedByUser
 			from Recipe r
@@ -138,7 +141,12 @@ export class RecipesService extends ServiceBase {
 			viewerId: viewerId ?? -1
 		}).all();
 
-		return RecipesService.mapRowsToRecipes(recipes);
+		const mappedRecipes = RecipesService.mapRowsToRecipes(recipes);
+
+		return mappedRecipes.map(recipe => ({
+			...recipe,
+			mealTypes: (recipe.mealTypes || []).flatMap(type => type.split('||'))
+		}));
 	}
 
 	public savePublicRecipeForUser(username: string, recipeId: number):
@@ -215,7 +223,8 @@ export class RecipesService extends ServiceBase {
 			return 'error';
 		}
 
-		console.log('createRecipe: author=', payload.authorUsername, 'name=', payload.name, 'mealTypes=', payload.mealTypes?.join(','));
+		console.log('createRecipe: author=', payload.authorUsername, 'name=', payload.name, 'mealTypes=',
+			payload.mealTypes?.join(','));
 
 		const result = this.unit.prepare<unknown, {
 			name: string;
@@ -262,7 +271,8 @@ export class RecipesService extends ServiceBase {
 				}
 			).run();
 			if (linked.changes !== 1) {
-				console.error('linkMealTypes: failed to insert RecipeMealType for mealType=', mealType, 'changes=', linked.changes);
+				console.error('linkMealTypes: failed to insert RecipeMealType for mealType=', mealType, 'changes=',
+					linked.changes);
 				return 'error';
 			}
 		}
@@ -273,28 +283,51 @@ export class RecipesService extends ServiceBase {
 	private saveIngredients(recipeId: number, ingredients: Ingredient[]): 'error' | true {
 		console.log('saveIngredients: recipeId=', recipeId, 'ingredientsCount=', ingredients?.length ?? 0);
 		for (const ing of ingredients) {
-			console.log('saveIngredients: inserting ingredient', ing.name, 'amount=', ing.amount, 'measurement=', ing.measurement);
+			console.log('saveIngredients: processing ingredient', ing.name, 'amount=', ing.amount, 'measurement=',
+				ing.measurement);
+
+			// Insert ingredient if not exists (or get existing id)
 			this.unit.prepare(
-				`insert or ignore into Ingredient (name)
-				 values (:name)`,
-				{ name: ing.name }
+				`insert or ignore into Ingredient (name, default_measurement)
+				 values (:name, :measurement)`,
+				{
+					name: ing.name,
+					measurement: ing.measurement
+				}
 			).run();
 
+			const ingredientRow = this.unit.prepare<{
+				id: number
+			}>(
+				`select id
+				 from Ingredient
+				 where name = :name`,
+				{ name: ing.name }
+			).get();
+
+			if (!ingredientRow) {
+				console.error('saveIngredients: failed to get ingredient id for', ing.name);
+				return 'error';
+			}
+
+			const ingredientId = ingredientRow.id;
+
 			const linked = this.unit.prepare(
-				`insert into RecipeIngredient (recipe_id, ingredient_name, amount, measurement)
-				 values (:recipeId, :name, :amount, :measurement)`,
+				`insert into RecipeIngredient (recipe_id, ingredient_id, amount, measurement)
+				 values (:recipeId, :ingredientId, :amount, :measurement)`,
 				{
 					recipeId,
-					name: ing.name,
+					ingredientId,
 					amount: ing.amount,
 					measurement: ing.measurement
 				}
 			).run();
 			if (linked.changes !== 1) {
-				console.error('saveIngredients: failed to insert RecipeIngredient for', ing.name, 'changes=', linked.changes);
+				console.error('saveIngredients: failed to insert RecipeIngredient for', ing.name, 'changes=',
+					linked.changes);
 				return 'error';
 			}
-			console.log('saveIngredients: inserted RecipeIngredient for', ing.name);
+			console.log('saveIngredients: inserted RecipeIngredient for', ing.name, 'id=', ingredientId);
 		}
 		return true;
 	}
@@ -305,7 +338,8 @@ export class RecipesService extends ServiceBase {
 			return 'author_not_found';
 		}
 
-		console.log('addRecipe: author=', recipe.authorUsername, 'name=', recipe.name, 'mealTypes=', (recipe.mealTypes||[]).join(','));
+		console.log('addRecipe: author=', recipe.authorUsername, 'name=', recipe.name, 'mealTypes=',
+			(recipe.mealTypes || []).join(','));
 
 		const mealTypes = Array.from(
 			new Set((recipe.mealTypes ?? []).map(mealType => mealType.trim()).filter(Boolean))
@@ -379,7 +413,8 @@ export class RecipesService extends ServiceBase {
 			return 'not_found';
 		}
 
-		console.log('updateRecipe: recipeId=', recipeId, 'name=', recipe.name, 'mealTypes=', (recipe.mealTypes||[]).join(','));
+		console.log('updateRecipe: recipeId=', recipeId, 'name=', recipe.name, 'mealTypes=',
+			(recipe.mealTypes || []).join(','));
 
 		const mealTypes = Array.from(
 			new Set((recipe.mealTypes ?? []).map(mealType => mealType.trim()).filter(Boolean))
@@ -428,10 +463,11 @@ export class RecipesService extends ServiceBase {
 			}
 		}
 
-		// Persist ingredients for the recipe: remove old ingredient rows and save the new set
 		console.log('updateRecipe: deleting old RecipeIngredient rows for recipeId=', recipeId);
 		try {
-			this.unit.prepare(`delete from RecipeIngredient where recipe_id = :id`, { id: recipeId }).run();
+			this.unit.prepare(`delete
+			                   from RecipeIngredient
+			                   where recipe_id = :id`, { id: recipeId }).run();
 		} catch (err) {
 			console.error('Failed to delete existing RecipeIngredient rows for recipe:', recipeId, err);
 			return 'error';
@@ -447,12 +483,7 @@ export class RecipesService extends ServiceBase {
 	}
 
 	public getRecipeById(recipeId: number): Recipe | 'not_found' | 'error' {
-		if (!this.checkRecipeExists(recipeId)) {
-			return 'not_found';
-		}
-
 		try {
-			// 1. Use .get() to retrieve a single row object directly
 			const recipeRow = this.unit.prepare(
 				`select id, name, description, image, visibility, author, instructions
 				 from Recipe
@@ -464,7 +495,6 @@ export class RecipesService extends ServiceBase {
 				return 'not_found';
 			}
 
-			// 2. Use .all() to get an array of matching rows from the join table
 			const mealRows = this.unit.prepare(
 				`select meal_type
 				 from RecipeMealType
@@ -474,18 +504,16 @@ export class RecipesService extends ServiceBase {
 
 			const mealTypes = mealRows.map(row => row.meal_type);
 
-			// Replace: const ingredients = this.getIngredientsForRecipe(recipeId) || [];
-			// With this mapped version:
 			const rawIngredients = this.getIngredientsForRecipe(recipeId) || [];
 			const ingredients = rawIngredients.map((ing: any) => ({
-				name: ing.ingredientName,
+				id: ing.id,
+				name: ing.name,
 				measurement: ing.measurement,
 				amount: ing.amount
 			}));
 
 			let authorUsername = 'Unknown author';
 			if (recipeRow.author) {
-				// 3. Use .get() to get the row matching the author's id
 				const userRow = this.unit.prepare(
 					`select username
 					 from User
@@ -499,7 +527,7 @@ export class RecipesService extends ServiceBase {
 			}
 
 			return {
-				author: 0,
+				author: recipeRow.author,
 				isOwnedByUser: undefined,
 				isSavedByUser: undefined,
 				id: recipeRow.id,
@@ -558,27 +586,25 @@ export class RecipesService extends ServiceBase {
 		return true;
 	}
 
-	public getIngredientsForRecipe(recipeId: number): {
-		ingredientName: string;
+	public getIngredientsForRecipe(recipeId: number): Array<{
+		id: number;
+		name: string;
 		measurement: string;
-		amount: number
-	}[] {
-		const rows = this.unit.prepare<{
-			ingredient_name: string;
+		amount: string;
+	}> {
+		return this.unit.prepare<{
+			id: number;
+			name: string;
 			measurement: string;
 			amount: string;
-		}>(
-			`select ingredient_name, measurement, amount
-			 from RecipeIngredient
-			 where recipe_id = :recipeId
-			 order by ingredient_name`,
-			{ recipeId }
-		).all();
-
-		return rows.map(row => ({
-			ingredientName: row.ingredient_name,
-			measurement: row.measurement,
-			amount: Number(row.amount)
-		}));
+		}>(`
+			SELECT i.id           AS id,
+			       i.name         AS name,
+			       ri.measurement AS measurement,
+			       ri.amount      AS amount
+			FROM RecipeIngredient ri
+				     JOIN Ingredient i ON ri.ingredient_id = i.id
+			WHERE ri.recipe_id = :recipeId
+		`, { recipeId }).all();
 	}
 }

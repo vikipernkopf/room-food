@@ -30,7 +30,7 @@ function normalizeResponsibleUsers(responsibleUsers: unknown): string[] | null {
 }
 
 function normalizeIngredientAssignments(input: unknown): {
-	[key: string]: string[]
+	[key: number]: string[]
 } | null {
 	if (input === undefined) {
 		return {};
@@ -40,17 +40,21 @@ function normalizeIngredientAssignments(input: unknown): {
 	}
 
 	const result: {
-		[key: string]: string[]
+		[key: number]: string[]
 	} = {};
 
 	for (const key of Object.keys(input as any)) {
+		const ingredientId = Number(key);
+		if (!Number.isInteger(ingredientId) || ingredientId <= 0) {
+			return null;
+		}
 		const val = (input as any)[key];
 		if (!Array.isArray(val)) {
 			return null;
 		}
 		const filtered = val.filter((u: any) => typeof u === 'string' && u.trim().length > 0)
 		.map((u: string) => u.trim());
-		result[key] = Array.from(new Set(filtered));
+		result[ingredientId] = Array.from(new Set(filtered));
 	}
 
 	return result;
@@ -65,7 +69,6 @@ mealManagementRouter.post('/meal', async (req, res): Promise<void> => {
 		name,
 		mealType,
 		room,
-		responsible,
 		cooked
 	} = req.body;
 	const recipeIds = normalizeRecipeIds(req.body?.recipeIds);
@@ -82,10 +85,10 @@ mealManagementRouter.post('/meal', async (req, res): Promise<void> => {
 	}
 	if (ingredientAssignments === null) {
 		res.status(StatusCodes.BAD_REQUEST)
-		.json({ error: 'ingredientAssignments must be an object mapping ingredientName -> string[]' });
+		.json({ error: 'ingredientAssignments must be an object mapping ingredientId (number) -> string[]' });
 		return;
 	}
-	if (!time || !endTime || !name || !mealType || !room || !responsible) {
+	if (!time || !endTime || !name || !mealType || !room) {
 		res.status(StatusCodes.BAD_REQUEST).json();
 		console.log('Missing required fields');
 		return;
@@ -99,7 +102,6 @@ mealManagementRouter.post('/meal', async (req, res): Promise<void> => {
 			name,
 			mealType,
 			room,
-			responsible,
 			responsibleUsers,
 			recipeIds,
 			cooked: !!cooked,
@@ -166,22 +168,25 @@ mealManagementRouter.put('/meal/:id', async (req, res): Promise<void> => {
 		return;
 	}
 
-	// ingredientAssignments is optional on update; only process if provided
 	let ingredientAssignmentsNormalized: {
-		[key: string]: string[]
+		[key: number]: string[]
 	} | undefined;
 	if (Object.prototype.hasOwnProperty.call(updatedMeal, 'ingredientAssignments')) {
 		const tmp = normalizeIngredientAssignments(updatedMeal.ingredientAssignments);
 		if (tmp === null) {
 			res.status(StatusCodes.BAD_REQUEST)
-			.json({ error: 'updatedMeal.ingredientAssignments must be an object mapping ingredientName -> string[]' });
+			.json(
+				{
+					error: 'updatedMeal.ingredientAssignments must be an object mapping ingredientId (number) -> string[]'
+				}
+			);
 			return;
 		}
 		ingredientAssignmentsNormalized = tmp;
 	}
 
 	const requiredUpdated = updatedMeal.time && updatedMeal.endTime && updatedMeal.name && updatedMeal.mealType
-		&& updatedMeal.room && updatedMeal.responsible;
+		&& updatedMeal.room;
 	if (!requiredUpdated) {
 		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Missing required meal fields' });
 		return;
@@ -196,14 +201,12 @@ mealManagementRouter.put('/meal/:id', async (req, res): Promise<void> => {
 			name: updatedMeal.name,
 			mealType: updatedMeal.mealType,
 			room: updatedMeal.room,
-			responsible: updatedMeal.responsible,
 			responsibleUsers,
 			recipeIds,
 			cooked: !!updatedMeal.cooked,
-			eatingUsernames: []
+			eatingUsernames: updatedMeal.eatingUsernames ?? []
 		} as Meal;
 
-		// attach ingredientAssignments only if provided in request
 		if (ingredientAssignmentsNormalized !== undefined) {
 			(updated as any).ingredientAssignments = ingredientAssignmentsNormalized;
 		}
@@ -412,28 +415,30 @@ mealManagementRouter.get('/meal/:mealId/eating-users', async (req, res): Promise
 
 mealManagementRouter.post('/meal/:mealId/ingredient-assignment', async (req, res): Promise<void> => {
 	const mealId = Number(req.params.mealId);
-	const {
-		ingredientName,
-		username
-	} = req.body;
+	const ingredientId = Number((req.body as {
+		ingredientId?: number
+	})?.ingredientId);
+	const username = String((req.body as {
+		username?: string
+	})?.username ?? '').trim();
 
 	if (!Number.isInteger(mealId) || mealId <= 0) {
 		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid meal id' });
 		return;
 	}
-	if (!ingredientName || typeof ingredientName !== 'string') {
-		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid ingredient name' });
+	if (!Number.isInteger(ingredientId) || ingredientId <= 0) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid ingredient id' });
 		return;
 	}
-	if (!username || typeof username !== 'string') {
-		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid username' });
+	if (!username) {
+		res.status(StatusCodes.BAD_REQUEST).json({ error: 'Username is required' });
 		return;
 	}
 
 	const unit = new Unit(false);
 	try {
 		const mealManagementService = new MealManagementService(unit);
-		const result = mealManagementService.assignIngredientToUser(mealId, ingredientName.trim(), username.trim());
+		const result = mealManagementService.assignIngredientToUser(mealId, ingredientId, username);
 
 		if (result === 'meal_not_found') {
 			unit.complete(false);
@@ -443,6 +448,11 @@ mealManagementRouter.post('/meal/:mealId/ingredient-assignment', async (req, res
 		if (result === 'user_not_found') {
 			unit.complete(false);
 			res.status(StatusCodes.NOT_FOUND).json({ error: 'User not found' });
+			return;
+		}
+		if (result === 'ingredient_not_found') {
+			unit.complete(false);
+			res.status(StatusCodes.NOT_FOUND).json({ error: 'Ingredient not found' });
 			return;
 		}
 		if (result === 'already_assigned') {
@@ -457,25 +467,30 @@ mealManagementRouter.post('/meal/:mealId/ingredient-assignment', async (req, res
 		}
 
 		unit.complete(true);
-		res.status(StatusCodes.OK).json();
+		res.status(StatusCodes.OK).json({
+			mealId,
+			ingredientId,
+			username,
+			assigned: true
+		});
 	} catch (error) {
 		unit.complete(false);
 		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to assign ingredient to user' });
 	}
 });
 
-mealManagementRouter.delete('/meal/:mealId/ingredient-assignment/:ingredientName/:username',
+mealManagementRouter.delete('/meal/:mealId/ingredient-assignment/:ingredientId/:username',
 	async (req, res): Promise<void> => {
 		const mealId = Number(req.params.mealId);
-		const ingredientName = req.params.ingredientName?.trim();
+		const ingredientId = Number(req.params.ingredientId);
 		const username = req.params.username?.trim();
 
 		if (!Number.isInteger(mealId) || mealId <= 0) {
 			res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid meal id' });
 			return;
 		}
-		if (!ingredientName) {
-			res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid ingredient name' });
+		if (!Number.isInteger(ingredientId) || ingredientId <= 0) {
+			res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid ingredient id' });
 			return;
 		}
 		if (!username) {
@@ -486,7 +501,7 @@ mealManagementRouter.delete('/meal/:mealId/ingredient-assignment/:ingredientName
 		const unit = new Unit(false);
 		try {
 			const mealManagementService = new MealManagementService(unit);
-			const result = mealManagementService.removeIngredientAssignment(mealId, ingredientName, username);
+			const result = mealManagementService.removeIngredientAssignment(mealId, ingredientId, username);
 
 			if (result === 'meal_not_found') {
 				unit.complete(false);
@@ -496,6 +511,11 @@ mealManagementRouter.delete('/meal/:mealId/ingredient-assignment/:ingredientName
 			if (result === 'user_not_found') {
 				unit.complete(false);
 				res.status(StatusCodes.NOT_FOUND).json({ error: 'User not found' });
+				return;
+			}
+			if (result === 'ingredient_not_found') {
+				unit.complete(false);
+				res.status(StatusCodes.NOT_FOUND).json({ error: 'Ingredient not found' });
 				return;
 			}
 			if (result === 'not_assigned') {
@@ -512,7 +532,7 @@ mealManagementRouter.delete('/meal/:mealId/ingredient-assignment/:ingredientName
 			unit.complete(true);
 			res.status(StatusCodes.OK).json({
 				mealId,
-				ingredientName,
+				ingredientId,
 				username,
 				removed: true
 			});
@@ -543,10 +563,10 @@ mealManagementRouter.get('/meal/:mealId/ingredient-assignments', async (req, res
 
 		// Convert Map to object for JSON serialization
 		const assignmentObj: {
-			[key: string]: string[]
+			[key: number]: string[]
 		} = {};
-		for (const [ingredientName, usernames] of result.entries()) {
-			assignmentObj[ingredientName] = usernames;
+		for (const [ingredientId, usernames] of result.entries()) {
+			assignmentObj[ingredientId] = usernames;
 		}
 
 		unit.complete(true);

@@ -34,7 +34,7 @@
 					@if (recipe.mealTypes.length) {
 						<div class="recipe-meal-types">
 							@for (mealType of recipe.mealTypes; track mealType) {
-								<span class="meal-type-tag">{{ mealType }}</span>
+								<span class="meal-type-tag">{{ formatMealType(mealType) }}</span>
 							}
 						</div>
 					} @else {

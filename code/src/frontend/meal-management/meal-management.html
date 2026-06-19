@@ -321,19 +321,19 @@
 								</tr>
 								</thead>
 								<tbody>
-									@for (ing of scaledIngredients; track ing.ingredientName) {
+									@for (ing of scaledIngredients; track ing.id) {
 										<tr>
-											<td>{{ ing.ingredientName }}</td>
+											<td>{{ ing.name }}</td>
 											<td>{{ ing.amount }}</td>
 											<td>{{ ing.measurement }}</td>
 											<td class="more-ingredient-assignment">
 												<div class="more-ingredient-users">
 													@for (user of getAssignedUsersForIngredient(
-														ing.ingredientName); track user) {
+														ing.id); track user) {
 														<span class="more-ingredient-user-chip">
 														{{ user }}
 															<button type="button" class="remove-assignment-btn"
-																(click)="removeIngredientAssignment(ing.ingredientName, user)"
+																(click)="removeIngredientAssignment(ing.id, user)"
 																title="Remove assignment">
 															x
 															</button>
@@ -342,11 +342,10 @@
 												</div>
 												@if (!isViewMode() && isEditMode) {
 													<mat-select class="more-ingredient-select select-input"
-														placeholder="Assign to user"
-														[(ngModel)]="ingredientAssignmentDropdown"
-														(ngModelChange)="assignIngredientToUser(ing.ingredientName, $any($event))"
-														name="ingredientAssign_{{ ing.ingredientName }}">
-														<mat-option value="">Select user</mat-option>
+														placeholder="Select user"
+														#assignSelect="matSelect"
+														(selectionChange)="assignIngredientToUser(ing.id, $event.value);
+														assignSelect.value = ''">
 														@for (member of availableRoomMembers; track member) {
 															<mat-option [value]="member">{{ member }}</mat-option>
 														}

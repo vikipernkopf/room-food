@@ -33,7 +33,6 @@
 						}
 					</div>
 
-					<!--suppress JSUnusedLocalSymbols -->
 					<div class="grid-content" [style.height.px]="hours.length * hourHeight">
 						@for (day of weekdays; track day.date; let i = $index) {
 
@@ -45,11 +44,10 @@
 										[style.height.px]="getMealHeight(meal.time, meal.endTime)"
 										(click)="$event.stopPropagation(); openEdit(meal)">
 										<span class="meal-name">{{ meal.name }}</span>
-										<span class="meal-responsible">{{
-												getFormattedResponsibleUsers(meal) || meal.responsible }}</span>
+										<span class="meal-responsible">{{ getFormattedResponsibleUsers(meal) }}</span>
 										<span class="meal-time">
-         						{{ meal.time | date:'HH:mm' }} - {{ meal.endTime | date:'HH:mm' }}
-      							</span>
+                           {{ meal.time | date:'HH:mm' }} - {{ meal.endTime | date:'HH:mm' }}
+                          </span>
 									</div>
 								}
 							</div>
