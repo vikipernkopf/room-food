@@ -1,4 +1,21 @@
 @use '../styles/theme' as *;
+@use '../styles/form-style' as *;
+@use '../styles/ingredients' as *;
+
+.header-container {
+	padding: 1.25rem 1.5rem !important;
+	margin-bottom: 0 !important;
+}
+
+.ingredient {
+	div {
+		padding-left: 3px !important;
+	}
+}
+
+mat-checkbox {
+	margin-left: 0.5rem;
+}
 
 .modal-backdrop {
 	position: fixed;
@@ -34,50 +51,10 @@
 	overflow: hidden;
 }
 
-.modal-header {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	padding: 1.25rem 1.5rem;
-	border-bottom: 1px solid $color-light-gray;
-
-	h3 {
-		margin: 0;
-		font-size: 1.1rem;
-		font-weight: 600;
-		color: $color-green-4;
-	}
-}
-
-.btn-icon {
-	background: none;
-	border: none;
-	font-size: 1rem;
-	cursor: pointer;
-	color: $color-gray;
-	width: 30px;
-	height: 30px;
-	border-radius: 50%;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	transition: background 0.15s;
-
-	&:hover:not(:disabled) {
-		background: $color-lighter-gray;
-		color: $color-text-main;
-	}
-
-	&:disabled {
-		opacity: 0.4;
-		cursor: not-allowed;
-	}
-}
-
 .modal-body {
 	flex: 1;
 	overflow-y: auto;
-	padding: 1.25rem 1.5rem;
+	padding: 1.25rem 1.25rem 1.5rem;
 	display: flex;
 	flex-direction: column;
 	gap: 0.75rem;
@@ -87,28 +64,24 @@
 	color: $color-gray;
 	font-style: italic;
 	font-size: 0.9rem;
+	margin-bottom: 0;
+	padding-bottom: 0;
 }
 
 .select-all-row {
 	display: flex;
 	align-items: center;
-	gap: 0.6rem;
-	padding: 0.6rem 0.8rem;
+	padding-left: 4px;
 	background: $color-lighter-gray;
 	border-radius: 8px;
 	font-weight: 600;
 	font-size: 0.9rem;
 	color: $color-text-main;
+	gap: 0.25rem;
 
-	input {
-		accent-color: $color-green-2;
-		width: 16px;
-		height: 16px;
+	.select-all-text {
 		cursor: pointer;
-	}
-
-	label {
-		cursor: pointer;
+		flex: 1;
 		user-select: none;
 	}
 
@@ -124,26 +97,15 @@
 	margin: 0;
 	display: flex;
 	flex-direction: column;
-	gap: 0.5rem;
 }
 
 li {
 	display: flex;
 	align-items: center;
-	gap: 0.7rem;
-	padding: 0.65rem 0.9rem;
-	border: 1px solid $color-light-gray;
+	padding: 0.3rem 0.6rem;
 	border-radius: 8px;
-	background: $color-input-bg;
 	transition: border-color 0.15s, background 0.15s;
-
-	input {
-		accent-color: $color-green-2;
-		width: 16px;
-		height: 16px;
-		cursor: pointer;
-		flex-shrink: 0;
-	}
+	gap: 0.25rem;
 
 	&.is-bought {
 		background: rgba($color-green-2, 0.06);
@@ -175,7 +137,7 @@ li {
 .ing-unit {
 	color: $color-label-gray;
 	font-size: 0.8rem;
-	min-width: 48px;
+	min-width: 80px;
 }
 
 .ing-name {
@@ -194,6 +156,8 @@ li {
 	border-radius: 8px;
 	font-size: 0.875rem;
 	text-align: center;
+	width: 100%;
+	margin-bottom: 0;
 
 	&-error {
 		background: rgba(#e53935, 0.08);
@@ -211,10 +175,10 @@ li {
 .modal-footer {
 	display: flex;
 	align-items: center;
-	justify-content: space-between;
+	justify-content: center;
 	padding: 1rem 1.5rem;
 	border-top: 1px solid $color-light-gray;
-	gap: 0.5rem;
+	width: 100%;
 }
 
 .footer-right {
@@ -222,46 +186,25 @@ li {
 	gap: 0.5rem;
 }
 
-button {
-	border: none;
-	border-radius: 8px;
-	padding: 0.55rem 1.2rem;
-	font-size: 0.875rem;
-	font-weight: 600;
-	cursor: pointer;
-	font-family: inherit;
-	transition: all 0.15s;
-
-	&:disabled {
-		opacity: 0.5;
-		cursor: not-allowed;
-	}
-}
-
 .btn-ghost {
+	border: none;
 	background: none;
+	font-size: 0.9rem !important;
 	color: $color-gray;
 	padding-left: 0;
+	font-weight: 600;
 
 	&:hover:not(:disabled) {
 		color: $color-text-main;
 	}
-}
 
-.btn-secondary {
-	background: $color-light-gray;
-	color: $color-text-main;
-
-	&:hover:not(:disabled) {
-		background: $color-lighter-gray;
+	&:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
 	}
 }
 
-.btn-primary {
-	background: $color-green-2;
-	color: $color-white;
-
-	&:hover:not(:disabled) {
-		background: $color-green-3;
-	}
+.action-row {
+	margin-top: 0.5rem !important;
+	width: 100%;
 }

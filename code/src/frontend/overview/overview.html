@@ -47,11 +47,10 @@
 
 										<span class="meal-name">{{ meal.name }}</span>
 										<span class="meal-room">{{ getRoomName(meal.room) }}</span>
-										<span class="meal-responsible">{{
-												getFormattedResponsibleUsers(meal) || meal.responsible }}</span>
+										<span class="meal-responsible">{{ getFormattedResponsibleUsers(meal) }}</span>
 										<span class="meal-time">
-									{{ formatTime(meal.time) }} - {{ formatTime(meal.endTime) }}
-								</span>
+                            {{ formatTime(meal.time) }} - {{ formatTime(meal.endTime) }}
+                         </span>
 									</div>
 								}
 							</div>

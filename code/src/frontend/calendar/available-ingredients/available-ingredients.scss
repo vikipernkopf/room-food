@@ -2,52 +2,13 @@
 @use "../../styles/form-style" as *;
 @use '../../styles/ingredients' as *;
 
-.ingredients-container {
-	display: flex;
-	flex-direction: column;
-	gap: 2rem;
-}
-
-.ingredients-section {
-	margin-top: 1rem;
-	display: flex;
-	flex-direction: column;
-}
-
 // Add ingredient form section
 .form-grid {
-	margin-top: 1rem !important;
+	margin-top: 0 !important;
 	padding: 1rem !important;
 	background-color: $color-lighter-gray !important;
 	border: 1px solid $color-light-gray !important;
 	border-radius: 0.375rem !important;
-}
-
-.toggle-form-btn {
-	background-color: $color-green-2;
-	color: $color-white;
-	border: none;
-	padding: 0.625rem 1rem;
-	border-radius: 0.375rem;
-	font-weight: 600;
-	cursor: pointer;
-	transition: all 0.2s ease-in-out;
-	font-size: 0.95rem;
-
-	&:hover {
-		background-color: $color-green-3;
-		box-shadow: 0 2px 6px rgba($color-green-3, 0.3);
-	}
-
-	&:active {
-		transform: scale(0.98);
-	}
-
-	&:disabled {
-		background-color: $color-light-gray;
-		color: $color-gray;
-		cursor: not-allowed;
-	}
 }
 
 .form-group {

@@ -13,7 +13,8 @@ import { AuthService } from '../core/auth-service';
 	imports: [FormsModule, CommonModule]
 })
 export class SearchIngredient {
-	@Output() ingredientSelected = new EventEmitter<Ingredient>();
+	@Output()
+	ingredientSelected = new EventEmitter<Ingredient>();
 	private readonly authService = inject(AuthService);
 	private readonly ingredientService = inject(IngredientsFrontendService);
 
@@ -27,12 +28,13 @@ export class SearchIngredient {
 		const userOpts = this.userOptions();
 		const globalOpts = this.globalOptions();
 
-		// Combine user history (first) with global ingredients, removing duplicates
 		const seen = new Set<string>();
 		const combined: Ingredient[] = [];
 
-		// User ingredients first (prioritized)
 		for (const ing of userOpts) {
+			if (!ing?.name) {
+				continue;
+			}
 			const key = ing.name.toLowerCase();
 			if (!seen.has(key)) {
 				seen.add(key);
@@ -40,8 +42,10 @@ export class SearchIngredient {
 			}
 		}
 
-		// Then global ingredients (only if not already in user history)
 		for (const ing of globalOpts) {
+			if (!ing?.name) {
+				continue;
+			}
 			const key = ing.name.toLowerCase();
 			if (!seen.has(key)) {
 				seen.add(key);
@@ -51,6 +55,13 @@ export class SearchIngredient {
 
 		return combined;
 	});
+
+	public clear(): void {
+		this.query.set('');
+		this.isOpen.set(false);
+		this.userOptions.set([]);
+		this.globalOptions.set([]);
+	}
 
 	onInput(value: string) {
 		this.query.set(value);
@@ -66,35 +77,32 @@ export class SearchIngredient {
 		this.isLoading.set(true);
 		this.isOpen.set(true);
 
-		// Search user-specific ingredients first
 		this.ingredientService.getUserIngredientsForPrefix(value, username).subscribe({
-			next: (userIngredients) => {
+			next: userIngredients => {
 				this.userOptions.set(userIngredients);
 
-				// Also search global ingredients as fallback
 				this.ingredientService.getIngredientsForPrefix(value, username).subscribe({
-					next: (globalIngredients) => {
+					next: globalIngredients => {
 						this.globalOptions.set(globalIngredients);
 						this.isLoading.set(false);
 					},
-					error: (err) => {
+					error: err => {
 						console.error('Error fetching global ingredients:', err);
 						this.globalOptions.set([]);
 						this.isLoading.set(false);
 					}
 				});
 			},
-			error: (err) => {
+			error: err => {
 				console.error('Error fetching user ingredients:', err);
 				this.userOptions.set([]);
 
-				// Fallback to global search if user search fails
 				this.ingredientService.getIngredientsForPrefix(value, username).subscribe({
-					next: (globalIngredients) => {
+					next: globalIngredients => {
 						this.globalOptions.set(globalIngredients);
 						this.isLoading.set(false);
 					},
-					error: (err2) => {
+					error: err2 => {
 						console.error('Error fetching global ingredients:', err2);
 						this.globalOptions.set([]);
 						this.isLoading.set(false);
@@ -103,7 +111,6 @@ export class SearchIngredient {
 			}
 		});
 
-		// Always emit the raw input so parent can use it even if not selected from dropdown
 		this.ingredientSelected.emit({
 			name: value,
 			measurement: '',
@@ -112,6 +119,9 @@ export class SearchIngredient {
 	}
 
 	selectOption(option: Ingredient) {
+		if (!option?.name) {
+			return;
+		}
 		this.query.set(option.name);
 		this.isOpen.set(false);
 		this.ingredientSelected.emit(option);
@@ -124,9 +134,6 @@ export class SearchIngredient {
 	}
 
 	onBlur() {
-		// Delay to allow click on option to register
-		setTimeout(() => {
-			this.isOpen.set(false);
-		}, 200);
+		setTimeout(() => this.isOpen.set(false), 200);
 	}
 }

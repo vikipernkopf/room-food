@@ -62,7 +62,6 @@ type MealPlan = {
 	name: string;
 	mealType: string;
 	roomCode: string;
-	responsible: string;
 	responsibleUsers: string[];
 	recipeNames: string[];
 	eatingUsernames?: string[];
@@ -906,63 +905,11 @@ const ROOM_INGREDIENTS: RoomIngredientSeed[] = [
 	}
 ];
 
-const BOUGHT_INGREDIENTS: Array<{
-	roomCode: string;
-	ingredientName: string;
-	measurement: string;
-	amount: number;
-	boughtByUsername: string;
-}> = [
-	{
-		roomCode: 'room-001',
-		ingredientName: 'Pasta',
-		measurement: 'grams',
-		amount: 500,
-		boughtByUsername: 'alice'
-	},
-	{
-		roomCode: 'room-001',
-		ingredientName: 'Tomato',
-		measurement: 'units',
-		amount: 6,
-		boughtByUsername: 'bob'
-	},
-	{
-		roomCode: 'room-001',
-		ingredientName: 'Ground Beef',
-		measurement: 'grams',
-		amount: 300,
-		boughtByUsername: 'charlie'
-	},
-	{
-		roomCode: 'room-002',
-		ingredientName: 'Chicken Breast',
-		measurement: 'grams',
-		amount: 800,
-		boughtByUsername: 'diana'
-	},
-	{
-		roomCode: 'room-002',
-		ingredientName: 'Broccoli',
-		measurement: 'grams',
-		amount: 400,
-		boughtByUsername: 'alice'
-	},
-	{
-		roomCode: 'room-003',
-		ingredientName: 'Flour',
-		measurement: 'grams',
-		amount: 600,
-		boughtByUsername: 'bob'
-	}
-];
-
 const MEAL_PLANS: MealPlan[] = [
 	{
 		name: 'Next Week Breakfast Prep',
 		mealType: 'breakfast-0',
 		roomCode: 'room-001',
-		responsible: 'alice',
 		responsibleUsers: ['bob'],
 		recipeNames: ['Scrambled Eggs & Toast'],
 		eatingUsernames: ['alice', 'bob', 'charlie'],
@@ -980,7 +927,6 @@ const MEAL_PLANS: MealPlan[] = [
 		name: 'Midweek Pasta Lunch',
 		mealType: 'lunch-1',
 		roomCode: 'room-001',
-		responsible: 'bob',
 		responsibleUsers: ['alice', 'charlie'],
 		recipeNames: ['Pasta Bolognese'],
 		eatingUsernames: ['alice', 'bob', 'charlie'],
@@ -998,7 +944,6 @@ const MEAL_PLANS: MealPlan[] = [
 		name: 'Healthy Chicken Dinner',
 		mealType: 'dinner-2',
 		roomCode: 'room-002',
-		responsible: 'diana',
 		responsibleUsers: ['alice', 'charlie'],
 		recipeNames: ['Lemon Herb Chicken Tray Bake'],
 		eatingUsernames: ['alice', 'charlie', 'diana'],
@@ -1016,7 +961,6 @@ const MEAL_PLANS: MealPlan[] = [
 		name: 'Weekend Pancake Breakfast',
 		mealType: 'breakfast-0',
 		roomCode: 'room-003',
-		responsible: 'alice',
 		responsibleUsers: ['bob', 'diana'],
 		recipeNames: ['Berry Pancakes'],
 		eatingUsernames: ['alice', 'bob', 'diana'],
@@ -1034,7 +978,6 @@ const MEAL_PLANS: MealPlan[] = [
 		name: 'Green Stir Fry Lunch',
 		mealType: 'lunch-1',
 		roomCode: 'room-002',
-		responsible: 'charlie',
 		responsibleUsers: ['diana'],
 		recipeNames: ['Vegetable Stir Fry'],
 		eatingUsernames: ['alice', 'charlie', 'diana'],
@@ -1052,7 +995,6 @@ const MEAL_PLANS: MealPlan[] = [
 		name: 'Soup Night',
 		mealType: 'dinner-2',
 		roomCode: 'room-001',
-		responsible: 'bob',
 		responsibleUsers: ['alice'],
 		recipeNames: ['Creamy Tomato Soup'],
 		eatingUsernames: ['alice', 'bob', 'charlie'],
@@ -1070,7 +1012,6 @@ const MEAL_PLANS: MealPlan[] = [
 		name: 'Sunday Shared Lunch',
 		mealType: 'lunch-1',
 		roomCode: 'room-003',
-		responsible: 'diana',
 		responsibleUsers: ['alice', 'bob'],
 		recipeNames: ['Caesar Salad with Parmesan Croutons', 'Creamy Tomato Soup'],
 		eatingUsernames: ['alice', 'bob', 'diana'],
@@ -1133,12 +1074,11 @@ export function seedDemoData(dbPath: string): void {
 		const userIds = insertUsers(db);
 		const roomCodes = insertRooms(db);
 		insertRoomMemberships(db, userIds);
-		insertIngredients(db);
-		insertRoomIngredients(db, roomCodes);
-		const recipeIds = insertRecipes(db, userIds);
+		const ingredientIds = insertIngredients(db);
+		insertRoomIngredients(db, roomCodes, ingredientIds);
+		const recipeIds = insertRecipes(db, userIds, ingredientIds);
 		insertSavedRecipes(db, userIds, recipeIds);
-		insertMeals(db, userIds, roomCodes, recipeIds);
-		insertBoughtIngredients(db, roomCodes, userIds);
+		insertMeals(db, userIds, roomCodes, recipeIds, ingredientIds);
 
 		db.exec('commit;');
 		db.pragma('foreign_keys = ON');
@@ -1244,7 +1184,7 @@ function insertRoomMemberships(db: BetterSqlite3.Database, userIds: Map<string, 
 	}
 }
 
-function insertIngredients(db: BetterSqlite3.Database): void {
+function insertIngredients(db: BetterSqlite3.Database): Map<string, number> {
 	console.log('\n🥘 Creating ingredients...');
 
 	const insertIngredient = db.prepare(`
@@ -1256,14 +1196,30 @@ function insertIngredients(db: BetterSqlite3.Database): void {
 		insertIngredient.run(ingredient.name, ingredient.defaultMeasurement);
 	}
 
+	const rows = db.prepare(`
+		SELECT id, name FROM Ingredient
+	`).all() as Array<{
+		id: number;
+		name: string
+	}>;
+	const ingredientIds = new Map<string, number>();
+	for (const row of rows) {
+		ingredientIds.set(row.name, row.id);
+	}
+
 	console.log(`  ✓ ${INGREDIENTS.length} ingredients created`);
+	return ingredientIds;
 }
 
-function insertRoomIngredients(db: BetterSqlite3.Database, roomCodes: Set<string>): void {
+function insertRoomIngredients(
+	db: BetterSqlite3.Database,
+	roomCodes: Set<string>,
+	ingredientIds: Map<string, number>
+): void {
 	console.log('\n🧺 Stocking room ingredients...');
 
 	const insertRoomIngredient = db.prepare(`
-		insert into RoomIngredient (room_code, ingredient_name, measurement, amount)
+		insert into RoomIngredient (room_code, ingredient_id, measurement, amount)
 		values (?, ?, ?, ?)
 	`);
 
@@ -1272,13 +1228,18 @@ function insertRoomIngredients(db: BetterSqlite3.Database, roomCodes: Set<string
 			throw new Error(`Unknown room code in room ingredient seed: ${entry.roomCode}`);
 		}
 
-		insertRoomIngredient.run(entry.roomCode, entry.ingredientName, entry.measurement, entry.amount);
+		const ingredientId = requiredIngredientId(ingredientIds, entry.ingredientName);
+		insertRoomIngredient.run(entry.roomCode, ingredientId, entry.measurement, entry.amount);
 	}
 
 	console.log(`  ✓ ${ROOM_INGREDIENTS.length} room ingredient rows created`);
 }
 
-function insertRecipes(db: BetterSqlite3.Database, userIds: Map<string, number>): Map<string, number> {
+function insertRecipes(
+	db: BetterSqlite3.Database,
+	userIds: Map<string, number>,
+	ingredientIds: Map<string, number>
+): Map<string, number> {
 	console.log('\n📖 Creating recipes...');
 
 	const insertRecipe = db.prepare(`
@@ -1290,7 +1251,7 @@ function insertRecipes(db: BetterSqlite3.Database, userIds: Map<string, number>)
 		values (?, ?)
 	`);
 	const insertRecipeIngredient = db.prepare(`
-		insert into RecipeIngredient (recipe_id, ingredient_name, measurement, amount)
+		insert into RecipeIngredient (recipe_id, ingredient_id, measurement, amount)
 		values (?, ?, ?, ?)
 	`);
 	const recipeIds = new Map<string, number>();
@@ -1313,7 +1274,8 @@ function insertRecipes(db: BetterSqlite3.Database, userIds: Map<string, number>)
 		}
 
 		for (const ingredient of recipe.ingredients) {
-			insertRecipeIngredient.run(recipeId, ingredient.name, ingredient.measurement, ingredient.amount);
+			const ingredientId = requiredIngredientId(ingredientIds, ingredient.name);
+			insertRecipeIngredient.run(recipeId, ingredientId, ingredient.measurement, ingredient.amount);
 		}
 
 		console.log(`  ✓ ${recipe.name}`);
@@ -1347,7 +1309,8 @@ function insertMeals(
 	db: BetterSqlite3.Database,
 	userIds: Map<string, number>,
 	roomCodes: Set<string>,
-	recipeIds: Map<string, number>
+	recipeIds: Map<string, number>,
+	ingredientIds: Map<string, number>
 ): void {
 	console.log('\n🍽️  Creating planned meals for next week...');
 
@@ -1355,8 +1318,8 @@ function insertMeals(
 	console.log(`  ↳ Next week starts on ${nextWeekStart.toISOString().slice(0, 10)}`);
 
 	const insertMeal = db.prepare(`
-		insert into Meal (time, endTime, name, mealType, responsible, roomCode, cooked)
-		values (?, ?, ?, ?, ?, ?, ?)
+		insert into Meal (time, endTime, name, mealType, roomCode, cooked)
+		values (?, ?, ?, ?, ?, ?)
 	`);
 	const insertMealRecipe = db.prepare(`
 		insert into MealRecipe (meal_id, recipe_id)
@@ -1371,8 +1334,15 @@ function insertMeals(
 		values (?, ?)
 	`);
 	const insertMealIngredientAssignment = db.prepare(`
-		insert into MealIngredientAssignment (meal_id, ingredient_name, assigned_to_username)
-		values (?, ?, ?)
+		insert into MealIngredientAssignment (meal_id, ingredient_id, assigned_to_username, bought, amount, measurement)
+		values (?, ?, ?, ?, ?, ?)
+	`);
+	const lookupRecipeIngredient = db.prepare(`
+		select ri.amount, ri.measurement
+		from RecipeIngredient ri
+			     join MealRecipe mr on mr.recipe_id = ri.recipe_id
+		where mr.meal_id = ? and ri.ingredient_id = ?
+		limit 1
 	`);
 
 	for (const meal of MEAL_PLANS) {
@@ -1387,7 +1357,6 @@ function insertMeals(
 			endTime.toISOString(),
 			meal.name,
 			meal.mealType,
-			meal.responsible,
 			meal.roomCode,
 			meal.cooked ? 1 : 0
 		);
@@ -1412,40 +1381,24 @@ function insertMeals(
 		for (const [ingredientName, usernames] of Object.entries(meal.ingredientAssignments)) {
 			for (const username of uniqueValues(usernames)) {
 				requiredUserId(userIds, username);
-				insertMealIngredientAssignment.run(mealId, ingredientName, username);
+				const ingredientId = requiredIngredientId(ingredientIds, ingredientName);
+				const isBought = Math.random() > 0.5 ? 1 : 0;
+
+				const recipeIng = lookupRecipeIngredient.get(mealId, ingredientId) as {
+					amount: string;
+					measurement: string
+				} | undefined;
+
+				const amount = recipeIng?.amount ?? '0';
+				const measurement = recipeIng?.measurement ?? '';
+
+				if (Number(amount) > 0) {
+					insertMealIngredientAssignment.run(mealId, ingredientId, username, isBought, amount, measurement);
+				}
 			}
 		}
 
 		console.log(`  ✓ ${meal.name} on ${time.toISOString()}`);
-	}
-}
-
-function insertBoughtIngredients(
-	db: BetterSqlite3.Database,
-	roomCodes: Set<string>,
-	userIds: Map<string, number>
-): void {
-	console.log('\n🛒 Seeding bought ingredients...');
-
-	const insertBought = db.prepare(`
-		insert into BoughtIngredient (room_code, ingredient_name, measurement, amount, bought_by_username, bought_at)
-		values (?, ?, ?, ?, ?, ?)
-	`);
-
-	for (const entry of BOUGHT_INGREDIENTS) {
-		if (!roomCodes.has(entry.roomCode)) {
-			throw new Error(`Unknown room code in bought ingredient seed: ${entry.roomCode}`);
-		}
-		requiredUserId(userIds, entry.boughtByUsername);
-		insertBought.run(
-			entry.roomCode,
-			entry.ingredientName,
-			entry.measurement,
-			entry.amount,
-			entry.boughtByUsername,
-			new Date().toISOString()
-		);
-		console.log(`  ✓ ${entry.ingredientName} (${entry.amount} ${entry.measurement}) for ${entry.roomCode}`);
 	}
 }
 
@@ -1459,7 +1412,6 @@ function printSummary(db: BetterSqlite3.Database): void {
 		['Room memberships', 'RoomUserMember'],
 		['Ingredients', 'Ingredient'],
 		['Room ingredients', 'RoomIngredient'],
-		['Bought ingredients', 'BoughtIngredient'],
 		['Recipes', 'Recipe'],
 		['Recipe ingredients', 'RecipeIngredient'],
 		['Recipe meal types', 'RecipeMealType'],
@@ -1493,6 +1445,15 @@ function requiredUserId(userIds: Map<string, number>, username: string): number 
 	return userId;
 }
 
+function requiredIngredientId(ingredientIds: Map<string, number>, ingredientName: string): number {
+	const ingredientId = ingredientIds.get(ingredientName);
+	if (ingredientId === undefined) {
+		throw new Error(`Unknown ingredient referenced in seed data: ${ingredientName}`);
+	}
+
+	return ingredientId;
+}
+
 function requiredRecipeId(recipeIds: Map<string, number>, recipeName: string): number {
 	const recipeId = recipeIds.get(recipeName);
 	if (recipeId === undefined) {
@@ -1507,7 +1468,7 @@ function getStartOfNextWeek(reference: Date): Date {
 	start.setHours(0, 0, 0, 0);
 
 	const currentDay = start.getDay();
-	const daysUntilNextMonday = currentDay === 1 ? 7 : ((8 - currentDay) % 7);
+	const daysUntilNextMonday = currentDay === 1 ? 7 : (8 - currentDay) % 7;
 	start.setDate(start.getDate() + daysUntilNextMonday);
 
 	return start;
@@ -1547,25 +1508,17 @@ function readablePassword(username: string): string {
 	}
 }
 
-// If this script is executed directly with `npx tsx scripts/seed-demo-data.ts`,
-// run the seeding flow. We detect the CLI invocation by checking the argv[1]
-// entry which contains the executed script path when run with tsx.
-// Detect whether this file was invoked from the CLI and should run.
 function wasInvokedFromCli(): boolean {
-	// npm lifecycle (npm run seed-demo-data)
 	if (process.env.npm_lifecycle_event === 'seed-demo-data') {
 		return true;
 	}
 
-	// Any argv entry mentioning the script name/path (covers `npx tsx` behavior)
-	const hasScriptArg = process.argv.some(arg => {
-		return typeof arg === 'string' && (arg.endsWith('seed-demo-data.ts') || arg.includes('seed-demo-data'));
-	});
+	const hasScriptArg = process.argv.some(arg => typeof arg === 'string' && (arg.endsWith('seed-demo-data.ts')
+		|| arg.includes('seed-demo-data')));
 	if (hasScriptArg) {
 		return true;
 	}
 
-	// Try to read require.main.filename when available (fallback)
 	try {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		let main: any = undefined;

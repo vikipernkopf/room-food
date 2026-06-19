@@ -1,34 +1,36 @@
-import {
-	Component,
-	ChangeDetectionStrategy,
-	effect,
-	inject,
-	input,
-	OnInit,
-	signal,
-	viewChild,
-	WritableSignal
-} from '@angular/core';
 import { CommonModule } from '@angular/common';
+import {
+	ChangeDetectionStrategy, Component, effect, inject, input, OnInit, signal, viewChild, WritableSignal
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { firstValueFrom, forkJoin } from 'rxjs';
 import { AuthService } from '../../core/auth-service';
 import { IngredientsFrontendService } from '../../core/ingredients-frontend-service';
+import { ShoppingFrontendService } from '../../core/shopping-frontend-service';
 import { MealService } from '../../core/meal-service';
-import { Shopping } from '../../shopping/shopping';
 import { SearchIngredient } from '../../search-ingredient/search-ingredient';
-import { firstValueFrom, forkJoin } from 'rxjs';
+import { Shopping, ShoppingIngredient } from '../../shopping/shopping';
 
 interface Ingredient {
+	id?: number;
 	name: string;
 	measurement: string;
 	amount: number;
 }
 
 interface RecipeIngredient {
-	ingredientName?: string;
-	name?: string;
+	id: number;
+	name: string;
 	measurement: string;
 	amount: string | number;
+}
+
+interface MealAssignment {
+	mealId: number;
+	ingredientId: number;
+	name: string;
+	measurement: string;
+	amount: number;
 }
 
 @Component({
@@ -42,23 +44,22 @@ interface RecipeIngredient {
 export class AvailableIngredients implements OnInit {
 	readonly roomCode = input<string>('');
 	readonly shoppingModal = viewChild(Shopping);
+	readonly searchIngredient = viewChild<any>('searchIngredient');
 
-	// Needed ingredients (aggregated from meals, minus available, and bought)
 	readonly neededIngredients = signal<Ingredient[]>([]);
-	// Available ingredients (from room stock)
+	readonly mealAssignments = signal<MealAssignment[]>([]);
 	readonly availableIngredients = signal<Ingredient[]>([]);
-	// Bought ingredients (from BoughtIngredient table - room-level)
 	readonly boughtIngredients = signal<Ingredient[]>([]);
 	readonly loading = signal(true);
 
-	// Add ingredient form signals
 	readonly newIngredientName = signal('');
 	readonly newIngredientMeasurement = signal('');
-	readonly newIngredientAmount = signal(0);
+	readonly newIngredientAmount = signal<number | ''>('');
 	readonly ingredientError: WritableSignal<string> = signal('');
 
 	private readonly authService = inject(AuthService);
 	private readonly ingredientsFrontendService = inject(IngredientsFrontendService);
+	private readonly shoppingFrontendService = inject(ShoppingFrontendService);
 	private readonly mealService = inject(MealService);
 
 	constructor() {
@@ -85,23 +86,30 @@ export class AvailableIngredients implements OnInit {
 		}
 		this.loading.set(true);
 		this.neededIngredients.set([]);
+		this.mealAssignments.set([]);
 		this.availableIngredients.set([]);
 		this.boughtIngredients.set([]);
 
-		// Load room stock, and bought in parallel
 		forkJoin({
 			roomIngredients: this.ingredientsFrontendService.getIngredientsForRoom(code),
 			boughtIngredients: this.ingredientsFrontendService.getBoughtIngredientsForRoom(code)
 		}).subscribe({
-			next: ({
-				roomIngredients,
-				boughtIngredients
-			}) => {
-				this.availableIngredients.set(roomIngredients || []);
-				this.boughtIngredients.set(boughtIngredients || []);
+			next: ({ roomIngredients, boughtIngredients }) => {
+				this.availableIngredients.set(
+					(roomIngredients || []).sort((a, b) =>
+						(a.name || '').localeCompare(b.name || '')
+					)
+				);
 
-				// Now load and compute needed ingredients
+				this.boughtIngredients.set(
+					(boughtIngredients || []).sort((a, b) =>
+						(a.name || '').localeCompare(b.name || '')
+					)
+				);
+
 				this.computeNeededIngredients(code);
+				console.log('Loaded roomIngredients:', roomIngredients);
+				console.log('Loaded bought ingredients:', boughtIngredients);
 			},
 			error: err => {
 				console.error('Error loading room/bought ingredients:', err);
@@ -116,93 +124,170 @@ export class AvailableIngredients implements OnInit {
 		this.mealService.getMealsByRoomCode(code).subscribe({
 			next: async meals => {
 				try {
-					const recipeIds: number[] = [];
 					const now = new Date();
+					const futureMeals = meals.filter(m => new Date(m.time) >= now && !m.cooked);
 
-					const futureMeals = meals.filter(m =>
-						new Date(m.time) >= now
+					const mealRecipeIngredients = await Promise.all(
+						futureMeals.map(async meal => {
+							const recipeIngredients = await Promise.all(
+								(meal.recipeIds || []).map(rid =>
+									firstValueFrom(this.ingredientsFrontendService.getIngredientsForRecipe(rid))
+								)
+							);
+							return {
+								mealId: meal.id,
+								ingredients: recipeIngredients.flat()
+							};
+						})
 					);
 
-					futureMeals.forEach(m => {
-						if (m.cooked) {
-							return;
-						}
-						(m.recipeIds || []).forEach(rid => recipeIds.push(rid));
-					});
+					const neededMap = new Map<number, Ingredient>();
+					const assignments: MealAssignment[] = [];
 
-					const results = await Promise.all(
-						recipeIds.map(
-							rid => firstValueFrom(this.ingredientsFrontendService.getIngredientsForRecipe(rid)))
-					);
+					mealRecipeIngredients.forEach(({
+						mealId,
+						ingredients
+					}) =>
+						ingredients.forEach((r: unknown) => {
+							const raw = r as RecipeIngredient;
+							const id = raw.id;
+							const name = raw.name;
+							const measurement = raw.measurement;
+							const amount = Number(raw.amount);
 
-					// Aggregate needed ingredients
-					const neededMap = new Map<string, Ingredient>();
-					results.flat().forEach((r: unknown) => {
-						const raw = r as RecipeIngredient;
-						const ing: Ingredient = {
-							name: raw.ingredientName ?? raw.name ?? '',
-							measurement: raw.measurement,
-							amount: Number(raw.amount)
-						};
-						const key = ing.name + '||' + ing.measurement;
-						const existing = neededMap.get(key);
-						if (existing) {
-							existing.amount += ing.amount;
-						} else {
-							neededMap.set(key, { ...ing });
-						}
-					});
+							const existing = neededMap.get(id);
+							if (existing) {
+								existing.amount += amount;
+							} else {
+								neededMap.set(id, {
+									id,
+									name,
+									measurement,
+									amount
+								});
+							}
 
-					// Subtract available room stock
+							if (mealId) {
+								assignments.push({
+									mealId,
+									ingredientId: id,
+									name,
+									measurement,
+									amount
+								});
+							}
+						}));
+
 					for (const available of this.availableIngredients()) {
-						const key = available.name + '||' + available.measurement;
-						const needed = neededMap.get(key);
+						let needed = available.id ? neededMap.get(available.id) : null;
+						if (!needed) {
+							needed = Array.from(neededMap.values())
+							.find(n => n.name === available.name && n.measurement === available.measurement);
+						}
 						if (needed) {
 							needed.amount -= Number(available.amount);
-							if (needed.amount <= 0) {
-								neededMap.delete(key);
+							if (needed.amount <= 0 && needed.id) {
+								neededMap.delete(needed.id);
 							}
 						}
 					}
 
-					// Subtract room-level bought ingredients
 					for (const bought of this.boughtIngredients()) {
-						const key = bought.name + '||' + bought.measurement;
-						const needed = neededMap.get(key);
+						let needed = bought.id ? neededMap.get(bought.id) : null;
+						if (!needed) {
+							needed = Array.from(neededMap.values())
+							.find(n => n.name === bought.name && n.measurement === bought.measurement);
+						}
 						if (needed) {
 							needed.amount -= Number(bought.amount);
-							if (needed.amount <= 0) {
-								neededMap.delete(key);
+							if (needed.amount <= 0 && needed.id) {
+								neededMap.delete(needed.id);
 							}
 						}
 					}
 
-					this.neededIngredients.set(Array.from(neededMap.values()));
+					this.neededIngredients.set(
+						Array.from(neededMap.values()).sort((a, b) =>
+							(a.name || '').localeCompare(b.name || '')
+						)
+					);
+					this.mealAssignments.set(assignments);
 					this.loading.set(false);
 				} catch (e) {
 					console.error(e);
 					this.neededIngredients.set([]);
+					this.mealAssignments.set([]);
 					this.loading.set(false);
 				}
 			},
 			error: err => {
 				console.error('Error loading needed ingredients:', err);
 				this.neededIngredients.set([]);
+				this.mealAssignments.set([]);
 				this.loading.set(false);
 			}
 		});
 	}
 
-	// Shopping modal
+	private buildShoppingIngredients(): ShoppingIngredient[] {
+		const needed = this.neededIngredients();
+		const assignments = this.mealAssignments();
+		const bought = this.boughtIngredients();
+
+		const assignmentMap = new Map<number, MealAssignment[]>();
+		for (const a of assignments) {
+			const key = a.ingredientId;
+			if (!assignmentMap.has(key)) {
+				assignmentMap.set(key, []);
+			}
+			assignmentMap.get(key)!.push(a);
+		}
+
+		const boughtMap = new Map<number, number>();
+		for (const b of bought) {
+			if (b.id) {
+				boughtMap.set(b.id, (boughtMap.get(b.id) || 0) + Number(b.amount));
+			}
+		}
+
+		return needed.map(ing => {
+			const key = ing.id!;
+			const ingAssignments = assignmentMap.get(key) || [];
+			const boughtAmount = boughtMap.get(key) || 0;
+			const totalAssignmentAmount = ingAssignments.reduce((sum, a) => sum + a.amount, 0);
+
+			const fullyBought = boughtAmount >= totalAssignmentAmount;
+			const partiallyBought = boughtAmount > 0 && !fullyBought;
+			const isChecked = fullyBought || partiallyBought;
+
+			return {
+				ingredientId: ing.id!,
+				name: ing.name,
+				measurement: ing.measurement,
+				amount: ing.amount,
+				checked: isChecked,
+				initialChecked: isChecked,
+				alreadyBought: fullyBought,
+				boughtBy: fullyBought ? ingAssignments[0]?.name : undefined,
+				assignments: ingAssignments.map(a => ({
+					mealId: a.mealId,
+					ingredientId: a.ingredientId,
+					amount: a.amount,
+					measurement: a.measurement
+				}))
+			};
+		});
+	}
+
 	openShopping(): void {
-		this.shoppingModal()?.open(this.neededIngredients());
+		const shoppingIngredients = this.buildShoppingIngredients();
+		this.shoppingModal()?.open(shoppingIngredients);
 	}
 
 	onSaved(): void {
 		this.loadIngredients();
 	}
 
-	// Called by parent calendar component
 	updateIngredients(): void {
 		this.loadIngredients();
 	}
@@ -210,8 +295,9 @@ export class AvailableIngredients implements OnInit {
 	resetForm(): void {
 		this.newIngredientName.set('');
 		this.newIngredientMeasurement.set('');
-		this.newIngredientAmount.set(0);
+		this.newIngredientAmount.set('');
 		this.ingredientError.set('');
+		this.searchIngredient()?.clear();
 	}
 
 	onIngredientSelected(ingredient: Ingredient): void {
@@ -237,24 +323,23 @@ export class AvailableIngredients implements OnInit {
 			amount
 		};
 		const code = this.roomCode();
-
 		const found = this.availableIngredients().find(s => s.name === newIngredient.name);
 
 		try {
-			if (found) {
+			if (found && found.id) {
 				newIngredient.amount = Number(found.amount) + Number(amount);
-				await firstValueFrom(this.ingredientsFrontendService.deleteIngredientFromRoom(code, name, measurement));
+				await firstValueFrom(this.ingredientsFrontendService.deleteIngredientFromRoom(code, found.id));
 			}
 			await firstValueFrom(this.ingredientsFrontendService.addIngredientToRoom(code, newIngredient));
 
-			// Also save to user-specific ingredient history
 			const username = this.authService.currentUser()?.username;
 			if (username) {
 				this.ingredientsFrontendService.saveUserIngredient(username, {
 					name,
 					measurement,
 					amount
-				}).subscribe({
+				})
+				.subscribe({
 					next: () => {
 					},
 					error: err => console.error('Failed to save ingredient to user history:', err)
@@ -269,34 +354,73 @@ export class AvailableIngredients implements OnInit {
 		}
 	}
 
-	deleteIngredient(ingredientName: string, measurement: string): void {
-		this.ingredientsFrontendService.deleteIngredientFromRoom(this.roomCode(), ingredientName, measurement)
+	public unmarkBoughtIngredient(ingredient: Ingredient): void {
+		if (!ingredient.id) {
+			console.error('No ingredientId found on item');
+			return;
+		}
+
+		const username = this.authService.currentUser()?.username;
+		if (!username) {
+			console.error('No logged in user found');
+			return;
+		}
+
+		const matchingAssignments = this.mealAssignments().filter(
+			a => a.ingredientId === ingredient.id
+		);
+
+		if (matchingAssignments.length === 0) {
+			return;
+		}
+
+		const requests = matchingAssignments.map(a => ({
+			mealId: a.mealId,
+			ingredientId: ingredient.id!,
+			username
+		}));
+
+		this.shoppingFrontendService.unmarkRoomBoughtBulk(requests)
 		.subscribe({
 			next: () => this.loadIngredients(),
 			error: err => {
-				console.error('Error deleting ingredient:', err);
-				this.ingredientError.set('Failed to delete ingredient');
+				console.error('Error unmarking bought ingredient:', err);
+				this.ingredientError.set('Failed to unmark bought ingredient');
 			}
 		});
 	}
 
+	public deleteIngredient(ingredient: Ingredient) {
+		if (ingredient.id) {
+			this.ingredientsFrontendService.deleteIngredientFromRoom(this.roomCode(), ingredient.id)
+			.subscribe({
+				next: () => this.loadIngredients(),
+				error: err => {
+					console.error('Error deleting:', err);
+					this.ingredientError.set('Failed to delete item');
+				}
+			});
+		}
+	}
+
 	public async removeIngredients(ingredients: Ingredient[]): Promise<void> {
 		for (const i of ingredients) {
-			const existing = this.availableIngredients().find(i2 => i2.name === i.name);
+			const existing = this.availableIngredients().find(i2 => i.id && i2.id === i.id || i2.name === i.name);
 			if (existing) {
 				existing.amount -= i.amount;
-				await firstValueFrom(
-					this.ingredientsFrontendService.deleteIngredientFromRoom(this.roomCode(), existing.name,
-						existing.measurement)
-				);
+				if (existing.id) {
+					await firstValueFrom(
+						this.ingredientsFrontendService.deleteIngredientFromRoom(this.roomCode(), existing.id)
+					);
+				}
 
 				if (existing.amount > 0) {
 					await firstValueFrom(
 						this.ingredientsFrontendService.addIngredientToRoom(this.roomCode(), existing)
 					);
-					this.availableIngredients.update(v => v.filter(i2 => i2.name !== i.name));
 				}
 			}
 		}
+		this.loadIngredients();
 	}
 }

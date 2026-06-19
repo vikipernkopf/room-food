@@ -1,11 +1,10 @@
 @if (isOpen()) {
 	<div class="modal-backdrop" (click)="closeModal()">
 		<div class="modal-panel" (click)="$event.stopPropagation()">
-
-			<div class="modal-header">
-				<h3>Shopping List</h3>
+			<div class="header-container">
+				<h2 class="header">Shopping List</h2>
 				<button
-					class="btn-icon"
+					class="btn-close"
 					type="button"
 					(click)="closeModal()"
 					[disabled]="saving()"
@@ -25,66 +24,45 @@
 
 				@if (!loading() && ingredients().length > 0) {
 					<div class="select-all-row">
-						<input
-							type="checkbox"
-							id="chk-all"
+						<mat-checkbox
 							[checked]="allChecked()"
 							(change)="toggleAll()"
-							[disabled]="saving()" />
-						<label for="chk-all">
+							[disabled]="saving()"
+							aria-label="Select all ingredients">
+						</mat-checkbox>
+						<span class="select-all-text" (click)="!saving() && toggleAll()">
 							Select all <span class="counter">({{ checkedCount() }}/{{ ingredients().length }})</span>
-						</label>
+						</span>
 					</div>
 
-					<ul class="ing-list">
+					<ul class="ing-list scrollable">
 						@for (ing of ingredients(); track ing.name + ing.measurement; let idx = $index) {
-							<li [class.is-bought]="ing.checked">
-								<input
-									type="checkbox"
-									[id]="'chk-' + idx"
+							<li class="ingredient" [class.is-bought]="ing.checked">
+								<mat-checkbox
 									[checked]="ing.checked"
 									(change)="toggle(idx)"
-									[disabled]="saving()" />
-								<label [for]="'chk-' + idx" class="ing-label">
-									<span class="ing-amount">{{ ing.amount }}</span>
+									[disabled]="saving()"
+									[aria-label]="ing.name">
+								</mat-checkbox>
+								<div class="ing-label" (click)="!saving() && toggle(idx)">
+									<b class="ing-amount">{{ ing.amount | number: '1.0-4' }}</b>
 									<span class="ing-unit">{{ ing.measurement }}</span>
-									<span class="ing-name">{{ ing.name }}</span>
-									@if (ing.alreadyBought && ing.boughtBy) {
-										<span class="bought-by">by {{ ing.boughtBy }}</span>
-									}
-								</label>
+									<strong class="ing-name">{{ ing.name }}</strong>
+								</div>
 							</li>
 						}
 					</ul>
 				}
-
-				@if (error()) {
-					<p class="msg msg-error" role="alert">{{ error() }}</p>
-				}
-
-				@if (success()) {
-					<p class="msg msg-success" role="status">{{ success() }}</p>
-				}
 			</div>
 
 			<div class="modal-footer">
-				@if (hasBoughtItems()) {
-					<button
-						class="btn-ghost"
-						type="button"
-						(click)="clearAll()"
-						[disabled]="saving()">
-						Clear all
-					</button>
-				}
-				<div class="footer-right">
-					<button
-						class="btn-secondary"
-						type="button"
-						(click)="closeModal()"
-						[disabled]="saving()">
-						Cancel
-					</button>
+				<div class="action-row">
+					@if (error()) {
+						<p class="msg msg-error" role="alert">{{ error() }}</p>
+					}
+					@if (success()) {
+						<p class="msg msg-success" role="status">{{ success() }}</p>
+					}
 					<button
 						class="btn-primary"
 						type="button"
@@ -93,8 +71,15 @@
 						@if (saving()) {
 							Saving…
 						} @else {
-							Save ({{ checkedCount() }})
+							Save
 						}
+					</button>
+					<button
+						class="btn-secondary"
+						type="button"
+						(click)="closeModal()"
+						[disabled]="saving()">
+						Cancel
 					</button>
 				</div>
 			</div>

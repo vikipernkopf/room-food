@@ -1,9 +1,8 @@
-import { Component, OnInit, signal, effect, inject } from '@angular/core';
+import { Component, OnInit, signal, effect } from '@angular/core';
 import { MealManagement } from '../meal-management/meal-management';
 import { MealService } from '../core/meal-service';
 import { Meal } from '../../backend/model';
 import { AuthService } from '../core/auth-service';
-import { Router } from '@angular/router';
 import { RoomService } from '../core/room-service';
 import { IngredientList } from './ingredient-list/ingredient-list';
 
@@ -47,9 +46,7 @@ export class Overview implements OnInit {
 	selectedRoomCode: string = '';
 	protected readonly currentUser;
 
-	private hasRedirected = false;
-
-	constructor(private router: Router, private authService: AuthService,
+	constructor(private authService: AuthService,
 		private mealService: MealService, private roomService: RoomService) {
 		this.currentUser = this.authService.currentUser;
 

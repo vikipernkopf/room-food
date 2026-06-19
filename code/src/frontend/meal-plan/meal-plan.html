@@ -3,7 +3,6 @@
 		<h3>{{ meal.name }}</h3>
 		<p><strong>Time:</strong> {{ meal.time | date:'short' }}</p>
 		<p><strong>Room:</strong> {{ meal.room }}</p>
-		<p><strong>Responsible:</strong> {{ meal.responsible }}</p>
 		@if (meal.responsibleUsers && meal.responsibleUsers.length > 0) {
 			<p><strong>Responsible Users:</strong> {{ meal.responsibleUsers.join(', ') }}</p>
 		}

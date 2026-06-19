@@ -14,8 +14,6 @@ export type RawRecipeRow = {
 };
 
 function getApiBase(): string {
-	// Runtime override: window.__API_URL can be injected into the page (e.g. by a script
-	// in index.html) so the deployed static site can point to any backend without rebuild.
 	const win = typeof window === 'undefined' ? undefined : window as any;
 	const runtime = win && (win.__API_URL || win.API_URL);
 	return runtime || environment.apiUrl || '/api';
@@ -96,8 +94,18 @@ export class RecipeService {
 		}>(apiUrl);
 	}
 
-	public getIngredientsForRecipe(recipeId: number): Observable<{ ingredientName: string; measurement: string; amount: number }[]> {
-		return this.http.get<{ ingredientName: string; measurement: string; amount: number }[]>(
+	public getIngredientsForRecipe(recipeId: number): Observable<{
+		id: number;
+		name: string;
+		measurement: string;
+		amount: number
+	}[]> {
+		return this.http.get<{
+			id: number;
+			name: string;
+			measurement: string;
+			amount: number
+		}[]>(
 			`${this.apiBase}/recipes/${recipeId}/ingredients`
 		);
 	}

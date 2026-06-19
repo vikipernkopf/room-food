@@ -3,7 +3,6 @@ import {
 	ChangeDetectionStrategy,
 	effect,
 	inject,
-	OnInit,
 	signal,
 	viewChild
 } from '@angular/core';
@@ -11,7 +10,6 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/auth-service';
 import { IngredientsFrontendService } from '../../core/ingredients-frontend-service';
 import { Shopping } from '../../shopping/shopping';
-import { forkJoin } from 'rxjs';
 
 interface Ingredient {
 	name: string;
@@ -27,12 +25,12 @@ interface Ingredient {
 	styleUrl: './ingredient-list.scss',
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class IngredientList implements OnInit {
+export class IngredientList {
 	readonly shoppingModal = viewChild(Shopping);
 
-	// Ingredients from MealIngredientAssignment minus bought/personal bought
+	// Ingredients still needed (for display only)
 	readonly ingredients = signal<Ingredient[]>([]);
-	readonly loading = signal(true);
+	readonly loading = signal(false);
 	readonly username = signal('');
 
 	private readonly authService = inject(AuthService);
@@ -50,51 +48,39 @@ export class IngredientList implements OnInit {
 		});
 	}
 
-	ngOnInit(): void {
-	}
-
 	loadIngredients(username: string): void {
 		this.loading.set(true);
-		this.ingredients.set([]);
 
-		// Load assigned ingredients and subtract bought in parallel
-		forkJoin({
-			assigned: this.ingredientsFrontendService.getIngredientsForUser(username),
-			bought: this.ingredientsFrontendService.getBoughtIngredientsForUserRooms(username)
-		}).subscribe({
-			next: ({
-				assigned,
-				bought
-			}) => {
-				const neededMap = new Map<string, Ingredient>();
+		// Fetch only NOT BOUGHT ingredients for display
+		this.ingredientsFrontendService.getIngredientsForUser(username).subscribe({
+			next: ingredients => {
+				const validIngredients = Array.isArray(ingredients) ? ingredients : [];
 
-				// Start with assigned ingredients from MealIngredientAssignment
-				(assigned || []).forEach((ing: Ingredient) => {
-					const key = ing.name + '||' + ing.measurement;
-					const existing = neededMap.get(key);
+				const aggregatedMap = new Map<string, Ingredient>();
+
+				validIngredients.forEach(ing => {
+					const name = ing.name || '';
+					const measurement = ing.measurement || '';
+					const amount = Number(ing.amount) || 0;
+					const key = `${name.toLowerCase().trim()}|${measurement.toLowerCase().trim()}`;
+
+					const existing = aggregatedMap.get(key);
 					if (existing) {
-						existing.amount += Number(ing.amount);
+						existing.amount += amount;
 					} else {
-						neededMap.set(key, {
-							...ing,
-							amount: Number(ing.amount)
+						aggregatedMap.set(key, {
+							name,
+							measurement,
+							amount
 						});
 					}
 				});
 
-				// Subtract room-level bought
-				(bought || []).forEach((b: Ingredient) => {
-					const key = b.name + '||' + b.measurement;
-					const needed = neededMap.get(key);
-					if (needed) {
-						needed.amount -= Number(b.amount);
-						if (needed.amount <= 0) {
-							neededMap.delete(key);
-						}
-					}
-				});
-
-				this.ingredients.set(Array.from(neededMap.values()));
+				this.ingredients.set(
+					Array.from(aggregatedMap.values()).sort((a, b) =>
+						(a.name || '').localeCompare(b.name || '')
+					)
+				);
 				this.loading.set(false);
 			},
 			error: () => {
@@ -105,7 +91,8 @@ export class IngredientList implements OnInit {
 	}
 
 	openShopping(): void {
-		this.shoppingModal()?.open(this.ingredients());
+		// Modal fetches ALL assignments itself (both bought and not bought)
+		this.shoppingModal()?.open();
 	}
 
 	onSaved(): void {

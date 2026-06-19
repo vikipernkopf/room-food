@@ -34,7 +34,6 @@ describe('Meal', () => {
 			time: new Date('2026-04-17T17:00:00.000Z'),
 			endTime: new Date('2026-04-17T18:00:00.000Z'),
 			room: 'A1',
-			responsible: 'luni',
 			responsibleUsers: ['luni'],
 			cooked: false
 		};

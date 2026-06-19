@@ -18,20 +18,11 @@ export class MealManagementService extends ServiceBase {
 
 	// ----------------------- Meal part ------------------------------
 
-	/**
-	 * Add a meal for a room
-	 *
-	 * @param meal - meal to add
-	 * @return id if added, "room_not_found" if room doesn't exist, "recipe_not_found" if the recipe doesn't exist and
-	 *     "error" otherwise.
-	 * "recipe not exists" is for future sprints
-	 */
 	public addMeal(meal: Meal): number | 'room_not_found' | 'recipe_not_found' | 'error' {
 		console.log('=== addMeal called ===');
 		console.log('Meal object:', JSON.stringify({
 			name: meal.name,
 			room: meal.room,
-			responsible: meal.responsible,
 			recipeIds: meal.recipeIds
 		}));
 
@@ -46,23 +37,18 @@ export class MealManagementService extends ServiceBase {
 			return 'recipe_not_found';
 		}
 
-		/*if(!this.checkRecipeExists(meal.recipeId)){
-		 return "recipe_not_found";
-		 }*/
-
 		let success: boolean;
 		let id: number;
 
 		[success, id] = this.executeStmt(
 			this.unit.prepare(`
-				insert into Meal(time, endTime, name, mealType, responsible, roomCode, cooked)
-				values (:t, :et, :n, :mt, :rs, :rc, :c)
+				insert into Meal(time, endTime, name, mealType, roomCode, cooked)
+				values (:t, :et, :n, :mt, :rc, :c)
 			`, {
 				t: meal.time.toISOString(),
 				et: meal.endTime.toISOString(),
 				n: meal.name,
 				mt: meal.mealType,
-				rs: meal.responsible,
 				rc: meal.room,
 				c: meal.cooked ? 1 : 0
 			})
@@ -84,12 +70,10 @@ export class MealManagementService extends ServiceBase {
 			return 'error';
 		}
 
-		// in addMeal, before return id:
 		if (!this.replaceEatingUsers(id, meal.eatingUsernames ?? [])) {
 			return 'error';
 		}
 
-		// Persist ingredient assignments if provided (empty object will clear assignments)
 		if (meal.ingredientAssignments !== undefined) {
 			if (!this.setMealIngredientAssignments(id, meal.ingredientAssignments)) {
 				return 'error';
@@ -100,12 +84,6 @@ export class MealManagementService extends ServiceBase {
 		return id;
 	}
 
-	/**
-	 * Delete a meal from a room
-	 *
-	 * @param mealId - meal id to delete
-	 * @return true if deleted, "not_found" if meal doesn't exist, "error" otherwise
-	 */
 	public deleteMeal(mealId: number): true | 'not_found' | 'error' {
 		if (!this.checkMealExists(mealId)) {
 			return 'not_found';
@@ -127,15 +105,6 @@ export class MealManagementService extends ServiceBase {
 		}
 	}
 
-	/**
-	 * Update an existing meal in a room
-	 *
-	 * @param mealId - current persisted meal id
-	 * @param updatedMeal - new meal values
-	 * @return true if updated, "not_found" if the original meal does not exist,
-	 * "room_not_found" if target room does not exist,
-	 * "error" on DB failure
-	 */
 	public updateMeal(
 		mealId: number,
 		updatedMeal: Meal
@@ -160,7 +129,6 @@ export class MealManagementService extends ServiceBase {
 				     endTime=:newEndTime,
 				     name=:newName,
 				     mealType=:newMealType,
-				     responsible=:newResponsible,
 				     roomCode=:newRoom,
 				     cooked=:isCooked
 				 where id = :mealId`,
@@ -169,7 +137,6 @@ export class MealManagementService extends ServiceBase {
 					newEndTime: updatedMeal.endTime.toISOString(),
 					newName: updatedMeal.name,
 					newMealType: updatedMeal.mealType,
-					newResponsible: updatedMeal.responsible,
 					newRoom: updatedMeal.room,
 					isCooked: updatedMeal.cooked ? 1 : 0,
 					mealId
@@ -181,22 +148,18 @@ export class MealManagementService extends ServiceBase {
 			return 'error';
 		}
 
-		// Update MealRecipe table
 		if (!this.replaceMealRecipes(mealId, recipeIds)) {
 			return 'error';
 		}
 
-		// Update MealResponsibleUser table
 		if (!this.replaceMealResponsibleUsers(mealId, updatedMeal.responsibleUsers)) {
 			return 'error';
 		}
 
-		// Update MealEatingUser table
 		if (!this.replaceEatingUsers(mealId, updatedMeal.eatingUsernames ?? [])) {
 			return 'error';
 		}
 
-		// Update ingredient assignments if provided (empty object will clear assignments)
 		if (updatedMeal.ingredientAssignments !== undefined) {
 			if (!this.setMealIngredientAssignments(mealId, updatedMeal.ingredientAssignments)) {
 				return 'error';
@@ -206,24 +169,18 @@ export class MealManagementService extends ServiceBase {
 		return true;
 	}
 
-	/**
-	 * Get an array of meals for a user
-	 *
-	 * @param username - username of the user
-	 * @return array of meals the user is responsible for
-	 */
 	public getMealsForUser(username: string): Meal[] {
 		const fetch = this.unit.prepare(`
-			select m.id,
-			       m.time,
-			       m.endTime,
-			       m.name,
-			       coalesce(m.mealType, 'breakfast-0') as mealType,
-			       m.roomCode,
-			       m.responsible,
-			       m.cooked
+			select distinct m.id,
+			                m.time,
+			                m.endTime,
+			                m.name,
+			                coalesce(m.mealType, 'breakfast-0') as mealType,
+			                m.roomCode,
+			                m.cooked
 			from Meal m
-			where m.responsible = :n
+				     join MealResponsibleUser mru on mru.meal_id = m.id
+			where mru.username = :n
 		`, { n: username }).all() as {
 			time: string,
 			endTime: string,
@@ -231,7 +188,6 @@ export class MealManagementService extends ServiceBase {
 			name: string,
 			mealType: string,
 			roomCode: string,
-			responsible: string,
 			cooked: number
 		}[];
 
@@ -249,7 +205,6 @@ export class MealManagementService extends ServiceBase {
 				endTime: new Date(Date.parse(e.endTime)),
 				name: e.name,
 				mealType: e.mealType,
-				responsible: e.responsible,
 				room: e.roomCode,
 				recipeIds: this.getRecipeIdsForMeal(e.id),
 				responsibleUsers: this.getResponsibleUsersForMeal(e.id),
@@ -268,23 +223,10 @@ export class MealManagementService extends ServiceBase {
 		).get() !== undefined;
 	}
 
-	/**
-	 * Check if there exists a meal at the specified time in the specified room
-	 *
-	 * @param roomCode - room to check
-	 * @return true if taken, false otherwise
-	 */
 	public checkRoomExists(roomCode: string): boolean {
 		return this.rooms.checkRoomExists(roomCode);
 	}
 
-	// noinspection JSUnusedGlobalSymbols
-	/**
-	 * Get an array of meals for a room
-	 *
-	 * @param roomCode - code of the room
-	 * @return array of meals the room is planning
-	 */
 	public getMealsForRoom(roomCode: string): Meal[] {
 		const fetch = this.unit.prepare(`
 			select m.id,
@@ -293,7 +235,6 @@ export class MealManagementService extends ServiceBase {
 			       m.name,
 			       coalesce(m.mealType, 'breakfast-0') as mealType,
 			       m.roomCode,
-			       m.responsible,
 			       m.cooked
 			from Meal m
 			where m.roomCode = :c
@@ -304,7 +245,6 @@ export class MealManagementService extends ServiceBase {
 			name: string,
 			mealType: string,
 			roomCode: string,
-			responsible: string,
 			cooked: number
 		}[];
 
@@ -322,7 +262,6 @@ export class MealManagementService extends ServiceBase {
 				endTime: new Date(Date.parse(e.endTime)),
 				name: e.name,
 				mealType: e.mealType,
-				responsible: e.responsible,
 				room: e.roomCode,
 				recipeIds: this.getRecipeIdsForMeal(e.id),
 				responsibleUsers: this.getResponsibleUsersForMeal(e.id),
@@ -380,20 +319,16 @@ export class MealManagementService extends ServiceBase {
 		return success ? true : 'error';
 	}
 
-	public removeEatingUserByUsername(mealId: number, username: string)
-		: true | 'meal_not_found' | 'user_not_found' | 'not_eating' | 'error' {
+	public removeEatingUserByUsername(mealId: number, username: string): 'meal_not_found' | 'user_not_found' | 'not_eating' | 'error' | 'success' {
 		if (!this.checkMealExists(mealId)) {
 			return 'meal_not_found';
 		}
 
-		const userRow = this.unit.prepare<{
-			id: number
-		}>(
-			`select id
-			 from User
-			 where username = :username`,
+		const userRow = this.unit.prepare<{ id: number }>(
+			`select id from User where username = :username`,
 			{ username }
 		).get();
+
 		if (!userRow) {
 			return 'user_not_found';
 		}
@@ -401,32 +336,21 @@ export class MealManagementService extends ServiceBase {
 		const userId = userRow.id;
 
 		const existing = this.unit.prepare(
-			`select 1
-			 from MealEatingUser
-			 where meal_id = :mealId
-			   and user_id = :userId`,
-			{
-				mealId,
-				userId
-			}
+			`select 1 from MealEatingUser where meal_id = :mealId and user_id = :userId`,
+			{ mealId, userId }
 		).get();
+
 		if (!existing) {
 			return 'not_eating';
 		}
 
-		const [success] = this.executeStmt(
-			this.unit.prepare(
-				`delete
-				 from MealEatingUser
-				 where meal_id = :mealId
-				   and user_id = :userId`,
-				{
-					mealId,
-					userId
-				}
-			)
-		);
-		return success ? true : 'error';
+		this.unit.prepare(
+			`delete from MealEatingUser
+			 where meal_id = :mealId and user_id = :userId`,
+			{ mealId, userId }
+		).run();
+
+		return 'success'; // Returning 'success' skips all error if-blocks in the router
 	}
 
 	// ----------------------- Recipe part ------------------------------
@@ -504,7 +428,6 @@ export class MealManagementService extends ServiceBase {
 		return rows.map(row => row.recipe_id);
 	}
 
-	// noinspection JSUnusedGlobalSymbols
 	public checkRecipeExists(recipeId: number): boolean {
 		return this.unit.prepare(
 			`select *
@@ -513,9 +436,7 @@ export class MealManagementService extends ServiceBase {
 		).get() !== undefined;
 	}
 
-	// noinspection JSUnusedGlobalSymbols
 	public addRecipe(recipe: Recipe): number | 'author_not_found' | 'error' {
-		// recipe.author should be a user ID
 		if (!this.login.checkUserExistsId(recipe.author ?? 0)) {
 			return 'author_not_found';
 		}
@@ -523,7 +444,6 @@ export class MealManagementService extends ServiceBase {
 		let _: boolean;
 		let id: number;
 
-		// noinspection JSUnusedAssignment
 		[_, id] = this.executeStmt(
 			this.unit.prepare(`
 				insert into Recipe(name, description, image, visibility, author)
@@ -541,7 +461,6 @@ export class MealManagementService extends ServiceBase {
 			return 'error';
 		}
 
-		// Insert meal types into junction table
 		if (recipe.mealTypes && recipe.mealTypes.length > 0) {
 			for (const mealType of recipe.mealTypes) {
 				this.unit.prepare(
@@ -585,11 +504,9 @@ export class MealManagementService extends ServiceBase {
 
 					if (result.changes !== 1) {
 						console.warn(`Warning: Failed to insert responsible user ${username} for meal ${mealId}`);
-						// Continue with other users even if one fails
 					}
 				} catch (error) {
 					console.warn(`Warning: Error inserting responsible user ${username}:`, error);
-					// Continue with other users even if one fails
 				}
 			}
 
@@ -656,105 +573,6 @@ export class MealManagementService extends ServiceBase {
 
 	// ----------------------- MealEatingUser part ------------------------------
 
-	/**
-	 * Add a user to the eating list for a meal
-	 *
-	 * @param mealId - meal id
-	 * @param userId - user id
-	 * @return true if added, "meal_not_found" if meal doesn't exist, "user_not_found" if user doesn't exist,
-	 * "already_eating" if user is already in the list, "error" otherwise
-	 */
-	/*public addEatingUser(mealId: number,
-	 userId: number): true | 'meal_not_found' | 'user_not_found' | 'already_eating' | 'error' {
-	 if (!this.checkMealExists(mealId)) {
-	 return 'meal_not_found';
-	 }
-
-	 if (!this.checkUserExists(userId)) {
-	 return 'user_not_found';
-	 }
-
-	 // Check if user is already eating
-	 const existing = this.unit.prepare(
-	 `select 1 from MealEatingUser where meal_id = :mealId and user_id = :userId`,
-	 {
-	 mealId,
-	 userId
-	 }
-	 ).get();
-
-	 if (existing) {
-	 return 'already_eating';
-	 }
-
-	 let success: boolean;
-
-	 [success] = this.executeStmt(
-	 this.unit.prepare(
-	 `insert into MealEatingUser(meal_id, user_id) values (:mealId, :userId)`,
-	 {
-	 mealId,
-	 userId
-	 }
-	 )
-	 );
-
-	 return success ? true : 'error';
-	 }*/
-
-	/**
-	 * Remove a user from the eating list for a meal
-	 *
-	 * @param mealId - meal id
-	 * @param userId - user id
-	 * @return true if removed, "meal_not_found" if meal doesn't exist, "user_not_found" if user doesn't exist,
-	 *     "not_eating" if user is not in the list, "error" otherwise
-	 */
-
-	/*public removeEatingUser(mealId: number,
-	 userId: number): true | 'meal_not_found' | 'user_not_found' | 'not_eating' | 'error' {
-	 if (!this.checkMealExists(mealId)) {
-	 return 'meal_not_found';
-	 }
-
-	 if (!this.checkUserExists(userId)) {
-	 return 'user_not_found';
-	 }
-
-	 // Check if user is eating
-	 const existing = this.unit.prepare(
-	 `select 1 from MealEatingUser where meal_id = :mealId and user_id = :userId`,
-	 {
-	 mealId,
-	 userId
-	 }
-	 ).get();
-
-	 if (!existing) {
-	 return 'not_eating';
-	 }
-
-	 let success: boolean;
-
-	 [success] = this.executeStmt(
-	 this.unit.prepare(
-	 `delete from MealEatingUser where meal_id = :mealId and user_id = :userId`,
-	 {
-	 mealId,
-	 userId
-	 }
-	 )
-	 );
-
-	 return success ? true : 'error';
-	 }*/
-
-	/**
-	 * Get the list of users eating a meal
-	 *
-	 * @param mealId - meal id
-	 * @return array of user ids, or "meal_not_found" if meal doesn't exist
-	 */
 	public getEatingUsers(mealId: number): string[] | 'meal_not_found' {
 		if (!this.checkMealExists(mealId)) {
 			return 'meal_not_found';
@@ -766,8 +584,7 @@ export class MealManagementService extends ServiceBase {
 			`select u.username
 			 from MealEatingUser meu
 				      join User u on meu.user_id = u.id
-			 where meu.meal_id
-				       = :mealId
+			 where meu.meal_id = :mealId
 			 order by u.username`,
 			{ mealId }
 		).all();
@@ -775,73 +592,11 @@ export class MealManagementService extends ServiceBase {
 		return rows.map(row => row.username);
 	}
 
-	/*private checkUserExists(userId: number): boolean {
-	 const result = this.unit.prepare(
-	 `select 1
-	 from User
-	 where id = :userId`,
-	 { userId }
-	 ).get();
-
-	 return !!result;
-	 }*/
-
-	/*private syncEatingUser(mealId: number, username: string, isEating: boolean): void {
-	 const userRow = this.unit.prepare<{
-	 id: number
-	 }>(
-	 `select id
-	 from User
-	 where username = :username`,
-	 { username }
-	 ).get();
-
-	 if (!userRow) {
-	 return;
-	 }
-
-	 const userId = userRow.id;
-
-	 if (isEating) {
-	 const existing = this.unit.prepare(
-	 `select 1
-	 from MealEatingUser
-	 where meal_id = :mealId
-	 and user_id = :userId`,
-	 {
-	 mealId,
-	 userId
-	 }
-	 ).get();
-
-	 if (!existing) {
-	 this.unit.prepare(
-	 `insert into MealEatingUser(meal_id, user_id)
-	 values (:mealId, :userId)`,
-	 {
-	 mealId,
-	 userId
-	 }
-	 ).run();
-	 }
-	 } else {
-	 this.unit.prepare(
-	 `delete
-	 from MealEatingUser
-	 where meal_id = :mealId
-	 and user_id = :userId`,
-	 {
-	 mealId,
-	 userId
-	 }
-	 ).run();
-	 }
-	 }*/
-
 	// ----------------------- Ingredient Assignment part ------------------------------
 
-	public assignIngredientToUser(mealId: number, ingredientName: string,
-		username: string): true | 'meal_not_found' | 'user_not_found' | 'already_assigned' | 'error' {
+	public assignIngredientToUser(mealId: number, ingredientId: number,
+		username: string): true | 'meal_not_found' | 'user_not_found' | 'already_assigned' | 'ingredient_not_found'
+		| 'error' {
 		if (!this.checkMealExists(mealId)) {
 			return 'meal_not_found';
 		}
@@ -858,15 +613,25 @@ export class MealManagementService extends ServiceBase {
 			return 'user_not_found';
 		}
 
+		const ingredientExists = this.unit.prepare(
+			`select 1
+			 from Ingredient
+			 where id = :ingredientId`,
+			{ ingredientId }
+		).get();
+		if (!ingredientExists) {
+			return 'ingredient_not_found';
+		}
+
 		const existing = this.unit.prepare(
 			`select 1
 			 from MealIngredientAssignment
 			 where meal_id = :mealId
-			   and ingredient_name = :ingredientName
+			   and ingredient_id = :ingredientId
 			   and assigned_to_username = :username`,
 			{
 				mealId,
-				ingredientName,
+				ingredientId,
 				username
 			}
 		).get();
@@ -874,22 +639,44 @@ export class MealManagementService extends ServiceBase {
 			return 'already_assigned';
 		}
 
+		const recipeInfo = this.unit.prepare<{
+			measurement: string;
+			amount: string;
+		}>(
+			`select ri.measurement, ri.amount
+			 from MealRecipe mr
+				      join RecipeIngredient ri on ri.recipe_id = mr.recipe_id
+			 where mr.meal_id = :mealId
+			   and ri.ingredient_id = :ingredientId
+			 limit 1`,
+			{
+				mealId,
+				ingredientId
+			}
+		).get();
+
+		const measurement = recipeInfo?.measurement ?? '';
+		const amount = recipeInfo?.amount ?? '0';
+
 		const [success] = this.executeStmt(
 			this.unit.prepare(
-				`insert into MealIngredientAssignment(meal_id, ingredient_name, assigned_to_username)
-				 values (:mealId, :ingredientName, :username)`,
+				`insert into MealIngredientAssignment(meal_id, ingredient_id, assigned_to_username, measurement, amount,
+				                                      bought)
+				 values (:mealId, :ingredientId, :username, :measurement, :amount, 0)`,
 				{
 					mealId,
-					ingredientName,
-					username
+					ingredientId,
+					username,
+					measurement,
+					amount
 				}
 			)
 		);
 		return success ? true : 'error';
 	}
 
-	public removeIngredientAssignment(mealId: number, ingredientName: string,
-		username: string): true | 'meal_not_found' | 'user_not_found' | 'not_assigned' | 'error' {
+	public removeIngredientAssignment(mealId: number, ingredientId: number,
+		username: string): true | 'meal_not_found' | 'user_not_found' | 'not_assigned' | 'ingredient_not_found' | 'error' {
 		if (!this.checkMealExists(mealId)) {
 			return 'meal_not_found';
 		}
@@ -906,15 +693,25 @@ export class MealManagementService extends ServiceBase {
 			return 'user_not_found';
 		}
 
+		const ingredientExists = this.unit.prepare(
+			`select 1
+			 from Ingredient
+			 where id = :ingredientId`,
+			{ ingredientId }
+		).get();
+		if (!ingredientExists) {
+			return 'ingredient_not_found';
+		}
+
 		const existing = this.unit.prepare(
 			`select 1
 			 from MealIngredientAssignment
 			 where meal_id = :mealId
-			   and ingredient_name = :ingredientName
+			   and ingredient_id = :ingredientId
 			   and assigned_to_username = :username`,
 			{
 				mealId,
-				ingredientName,
+				ingredientId,
 				username
 			}
 		).get();
@@ -927,11 +724,11 @@ export class MealManagementService extends ServiceBase {
 				`delete
 				 from MealIngredientAssignment
 				 where meal_id = :mealId
-				   and ingredient_name = :ingredientName
+				   and ingredient_id = :ingredientId
 				   and assigned_to_username = :username`,
 				{
 					mealId,
-					ingredientName,
+					ingredientId,
 					username
 				}
 			)
@@ -939,83 +736,69 @@ export class MealManagementService extends ServiceBase {
 		return success ? true : 'error';
 	}
 
-	public getIngredientAssignmentsForMeal(mealId: number): Map<string, string[]> | 'meal_not_found' {
+	public getIngredientAssignmentsForMeal(mealId: number): Map<number, string[]> | 'meal_not_found' {
 		if (!this.checkMealExists(mealId)) {
 			return 'meal_not_found';
 		}
 
 		const rows = this.unit.prepare<{
-			ingredient_name: string;
+			ingredient_id: number;
 			assigned_to_username: string;
 		}>(
-			`select ingredient_name, assigned_to_username
+			`select ingredient_id, assigned_to_username
 			 from MealIngredientAssignment
 			 where meal_id = :mealId
-			 order by ingredient_name, assigned_to_username`,
+			 order by ingredient_id, assigned_to_username`,
 			{ mealId }
 		).all();
 
-		const assignmentMap = new Map<string, string[]>();
+		const assignmentMap = new Map<number, string[]>();
 		for (const row of rows) {
-			if (!assignmentMap.has(row.ingredient_name)) {
-				assignmentMap.set(row.ingredient_name, []);
+			if (!assignmentMap.has(row.ingredient_id)) {
+				assignmentMap.set(row.ingredient_id, []);
 			}
-			assignmentMap.get(row.ingredient_name)!.push(row.assigned_to_username);
+			assignmentMap.get(row.ingredient_id)!.push(row.assigned_to_username);
 		}
 
 		return assignmentMap;
 	}
 
-	/*private replaceMealIngredientAssignments(mealId: number, assignmentsByIngredient: Map<string, string[]>):
-	 boolean {
-	 try {
-	 this.unit.prepare(
-	 `delete
-	 from MealIngredientAssignment
-	 where meal_id = :mealId`,
-	 { mealId }
-	 ).run();
-
-	 for (const [ingredientName, usernames] of assignmentsByIngredient.entries()) {
-	 const uniqueUsernames = Array.from(new Set(usernames));
-	 for (const username of uniqueUsernames) {
-	 const result = this.unit.prepare(
-	 `insert into MealIngredientAssignment(meal_id, ingredient_name, assigned_to_username)
-	 values (:mealId, :ingredientName, :username)`,
-	 {
-	 mealId,
-	 ingredientName,
-	 username
-	 }
-	 ).run();
-
-	 if (result.changes !== 1) {
-	 console.warn(
-	 `Warning: Failed to insert ingredient assignment for ${ingredientName} to ${username}`);
-	 }
-	 }
-	 }
-
-	 return true;
-	 } catch (error) {
-	 console.error('Error in replaceMealIngredientAssignments:', error);
-	 return false;
-	 }
-	 }*/
-
 	private setMealIngredientAssignments(mealId: number, assignments: {
-		[ingredient: string]: any[]
+		[ingredientId: number]: any[]
 	}): boolean {
 		try {
-			// Remove existing assignments
 			this.unit.prepare(
 				`delete
 				 from MealIngredientAssignment
 				 where meal_id = :mealId`,
 				{ mealId }).run();
 
-			for (const ingredientName of Object.keys(assignments)) {
-				const usernames = assignments[ingredientName] || [];
+			for (const ingredientIdStr of Object.keys(assignments)) {
+				const ingredientId = Number(ingredientIdStr);
+				if (!Number.isInteger(ingredientId) || ingredientId <= 0) {
+					continue;
+				}
+
+				const usernames = assignments[ingredientId] || [];
+
+				const recipeInfo = this.unit.prepare<{
+					measurement: string;
+					amount: string;
+				}>(
+					`select ri.measurement, ri.amount
+					 from MealRecipe mr
+						      join RecipeIngredient ri on ri.recipe_id = mr.recipe_id
+					 where mr.meal_id = :mealId
+					   and ri.ingredient_id = :ingredientId
+					 limit 1`,
+					{
+						mealId,
+						ingredientId
+					}
+				).get();
+
+				const measurement = recipeInfo?.measurement ?? '';
+				const amount = recipeInfo?.amount ?? '0';
 
 				const normalized = Array.from(new Set(
 					usernames.filter(u => typeof u === 'string' && u.trim().length > 0)
@@ -1024,12 +807,15 @@ export class MealManagementService extends ServiceBase {
 
 				for (const username of normalized) {
 					this.unit.prepare(
-						`insert into MealIngredientAssignment(meal_id, ingredient_name, assigned_to_username)
-						 values (:mealId, :ingredientName, :username)`,
+						`insert into MealIngredientAssignment(meal_id, ingredient_id, assigned_to_username, measurement,
+						                                      amount, bought)
+						 values (:mealId, :ingredientId, :username, :measurement, :amount, 0)`,
 						{
 							mealId,
-							ingredientName,
-							username
+							ingredientId,
+							username,
+							measurement,
+							amount
 						})
 					.run();
 				}
@@ -1038,7 +824,6 @@ export class MealManagementService extends ServiceBase {
 			return true;
 		} catch (error) {
 			console.error('Error in setMealIngredientAssignments:', error);
-
 			return false;
 		}
 	}

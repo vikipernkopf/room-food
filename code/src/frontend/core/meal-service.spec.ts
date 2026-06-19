@@ -31,7 +31,6 @@ describe('MealService', () => {
 			time: new Date('2026-04-17T17:00:00.000Z'),
 			endTime: new Date('2026-04-17T18:00:00.000Z'),
 			room: 'A1',
-			responsible: 'luni',
 			responsibleUsers: ['luni'],
 			cooked: false
 		};
@@ -57,7 +56,6 @@ describe('MealService', () => {
 			time: new Date('2026-04-17T11:00:00.000Z'),
 			endTime: new Date('2026-04-17T12:00:00.000Z'),
 			room: 'A1',
-			responsible: 'tobi',
 			responsibleUsers: ['tobi', 'luni'],
 			cooked: false
 		};

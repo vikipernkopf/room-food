@@ -54,8 +54,9 @@
 			<h2 class="section-title">Ingredients</h2>
 			<div class="form-grid ingredients-form">
 				<div class="field-group ingredient-name">
-					<label class="field-label">Ingredient Name</label>
-					<app-search-ingredient (ingredientSelected)="onIngredientSelected($event)"></app-search-ingredient>
+					<label class="field-label">Search Ingredient</label>
+					<app-search-ingredient #searchIngredient (ingredientSelected)="onIngredientSelected($event)">
+					</app-search-ingredient>
 				</div>
 				<div class="field-group">
 					<label class="field-label">Amount</label>
@@ -87,7 +88,7 @@
 					@for (ingredient of ingredients(); track $index) {
 						<div class="ingredient-item">
 							<span class="col-name">{{ ingredient.name }}</span>
-							<span class="col-amount">{{ ingredient.amount }}</span>
+							<span class="col-amount">{{ ingredient.amount | number: '1.0-4' }}</span>
 							<span class="col-measurement">{{ ingredient.measurement }}</span>
 							<button type="button" class="btn-remove" (click)="removeIngredient($index)">×</button>
 						</div>
@@ -116,11 +117,9 @@
 			@if (saveError()) {
 				<span class="error-text">{{ saveError() }}</span>
 			}
-			<button type="submit" class="btn-primary" [disabled]="isSaving() || recipeForm().invalid()">
-				{{ isSaving() ? (isEditMode() ? 'Saving Changes...' : 'Creating Recipe...') : (isEditMode()
-				? 'Save Changes' : 'Create Recipe') }}
+			<button type="button" class="btn-primary" [disabled]="isSaving() || recipeForm().invalid()" (click)="submitForm()">
+				{{ isSaving() ? (isEditMode() ? 'Saving Changes...' : 'Creating Recipe...') : (isEditMode() ? 'Save Changes' : 'Create Recipe') }}
 			</button>
 		</div>
-		<hr>
 	</form>
 </div>
