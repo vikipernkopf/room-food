@@ -26,8 +26,11 @@ const browserDistFolder = join(import.meta.dirname, '../browser');
 
 const app = express();
 
+// Add this line here:
+app.set('trust proxy', 1);
+
 const angularApp = new AngularNodeAppEngine({
-	allowedHosts: ['localhost', 'roomfood.onrender.com']
+	allowedHosts: ['localhost', 'roomfood.onrender.com', 'roomfood-backend.black2.cf']
 });
 
 // Configure CORS to allow requests from frontend domains
@@ -36,7 +39,8 @@ app.use(cors({
 		const allowedOrigins = [
 			'http://localhost:4200',
 			'http://localhost:3000',
-			'https://roomfood.onrender.com'
+			'https://roomfood.onrender.com',
+			'https://roomfood.black2.cf' // Add your custom frontend domain if applicable
 		];
 
 		// Allow requests with no origin (like mobile apps or curl requests)
