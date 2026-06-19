@@ -66,7 +66,10 @@ loginSignUpRouter.post('/login', async (req, res) => {
 		const token = jwt.sign({ username: user.username }, JWT_SECRET, { expiresIn: '7d' });
 
 		unit.complete(true);
-		res.cookie('session', token, COOKIE_OPTIONS);
+		res.setHeader(
+			'Set-Cookie',
+			`session=${token}; Secure; HttpOnly; SameSite=None; Partitioned; Path=/; Max-Age=${7 * 24 * 60 * 60}`
+		);
 		return res.status(StatusCodes.OK).json(publicUserFrom(user));
 	} catch (e) {
 		console.error(e);
@@ -133,7 +136,10 @@ loginSignUpRouter.post('/signup', async (req, res) => {
 		}
 
 		const token = jwt.sign({ username: createdUser.username }, JWT_SECRET, { expiresIn: '7d' });
-		res.cookie('session', token, COOKIE_OPTIONS);
+		res.setHeader(
+			'Set-Cookie',
+			`session=${token}; Secure; HttpOnly; SameSite=None; Partitioned; Path=/; Max-Age=${7 * 24 * 60 * 60}`
+		);
 
 		return res.status(StatusCodes.OK).json(publicUserFrom(createdUser));
 	} catch (e) {
