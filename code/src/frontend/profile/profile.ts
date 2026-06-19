@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, signal, ViewChild, WritableSignal } from '@angular/core';
+import { Component, computed, effect, inject, signal, untracked, ViewChild, WritableSignal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatDatepickerModule } from '@angular/material/datepicker';
@@ -67,11 +67,12 @@ export class Profile {
 
 		effect(() => {
 			const routeUsername = this.route?.snapshot?.paramMap?.get('username');
-			const currentUserUsername = this.currentUser()?.username;
+			// Use untracked so that changing user details doesn't re-trigger this effect
+			const currentUserUsername = untracked(() => this.currentUser()?.username);
 			const username = (routeUsername ?? currentUserUsername ?? '').trim();
 
 			if (!username) {
-				if (this.currentUser()) {
+				if (untracked(() => this.currentUser())) {
 					this.loadError.set('No profile selected. Log in to view your profile.');
 					this.isLoading.set(false);
 				} else {
@@ -79,7 +80,9 @@ export class Profile {
 				}
 				return;
 			}
-			this.fetchProfile(username);
+
+			// Prevent internal signal writes from registering as dependencies
+			untracked(() => this.fetchProfile(username));
 		});
 	}
 
