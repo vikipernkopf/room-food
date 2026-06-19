@@ -34,7 +34,6 @@ describe('MealPlan', () => {
 			time: new Date('2026-02-27T12:00:00Z'),
 			endTime: new Date('2026-02-27T14:00:00Z'),
 			room: 'A1',
-			responsible: 'luni',
 			cooked: false
 		};
 		component.index = 0;
@@ -45,7 +44,6 @@ describe('MealPlan', () => {
 
 		expect(name.nativeElement.textContent).toContain('Pasta');
 		expect(details[1].nativeElement.textContent).toContain('A1');
-		expect(details[2].nativeElement.textContent).toContain('luni');
 	});
 
 	it('adds even class when index is odd', () => {
@@ -55,7 +53,6 @@ describe('MealPlan', () => {
 			time: new Date('2026-02-27T18:00:00Z'),
 			endTime: new Date('2026-02-27T20:00:00Z'),
 			room: 'A1',
-			responsible: 'luni',
 			cooked: false
 		};
 		component.index = 1;
@@ -74,7 +71,6 @@ describe('MealPlan', () => {
 			time: new Date('2026-02-28T12:00:00Z'),
 			endTime: new Date('2026-02-27T15:00:00Z'),
 			room: 'A1',
-			responsible: 'luni',
 			cooked: false
 		};
 		component.onDelete = meal => {

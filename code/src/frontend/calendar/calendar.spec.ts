@@ -89,7 +89,8 @@ describe('Calendar', () => {
 				time: new Date('2026-02-23T12:00:00.000Z'),
 				endTime: new Date('2026-02-23T13:00:00.000Z'),
 				room: 'A1',
-				responsible: 'alice'
+				responsible: 'alice',
+				cooked: false
 			} as Meal
 		]);
 		const day = component.weekdays[1];
